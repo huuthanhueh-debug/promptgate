@@ -2,7 +2,7 @@
 
 **Cánh cổng giữa bàn phím và Claude.** Mỗi prompt bạn gõ trong Claude Code được chấm điểm trong vài mili-giây. Prompt yếu bị chặn và trả lại cho bạn dưới dạng gọn hơn, sâu hơn. Prompt tốt đi thẳng, không ai làm phiền. Toàn bộ lịch sử prompt trên máy được quét cục bộ để bạn thấy thói quen và tiến bộ của mình.
 
-[English](README.md) · [Đặc tả](docs/SPEC.md) · [Bản Pro trên Gumroad](https://thequietconcierge.gumroad.com/l/promptgate)
+[English](README.md) · [Đặc tả](docs/SPEC.md) · [Hướng dẫn cài cho văn phòng](docs/TEAM-INSTALL.vi.md) · [Bản Pro trên Gumroad](https://thequietconcierge.gumroad.com/l/promptgate)
 
 ```
 PromptGate ▸ 32/100 · sửa lỗi · chiều sâu chuẩn

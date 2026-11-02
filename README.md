@@ -2,7 +2,7 @@
 
 **A gate between your keyboard and Claude.** Every prompt you type in Claude Code is scored in milliseconds. Weak prompts are stopped and handed back tighter and deeper. Good prompts pass silently. Your whole prompt history is scanned locally so you can see your habits and your progress.
 
-[Tiếng Việt](README.vi.md) · [Spec](docs/SPEC.md) · [Pro on Gumroad](https://thequietconcierge.gumroad.com/l/promptgate)
+[Tiếng Việt](README.vi.md) · [Spec](docs/SPEC.md) · [Team install guide (VI)](docs/TEAM-INSTALL.vi.md) · [Pro on Gumroad](https://thequietconcierge.gumroad.com/l/promptgate)
 
 ```
 PromptGate ▸ 32/100 · debug · depth standard
