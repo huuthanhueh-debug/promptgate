@@ -113,6 +113,16 @@ Pro packs are JSON files you drop into `~/.claude/promptgate/packs/`. Get them a
 - **Phase 2**: Windows tray tool with a global hotkey, so the same engine works in the Claude desktop app and any other window.
 - **Phase 3**: Chrome extension for claude.ai.
 
+## Troubleshooting
+
+- **`/promptgate:activate` or tier-2 fails with a certificate error** (common with Kaspersky or a corporate proxy on Windows): run Claude Code with `NODE_OPTIONS=--use-system-ca`, or set `NODE_EXTRA_CA_CERTS` to a PEM bundle that includes your interception root. Details in [docs/INTEGRATION.md](docs/INTEGRATION.md).
+- **Nothing happens on weak prompts in the desktop app**: open a new session or run `/reload-plugins`; hooks load at session start.
+- **Too chatty**: `/promptgate:config gentle`. **Too quiet**: `/promptgate:config strict`.
+
+## Embed it elsewhere
+
+The engine is a plain Node module. [docs/INTEGRATION.md](docs/INTEGRATION.md) shows how to score prompts in your own chat UI and offer A/B/C rewrites as buttons (as done in a hotel-ops virtual office assistant).
+
 ## Develop
 
 ```bash
