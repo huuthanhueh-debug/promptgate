@@ -96,6 +96,9 @@ function analyze(text, opts) {
   else if (R.MAX_CUE.test(trimmed)) depth = 'deep';
   const refc = refs(trimmed);
   const base = Object.assign({ output: 3, constraints: 3, acceptance: 3 }, tdef.baseline || {});
+  // Follow-up turns (3rd+ prompt in a session) lean on earlier context: relax grounding demands.
+  const followUp = !!opts.followUp;
+  if (followUp) { base.output = Math.max(base.output, 6); base.constraints = Math.max(base.constraints, 6); base.acceptance = Math.max(base.acceptance, 4); }
   const dims = {};
 
   // Goal (25)
@@ -108,11 +111,11 @@ function analyze(text, opts) {
   goal += nW >= 6 ? 5 : 2;
   const vagueRefs = refc.total === 0 ? Math.min(2, count(trimmed, R.VAGUE_REFS)) : 0;
   const vagueVerbs = specificity === 0 ? Math.min(2, count(trimmed, R.VAGUE_VERBS)) : 0;
-  goal -= Math.min(15, vagueRefs * 6 + vagueVerbs * 4);
+  goal -= Math.min(15, Math.round((vagueRefs * 6 + vagueVerbs * 4) * (followUp ? 0.5 : 1)));
   dims.goal = clamp(Math.round(goal), 0, MAX.goal);
 
   // Context (15)
-  const need = tdef.needsContext || 'medium';
+  const need = followUp ? 'low' : (tdef.needsContext || 'medium');
   const table = { high: [3, 10, 15], medium: [7, 12, 15], low: [10, 15, 15] };
   dims.context = (table[need] || table.medium)[Math.min(2, refc.total)];
 
@@ -142,7 +145,7 @@ function analyze(text, opts) {
 
   // Depth fit (10)
   const cue = count(trimmed, R.DEPTH_CUE) > 0;
-  dims.depth = depth === 'deep' ? (cue ? 10 : 3) : depth === 'standard' ? (cue ? 10 : 7) : (cue ? 7 : 10);
+  dims.depth = depth === 'deep' ? (cue ? 10 : followUp ? 7 : 3) : depth === 'standard' ? (cue ? 10 : 7) : (cue ? 7 : 10);
 
   const score = Object.values(dims).reduce((s, v) => s + v, 0);
   const missing = [];
@@ -151,7 +154,7 @@ function analyze(text, opts) {
   }
   missing.sort((x, y) => dims[x] / MAX[x] - dims[y] / MAX[y]);
   return {
-    lang, type, depth, nWords: nW, refs: refc, dims, max: MAX, score,
+    lang, type, depth, followUp, nWords: nW, refs: refc, dims, max: MAX, score,
     missing, excess: { filler, long, repeated },
     flags: { hasVerb, isQ: cls.isQ, cue },
   };
@@ -187,7 +190,10 @@ function rewrite(text, a, pack, T) {
   lines.push(`${T.labels.goal}: ${core}`);
   const needCtx = (tdef.needsContext || 'medium') !== 'low';
   if (a.type !== 'question') {
-    if (a.dims.context < 10 && needCtx) lines.push(`${T.labels.context}: ⟨${T.ph.context}⟩`);
+    if (a.dims.context < 10 && needCtx) {
+      const ph = (tdef.ph && tdef.ph.context && tdef.ph.context[a.lang]) || T.ph.context;
+      lines.push(`${T.labels.context}: ⟨${ph}⟩`);
+    }
     if (a.dims.output < 9) {
       const d = tdef.defaults && tdef.defaults.output && tdef.defaults.output[a.lang];
       lines.push(`${T.labels.output}: ${d || '⟨' + T.ph.output + '⟩'}`);

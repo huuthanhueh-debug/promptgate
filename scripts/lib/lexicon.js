@@ -14,8 +14,8 @@ const AUTOMATED_TEXT = /(automated run of a scheduled task|\[Subagent hand-back\
 
 // Action verbs (goal clarity).
 const VERBS = {
-  vi: ['tạo', 'xây', 'xây dựng', 'viết', 'soạn', 'sửa', 'chỉnh', 'thêm', 'xóa', 'bỏ', 'đổi', 'thay', 'cập nhật', 'nâng cấp', 'tối ưu', 'phân tích', 'so sánh', 'đánh giá', 'kiểm tra', 'review', 'tóm tắt', 'dịch', 'giải thích', 'liệt kê', 'lập', 'thiết kế', 'triển khai', 'cài', 'cấu hình', 'chạy', 'test', 'debug', 'tìm', 'trích', 'xuất', 'nhập', 'gộp', 'tách', 'chuyển', 'refactor', 'deploy', 'đẩy', 'commit', 'tính', 'đề xuất', 'lên kế hoạch', 'rà soát', 'mô tả', 'vẽ', 'làm'],
-  en: ['create', 'build', 'write', 'draft', 'fix', 'change', 'add', 'remove', 'delete', 'update', 'upgrade', 'optimize', 'analyze', 'analyse', 'compare', 'evaluate', 'assess', 'check', 'review', 'summarize', 'summarise', 'translate', 'explain', 'list', 'design', 'implement', 'install', 'configure', 'run', 'test', 'debug', 'find', 'extract', 'export', 'import', 'merge', 'split', 'convert', 'refactor', 'deploy', 'push', 'commit', 'calculate', 'compute', 'propose', 'plan', 'audit', 'describe', 'generate', 'rewrite', 'migrate', 'document', 'make', 'do', 'improve', 'help', 'show', 'tell', 'give'],
+  vi: ['tạo', 'xây', 'xây dựng', 'viết', 'soạn', 'sửa', 'chỉnh', 'thêm', 'xóa', 'bỏ', 'đổi', 'thay', 'cập nhật', 'nâng cấp', 'tối ưu', 'phân tích', 'so sánh', 'đánh giá', 'kiểm tra', 'review', 'tóm tắt', 'dịch', 'giải thích', 'liệt kê', 'lập', 'thiết kế', 'triển khai', 'cài', 'cấu hình', 'chạy', 'test', 'debug', 'tìm', 'trích', 'xuất', 'nhập', 'gộp', 'tách', 'chuyển', 'refactor', 'deploy', 'đẩy', 'commit', 'tính', 'đề xuất', 'lên kế hoạch', 'rà soát', 'mô tả', 'vẽ', 'làm', 'render', 'duyệt', 'gửi', 'mở', 'đọc', 'in', 'tải', 'lưu', 'sao chép', 'hạ', 'tăng', 'giảm', 'bật', 'tắt', 'đặt', 'kết nối', 'đồng bộ', 'push', 'pull', 'publish', 'đăng'],
+  en: ['create', 'build', 'write', 'draft', 'fix', 'change', 'add', 'remove', 'delete', 'update', 'upgrade', 'optimize', 'analyze', 'analyse', 'compare', 'evaluate', 'assess', 'check', 'review', 'summarize', 'summarise', 'translate', 'explain', 'list', 'design', 'implement', 'install', 'configure', 'run', 'test', 'debug', 'find', 'extract', 'export', 'import', 'merge', 'split', 'convert', 'refactor', 'deploy', 'push', 'commit', 'calculate', 'compute', 'propose', 'plan', 'audit', 'describe', 'generate', 'rewrite', 'migrate', 'document', 'make', 'do', 'improve', 'help', 'show', 'tell', 'give', 'render', 'approve', 'send', 'open', 'read', 'print', 'download', 'save', 'copy', 'lower', 'raise', 'increase', 'decrease', 'enable', 'disable', 'set', 'connect', 'sync', 'pull', 'publish', 'post', 'redeploy', 'restart', 'rerun', 're-run'],
 };
 
 // Vague verbs: acceptable only when the object is specific.
@@ -52,7 +52,7 @@ const MAX_CUE = /\b(ultrathink|max|hết công suất|kỹ nhất|tối đa côn
 const FILLER = [
   /\b(làm ơn|vui lòng|xin vui lòng|xin hãy|giúp (?:tôi|mình|em|anh|chị) với|giúp (?:tôi|mình) nhé|bạn có thể|bạn ơi|claude ơi|cho (?:tôi|mình) hỏi|mình muốn hỏi|tôi muốn hỏi|cho (?:tôi|mình) nhờ|nhờ bạn|phiền bạn|xin lỗi(?: làm phiền)?|cảm ơn (?:bạn|nhiều|trước)|cám ơn|rất mong|hy vọng bạn)\b/gi,
   /\b(please|pls|plz|kindly|could you(?: please)?|can you(?: please)?|would you(?: mind)?|i was wondering(?: if)?|i would like you to|i'd like you to|i want you to|if (?:you (?:don't mind|can)|possible)|thank you(?: so much| in advance)?|thanks(?: a lot| in advance)?|sorry (?:to bother|for)|hey claude|hi claude|hello claude|you are (?:a|an) (?:expert|senior|world[- ]class)[^.,\n]*)\b/gi,
-  /\b(nhé|nha|nhá|ạ|với ạ|đi ạ|hen)\b(?=[\s.,!?]*$)/gi,
+  /\b(nhé|nha|nhá|ạ|với ạ|đi ạ|hen)\b(?=\s*(?:[,.!?;]|$))/gi,
 ];
 
 // Leading / trailing politeness removed from the rewrite only (not counted against economy).

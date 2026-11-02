@@ -23,6 +23,7 @@ function merge(packs) {
       cur.keywords.en = cur.keywords.en.concat((d.keywords && d.keywords.en) || []);
       for (const k of ['depth', 'needsContext', 'weight', 'askConstraints']) if (d[k] !== undefined) cur[k] = d[k];
       if (d.baseline) cur.baseline = Object.assign({}, cur.baseline || {}, d.baseline);
+      if (d.ph) { cur.ph = cur.ph || {}; for (const [k, v] of Object.entries(d.ph)) cur.ph[k] = Object.assign({}, cur.ph[k] || {}, v); }
       if (d.defaults) {
         if (d.defaults.output) cur.defaults.output = Object.assign({}, cur.defaults.output, d.defaults.output);
         if (d.defaults.done) cur.defaults.done = Object.assign({}, cur.defaults.done, d.defaults.done);

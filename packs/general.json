@@ -3,107 +3,591 @@
   "version": "1.0.0",
   "tier": "free",
   "description": "Base task types, keywords (VI/EN), depth profiles and default output/done lines.",
-  "priority": ["debug", "ops", "build", "analyze", "review", "write", "edit"],
+  "priority": [
+    "debug",
+    "ops",
+    "build",
+    "analyze",
+    "review",
+    "write",
+    "edit"
+  ],
   "types": {
     "question": {
-      "keywords": { "vi": [], "en": [] },
-      "depth": "light", "needsContext": "low",
-      "baseline": { "output": 12, "constraints": 10, "acceptance": 7 },
+      "keywords": {
+        "vi": [],
+        "en": []
+      },
+      "depth": "light",
+      "needsContext": "low",
+      "baseline": {
+        "output": 12,
+        "constraints": 10,
+        "acceptance": 7
+      },
       "askConstraints": false,
-      "defaults": { "output": { "vi": "trả lời ngắn, có ví dụ nếu cần", "en": "short answer, example if useful" }, "done": {} }
+      "defaults": {
+        "output": {
+          "vi": "trả lời ngắn, có ví dụ nếu cần",
+          "en": "short answer, example if useful"
+        },
+        "done": {}
+      }
     },
     "edit": {
       "keywords": {
-        "vi": ["sửa", "chỉnh", "đổi", "thay", "thêm", "xóa", "bỏ", "đổi tên", "di chuyển", "cập nhật", "chỉnh sửa", "sửa chữ", "đổi màu", "đổi chỗ"],
-        "en": ["change", "edit", "rename", "move", "tweak", "adjust", "update", "replace", "remove", "add", "swap", "reorder"]
+        "vi": [
+          "sửa",
+          "chỉnh",
+          "đổi",
+          "thay",
+          "thêm",
+          "xóa",
+          "bỏ",
+          "đổi tên",
+          "di chuyển",
+          "cập nhật",
+          "chỉnh sửa",
+          "sửa chữ",
+          "đổi màu",
+          "đổi chỗ"
+        ],
+        "en": [
+          "change",
+          "edit",
+          "rename",
+          "move",
+          "tweak",
+          "adjust",
+          "update",
+          "replace",
+          "remove",
+          "add",
+          "swap",
+          "reorder"
+        ]
       },
-      "depth": "light", "needsContext": "high",
-      "baseline": { "output": 6, "constraints": 4, "acceptance": 3 },
+      "depth": "light",
+      "needsContext": "high",
+      "baseline": {
+        "output": 6,
+        "constraints": 4,
+        "acceptance": 3
+      },
       "defaults": {
-        "output": { "vi": "chỉ phần đã sửa + 1 dòng tóm tắt", "en": "only the changed part + a one-line summary" },
-        "done": { "vi": "thay đổi đúng chỗ, không ảnh hưởng phần khác", "en": "change applied in place, nothing else affected" }
+        "output": {
+          "vi": "chỉ phần đã sửa + 1 dòng tóm tắt",
+          "en": "only the changed part + a one-line summary"
+        },
+        "done": {
+          "vi": "thay đổi đúng chỗ, không ảnh hưởng phần khác",
+          "en": "change applied in place, nothing else affected"
+        }
+      },
+      "ph": {
+        "context": {
+          "vi": "file và vị trí cần sửa",
+          "en": "the file and the spot to change"
+        }
       }
     },
     "build": {
       "keywords": {
-        "vi": ["xây", "xây dựng", "tạo", "làm app", "làm web", "làm trang", "viết app", "thêm tính năng", "tính năng mới", "triển khai tính năng", "phát triển", "thiết kế hệ thống", "module", "trang mới", "api", "database", "dựng", "làm cho tôi", "tạo cho tôi", "viết chương trình", "viết tool", "viết script", "làm tool", "xây app"],
-        "en": ["build", "create", "implement", "develop", "new feature", "add feature", "scaffold", "set up", "setup", "prototype", "app", "website", "api", "module", "system", "integrate", "integration", "write a script", "write a tool", "generate a", "make a", "make me"]
+        "vi": [
+          "xây",
+          "xây dựng",
+          "tạo",
+          "làm app",
+          "làm web",
+          "làm trang",
+          "viết app",
+          "thêm tính năng",
+          "tính năng mới",
+          "triển khai tính năng",
+          "phát triển",
+          "thiết kế hệ thống",
+          "module",
+          "trang mới",
+          "api",
+          "database",
+          "dựng",
+          "làm cho tôi",
+          "tạo cho tôi",
+          "viết chương trình",
+          "viết tool",
+          "viết script",
+          "làm tool",
+          "xây app",
+          "làm cái",
+          "làm một",
+          "làm giúp",
+          "làm cho",
+          "tạo cái",
+          "tạo một",
+          "viết một",
+          "dashboard",
+          "trang web",
+          "ứng dụng",
+          "công cụ",
+          "bot",
+          "tự động hóa",
+          "extension",
+          "plugin"
+        ],
+        "en": [
+          "build",
+          "create",
+          "implement",
+          "develop",
+          "new feature",
+          "add feature",
+          "scaffold",
+          "set up",
+          "setup",
+          "prototype",
+          "app",
+          "website",
+          "api",
+          "module",
+          "system",
+          "integrate",
+          "integration",
+          "write a script",
+          "write a tool",
+          "generate a",
+          "make a",
+          "make me",
+          "dashboard",
+          "web page",
+          "application",
+          "tool",
+          "bot",
+          "automate",
+          "automation",
+          "extension",
+          "plugin",
+          "build me",
+          "create me"
+        ]
       },
-      "depth": "deep", "needsContext": "medium",
-      "baseline": { "output": 0, "constraints": 0, "acceptance": 0 },
+      "depth": "deep",
+      "needsContext": "medium",
+      "baseline": {
+        "output": 0,
+        "constraints": 0,
+        "acceptance": 0
+      },
       "defaults": {
-        "output": { "vi": "code chạy được + cách chạy + tóm tắt thay đổi ≤ 10 dòng", "en": "working code + how to run + change summary ≤ 10 lines" },
-        "done": { "vi": "chạy thử thành công và đủ mọi yêu cầu đã nêu", "en": "runs successfully and covers every stated requirement" }
+        "output": {
+          "vi": "code chạy được + cách chạy + tóm tắt thay đổi ≤ 10 dòng",
+          "en": "working code + how to run + change summary ≤ 10 lines"
+        },
+        "done": {
+          "vi": "chạy thử thành công và đủ mọi yêu cầu đã nêu",
+          "en": "runs successfully and covers every stated requirement"
+        }
+      },
+      "ph": {
+        "context": {
+          "vi": "repo / thư mục, stack, phần liên quan hiện có",
+          "en": "repo or folder, stack, existing parts involved"
+        }
       }
     },
     "debug": {
       "keywords": {
-        "vi": ["lỗi", "bug", "sửa lỗi", "không chạy", "không hoạt động", "bị crash", "crash", "không hiện", "không lưu", "báo lỗi", "fail", "exception", "sai kết quả", "chạy sai", "bị treo", "bị chậm", "không được", "không vào được", "không login được", "trắng trang", "mất dữ liệu"],
-        "en": ["bug", "error", "fix", "broken", "crash", "crashes", "not working", "doesn't work", "does not work", "fails", "failing", "exception", "wrong result", "slow", "hangs", "regression", "debug", "blank page", "won't load", "stack trace"]
+        "vi": [
+          "lỗi",
+          "bug",
+          "sửa lỗi",
+          "không chạy",
+          "không hoạt động",
+          "bị crash",
+          "crash",
+          "không hiện",
+          "không lưu",
+          "báo lỗi",
+          "fail",
+          "exception",
+          "sai kết quả",
+          "chạy sai",
+          "bị treo",
+          "bị chậm",
+          "không được",
+          "không vào được",
+          "không login được",
+          "trắng trang",
+          "mất dữ liệu"
+        ],
+        "en": [
+          "bug",
+          "error",
+          "fix",
+          "broken",
+          "crash",
+          "crashes",
+          "not working",
+          "doesn't work",
+          "does not work",
+          "fails",
+          "failing",
+          "exception",
+          "wrong result",
+          "slow",
+          "hangs",
+          "regression",
+          "debug",
+          "blank page",
+          "won't load",
+          "stack trace"
+        ]
       },
-      "depth": "standard", "needsContext": "high",
-      "baseline": { "output": 5, "constraints": 3, "acceptance": 2 },
+      "depth": "standard",
+      "needsContext": "high",
+      "baseline": {
+        "output": 5,
+        "constraints": 3,
+        "acceptance": 2
+      },
       "defaults": {
-        "output": { "vi": "nguyên nhân gốc + bản sửa + cách xác nhận đã hết lỗi", "en": "root cause + fix + how to confirm it is gone" },
-        "done": { "vi": "tái hiện được lỗi trước khi sửa, sau khi sửa không còn, test liên quan vẫn pass", "en": "reproduced before the fix, gone after, related tests still pass" }
+        "output": {
+          "vi": "nguyên nhân gốc + bản sửa + cách xác nhận đã hết lỗi",
+          "en": "root cause + fix + how to confirm it is gone"
+        },
+        "done": {
+          "vi": "tái hiện được lỗi trước khi sửa, sau khi sửa không còn, test liên quan vẫn pass",
+          "en": "reproduced before the fix, gone after, related tests still pass"
+        }
+      },
+      "ph": {
+        "context": {
+          "vi": "file, thông báo lỗi nguyên văn, cách tái hiện",
+          "en": "file, exact error text, how to reproduce"
+        }
       }
     },
     "analyze": {
       "keywords": {
-        "vi": ["phân tích", "so sánh", "đánh giá", "nghiên cứu", "kế hoạch", "chiến lược", "lộ trình", "roadmap", "dự báo", "ước tính", "tính toán", "nên chọn", "có nên", "ưu nhược", "rủi ro", "đề xuất", "khuyến nghị", "báo cáo", "tổng hợp", "thống kê", "định giá", "ngân sách", "kpi", "mô hình kinh doanh", "thị trường"],
-        "en": ["analyze", "analyse", "analysis", "compare", "comparison", "evaluate", "assess", "research", "plan", "strategy", "roadmap", "forecast", "estimate", "should we", "should i", "pros and cons", "trade-off", "tradeoff", "risk", "recommend", "recommendation", "report", "statistics", "insight", "budget", "kpi", "business model", "market"]
+        "vi": [
+          "phân tích",
+          "so sánh",
+          "đánh giá",
+          "nghiên cứu",
+          "kế hoạch",
+          "chiến lược",
+          "lộ trình",
+          "roadmap",
+          "dự báo",
+          "ước tính",
+          "tính toán",
+          "nên chọn",
+          "có nên",
+          "ưu nhược",
+          "rủi ro",
+          "đề xuất",
+          "khuyến nghị",
+          "báo cáo",
+          "tổng hợp",
+          "thống kê",
+          "định giá",
+          "ngân sách",
+          "kpi",
+          "mô hình kinh doanh",
+          "thị trường"
+        ],
+        "en": [
+          "analyze",
+          "analyse",
+          "analysis",
+          "compare",
+          "comparison",
+          "evaluate",
+          "assess",
+          "research",
+          "plan",
+          "strategy",
+          "roadmap",
+          "forecast",
+          "estimate",
+          "should we",
+          "should i",
+          "pros and cons",
+          "trade-off",
+          "tradeoff",
+          "risk",
+          "recommend",
+          "recommendation",
+          "report",
+          "statistics",
+          "insight",
+          "budget",
+          "kpi",
+          "business model",
+          "market"
+        ]
       },
-      "depth": "deep", "needsContext": "medium",
-      "baseline": { "output": 0, "constraints": 4, "acceptance": 3 },
+      "depth": "deep",
+      "needsContext": "medium",
+      "baseline": {
+        "output": 0,
+        "constraints": 4,
+        "acceptance": 3
+      },
       "defaults": {
-        "output": { "vi": "kết luận trước (≤ 5 dòng), rồi bảng so sánh, rồi khuyến nghị kèm lý do", "en": "conclusion first (≤ 5 lines), then a comparison table, then recommendations with reasons" },
-        "done": { "vi": "mỗi kết luận có số liệu hoặc dẫn chứng đi kèm", "en": "every conclusion is backed by a number or a source" }
+        "output": {
+          "vi": "kết luận trước (≤ 5 dòng), rồi bảng so sánh, rồi khuyến nghị kèm lý do",
+          "en": "conclusion first (≤ 5 lines), then a comparison table, then recommendations with reasons"
+        },
+        "done": {
+          "vi": "mỗi kết luận có số liệu hoặc dẫn chứng đi kèm",
+          "en": "every conclusion is backed by a number or a source"
+        }
+      },
+      "ph": {
+        "context": {
+          "vi": "dữ liệu / số liệu / nguồn, phạm vi và mốc thời gian",
+          "en": "data, numbers, sources, scope and time frame"
+        }
       }
     },
     "write": {
       "keywords": {
-        "vi": ["viết", "soạn", "email", "thư", "bài viết", "bài đăng", "nội dung", "caption", "mô tả", "kịch bản", "dịch", "tóm tắt", "diễn đạt lại", "viết lại", "sửa văn", "tiêu đề", "slogan", "thông báo", "tài liệu", "hướng dẫn sử dụng", "bản tin", "lời chúc", "thư mời", "bài phát biểu"],
-        "en": ["write", "draft", "email", "letter", "article", "post", "blog", "content", "caption", "description", "script", "translate", "summarize", "summarise", "paraphrase", "rewrite", "proofread", "headline", "title", "slogan", "announcement", "documentation", "guide", "copy", "newsletter", "speech", "invitation"]
+        "vi": [
+          "viết",
+          "soạn",
+          "email",
+          "thư",
+          "bài viết",
+          "bài đăng",
+          "nội dung",
+          "caption",
+          "mô tả",
+          "kịch bản",
+          "dịch",
+          "tóm tắt",
+          "diễn đạt lại",
+          "viết lại",
+          "sửa văn",
+          "tiêu đề",
+          "slogan",
+          "thông báo",
+          "tài liệu",
+          "hướng dẫn sử dụng",
+          "bản tin",
+          "lời chúc",
+          "thư mời",
+          "bài phát biểu"
+        ],
+        "en": [
+          "write",
+          "draft",
+          "email",
+          "letter",
+          "article",
+          "post",
+          "blog",
+          "content",
+          "caption",
+          "description",
+          "script",
+          "translate",
+          "summarize",
+          "summarise",
+          "paraphrase",
+          "rewrite",
+          "proofread",
+          "headline",
+          "title",
+          "slogan",
+          "announcement",
+          "documentation",
+          "guide",
+          "copy",
+          "newsletter",
+          "speech",
+          "invitation"
+        ]
       },
-      "depth": "standard", "needsContext": "medium",
-      "baseline": { "output": 0, "constraints": 4, "acceptance": 4 },
+      "depth": "standard",
+      "needsContext": "medium",
+      "baseline": {
+        "output": 0,
+        "constraints": 4,
+        "acceptance": 4
+      },
       "askConstraints": false,
       "defaults": {
-        "output": { "vi": "⟨độ dài⟩, giọng ⟨…⟩, cho người đọc ⟨…⟩, định dạng ⟨…⟩", "en": "⟨length⟩, tone ⟨…⟩, for reader ⟨…⟩, format ⟨…⟩" },
-        "done": { "vi": "đúng độ dài, đúng người đọc, không cần sửa lại", "en": "right length, right reader, needs no second pass" }
+        "output": {
+          "vi": "⟨độ dài⟩, giọng ⟨…⟩, cho người đọc ⟨…⟩, định dạng ⟨…⟩",
+          "en": "⟨length⟩, tone ⟨…⟩, for reader ⟨…⟩, format ⟨…⟩"
+        },
+        "done": {
+          "vi": "đúng độ dài, đúng người đọc, không cần sửa lại",
+          "en": "right length, right reader, needs no second pass"
+        }
+      },
+      "ph": {
+        "context": {
+          "vi": "người nhận, mục đích, thông tin bắt buộc phải có",
+          "en": "recipient, purpose, facts that must be included"
+        }
       }
     },
     "review": {
       "keywords": {
-        "vi": ["review", "rà soát", "kiểm tra code", "đánh giá code", "audit", "soát lỗi", "góp ý", "nhận xét", "phản biện", "chấm điểm", "xem giúp", "kiểm tra giúp"],
-        "en": ["review", "audit", "critique", "feedback on", "check this", "go over", "assess this", "code review", "security review", "look over", "sanity check"]
+        "vi": [
+          "review",
+          "rà soát",
+          "kiểm tra code",
+          "đánh giá code",
+          "audit",
+          "soát lỗi",
+          "góp ý",
+          "nhận xét",
+          "phản biện",
+          "chấm điểm",
+          "xem giúp",
+          "kiểm tra giúp"
+        ],
+        "en": [
+          "review",
+          "audit",
+          "critique",
+          "feedback on",
+          "check this",
+          "go over",
+          "assess this",
+          "code review",
+          "security review",
+          "look over",
+          "sanity check"
+        ]
       },
-      "depth": "standard", "needsContext": "high",
-      "baseline": { "output": 4, "constraints": 4, "acceptance": 3 },
+      "depth": "standard",
+      "needsContext": "high",
+      "baseline": {
+        "output": 4,
+        "constraints": 4,
+        "acceptance": 3
+      },
       "defaults": {
-        "output": { "vi": "danh sách phát hiện xếp theo mức nghiêm trọng, mỗi mục kèm vị trí và cách sửa", "en": "findings ranked by severity, each with location and fix" },
-        "done": { "vi": "không còn phát hiện mức cao nào thiếu cách sửa", "en": "no high-severity finding left without a fix" }
+        "output": {
+          "vi": "danh sách phát hiện xếp theo mức nghiêm trọng, mỗi mục kèm vị trí và cách sửa",
+          "en": "findings ranked by severity, each with location and fix"
+        },
+        "done": {
+          "vi": "không còn phát hiện mức cao nào thiếu cách sửa",
+          "en": "no high-severity finding left without a fix"
+        }
+      },
+      "ph": {
+        "context": {
+          "vi": "file / PR / đoạn cần review và tiêu chí",
+          "en": "file, PR or snippet to review and the criteria"
+        }
       }
     },
     "ops": {
       "keywords": {
-        "vi": ["deploy", "triển khai lên", "cài đặt", "cấu hình", "server", "render", "netlify", "vercel", "docker", "migrate", "backup", "khôi phục", "domain", "dns", "ssl", "biến môi trường", "pipeline", "cron", "lịch chạy", "đưa lên production", "lên prod"],
-        "en": ["deploy", "deployment", "install", "configure", "server", "docker", "kubernetes", "migrate", "migration", "backup", "restore", "domain", "dns", "ssl", "environment variable", "ci/cd", "pipeline", "cron", "schedule", "release", "rollback", "production"]
+        "vi": [
+          "deploy",
+          "triển khai lên",
+          "cài đặt",
+          "cấu hình",
+          "server",
+          "render",
+          "netlify",
+          "vercel",
+          "docker",
+          "migrate",
+          "backup",
+          "khôi phục",
+          "domain",
+          "dns",
+          "ssl",
+          "biến môi trường",
+          "pipeline",
+          "cron",
+          "lịch chạy",
+          "đưa lên production",
+          "lên prod"
+        ],
+        "en": [
+          "deploy",
+          "deployment",
+          "install",
+          "configure",
+          "server",
+          "docker",
+          "kubernetes",
+          "migrate",
+          "migration",
+          "backup",
+          "restore",
+          "domain",
+          "dns",
+          "ssl",
+          "environment variable",
+          "ci/cd",
+          "pipeline",
+          "cron",
+          "schedule",
+          "release",
+          "rollback",
+          "production"
+        ]
       },
-      "depth": "deep", "needsContext": "high",
-      "baseline": { "output": 0, "constraints": 0, "acceptance": 0 },
+      "depth": "deep",
+      "needsContext": "high",
+      "baseline": {
+        "output": 0,
+        "constraints": 0,
+        "acceptance": 0
+      },
       "defaults": {
-        "output": { "vi": "các bước đã chạy + kết quả từng bước + cách rollback", "en": "steps executed + result of each + rollback path" },
-        "done": { "vi": "dịch vụ chạy và kiểm tra được từ bên ngoài", "en": "service is up and verifiable from outside" }
+        "output": {
+          "vi": "các bước đã chạy + kết quả từng bước + cách rollback",
+          "en": "steps executed + result of each + rollback path"
+        },
+        "done": {
+          "vi": "dịch vụ chạy và kiểm tra được từ bên ngoài",
+          "en": "service is up and verifiable from outside"
+        }
+      },
+      "ph": {
+        "context": {
+          "vi": "dịch vụ, môi trường, cấu hình hiện tại",
+          "en": "service, environment, current configuration"
+        }
       }
     },
     "general": {
-      "keywords": { "vi": [], "en": [] },
-      "depth": "standard", "needsContext": "medium",
-      "baseline": { "output": 3, "constraints": 3, "acceptance": 3 },
+      "keywords": {
+        "vi": [],
+        "en": []
+      },
+      "depth": "standard",
+      "needsContext": "medium",
+      "baseline": {
+        "output": 3,
+        "constraints": 3,
+        "acceptance": 3
+      },
       "defaults": {
-        "output": { "vi": "⟨định dạng, độ dài⟩", "en": "⟨format, length⟩" },
-        "done": { "vi": "đủ mọi yêu cầu đã nêu, có tự kiểm tra", "en": "all stated requirements met, self-checked" }
+        "output": {
+          "vi": "⟨định dạng, độ dài⟩",
+          "en": "⟨format, length⟩"
+        },
+        "done": {
+          "vi": "đủ mọi yêu cầu đã nêu, có tự kiểm tra",
+          "en": "all stated requirements met, self-checked"
+        }
+      },
+      "ph": {
+        "context": {
+          "vi": "file / đường dẫn / dữ liệu liên quan",
+          "en": "file, path or data involved"
+        }
       }
     }
   }

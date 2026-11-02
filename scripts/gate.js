@@ -44,6 +44,8 @@ async function main() {
   const st = state[session] || {};
   const now = Date.now();
   st.lastSeen = new Date(now).toISOString();
+  st.turns = (st.turns || 0) + 1;
+  const followUp = st.turns > 2;
   if (st.lastBlockTs && now - Date.parse(st.lastBlockTs) < cfg.cooldownSec * 1000) {
     delete st.lastBlockTs; state[session] = st; cfgm.saveState(state);
     return pass('cooldown');
@@ -54,11 +56,12 @@ async function main() {
   }
 
   const pack = packs.load();
-  const a = E.analyze(trimmed, { pack, language: cfg.language });
+  const a = E.analyze(trimmed, { pack, language: cfg.language, followUp });
+  const blockAt = followUp ? cfg.blockBelow - 10 : cfg.blockBelow;
   const T = t(a.lang);
-  const base = { session, score: a.score, type: a.type, depth: a.depth, lang: a.lang, words: a.nWords, missing: a.missing };
+  const base = { session, score: a.score, type: a.type, depth: a.depth, lang: a.lang, words: a.nWords, missing: a.missing, followUp };
 
-  if (a.score < cfg.blockBelow) {
+  if (a.score < blockAt) {
     let suggestion = E.rewrite(trimmed, a, pack, T);
     let viaLlm = false;
     if (cfg.brain === 'llm' && cfgm.isPro()) {

@@ -29,6 +29,7 @@ const cases = [
   ['fix this', 'block', 'en'],
   ['Can you please help me make the app better? Thanks!', 'block', 'en'],
   ['review code giúp tôi', 'block', 'vi'],
+  ['giúp tôi làm cái dashboard doanh thu cho khách sạn nhé, đẹp đẹp chút', 'block', 'vi'],
   ['Xây một app Electron kiểu Kahoot cho công ty event, chạy trên laptop MC, cổng 3777', 'show', 'vi'],
   ['Phân tích giúp tôi nên chọn Render hay Neon cho Postgres, viết bảng so sánh chi phí và giới hạn, kết luận trước, ultrathink', 'pass', 'vi'],
   ['Deploy fsvt-opshub lên Render với Neon Postgres, giữ nguyên env hiện tại, báo lại từng bước và cách rollback', 'pass', 'vi'],
@@ -45,6 +46,7 @@ for (const [text, expected, lang] of cases) {
 console.log('classification');
 check('debug detected', E.analyze('App báo lỗi 500 khi submit form', { pack }).type === 'debug');
 check('build detected', E.analyze('Tạo trang landing page cho sản phẩm mới', { pack }).type === 'build');
+check('build detected (làm cái dashboard)', E.analyze('giúp tôi làm cái dashboard doanh thu', { pack }).type === 'build');
 check('question detected', E.analyze('Tại sao Node dùng event loop?', { pack }).type === 'question');
 check('write detected', E.analyze('Viết caption Facebook cho khuyến mãi tháng 11', { pack }).type === 'write');
 check('fast cue → light', E.analyze('Xây nhanh một script đổi tên file trong thư mục này', { pack }).depth === 'light');
@@ -62,6 +64,12 @@ const r2 = E.rewrite('Can you please help me make the app better? Thanks!', a2, 
 check('EN rewrite cleans punctuation', !/[?!]{2}/.test(r2), r2.split('\n')[0]);
 check('EN deep task gets Ultrathink line', r2.includes('Ultrathink.'));
 check('block message under 10k chars', E.formatBlock(a2, r2, t('en')).length < 10000);
+check('mid-sentence "nhé," is stripped', !/nhé/.test(E.cleanFiller('giúp tôi làm cái dashboard doanh thu cho khách sạn nhé, đẹp đẹp chút')));
+const emailA = E.analyze('write me an email to my boss', { pack });
+check('writing context placeholder is type-aware', E.rewrite('write me an email to my boss', emailA, pack, t('en')).includes('recipient'));
+const fuA = E.analyze('Duyệt rồi, hãy render MP4 cho trailer.', { pack, followUp: true });
+const coldA = E.analyze('Duyệt rồi, hãy render MP4 cho trailer.', { pack });
+check(`follow-up scores higher than cold (${fuA.score} > ${coldA.score})`, fuA.score > coldA.score);
 
 console.log('hook end-to-end');
 function hook(prompt, extra) {
@@ -88,11 +96,14 @@ h = hook('làm cho tôi cái này tốt hơn đi bạn ơi nhé');
 check('cooldown lets the next prompt through', Object.keys(h.out).length === 0, JSON.stringify(h.out).slice(0, 120));
 h = hook(suggested + '\nNgữ cảnh: file app.js');
 check('resending the suggestion is accepted (or scored, never blocked)', h.out.decision !== 'block', JSON.stringify(h.out).slice(0, 160));
-h = hook('Xây một app Electron kiểu Kahoot cho công ty event, chạy trên laptop MC, cổng 3777');
+h = hook('Xây một app Electron kiểu Kahoot cho công ty event, chạy trên laptop MC, cổng 3777', { session_id: 'mid' });
 check('mid-band prompt shows score + injects depth', !h.out.decision && /PromptGate \d+\/100/.test(h.out.systemMessage || '') && /additionalContext/.test(JSON.stringify(h.out)), JSON.stringify(h.out).slice(0, 200));
-h = hook('Viết email xin nghỉ phép 2 ngày gửi sếp, giọng lịch sự, dưới 120 từ, tiếng Việt');
+h = hook('Viết email xin nghỉ phép 2 ngày gửi sếp, giọng lịch sự, dưới 120 từ, tiếng Việt', { session_id: 'good' });
 check('good prompt passes silently', Object.keys(h.out).length === 0, JSON.stringify(h.out).slice(0, 120));
-h = hook('not json at all', {}); // still JSON input; now test garbage stdin
+h = hook('Sửa lỗi đăng nhập trong hrfsvt-app/server/auth.js: khi sai mật khẩu 3 lần vẫn cho vào. Không đổi schema DB.', { session_id: 'fu' });
+h = hook('Viết email xin nghỉ phép 2 ngày gửi sếp, giọng lịch sự, dưới 120 từ, tiếng Việt', { session_id: 'fu' });
+h = hook('Duyệt rồi, hãy render MP4 cho trailer.', { session_id: 'fu' });
+check('3rd-turn follow-up is not blocked', h.out.decision !== 'block', JSON.stringify(h.out).slice(0, 160));
 const g = spawnSync(process.execPath, [path.join(ROOT, 'scripts/gate.js')], { input: 'garbage', encoding: 'utf8', env: process.env, timeout: 15000 });
 check('garbage stdin fails open', g.status === 0 && g.stdout.trim() === '{}');
 fs.writeFileSync(path.join(TMP, 'promptgate', 'config.json'), JSON.stringify({ mode: 'off' }));
@@ -102,7 +113,7 @@ const logLines = fs.readFileSync(path.join(TMP, 'promptgate', 'log.jsonl'), 'utf
 check('log written without prompt text', logLines.length > 0 && !logLines.some((l) => l.includes('cái này tốt hơn')));
 
 console.log('perf');
-const t0 = Date.now(); for (let i = 0; i < 500; i++) E.analyze(cases[6][0], { pack }); const ms = (Date.now() - t0) / 500;
+const t0 = Date.now(); for (let i = 0; i < 500; i++) E.analyze(cases[7][0], { pack }); const ms = (Date.now() - t0) / 500;
 check(`analyze < 2 ms avg (${ms.toFixed(2)} ms)`, ms < 2);
 
 try { fs.rmSync(TMP, { recursive: true, force: true }); } catch (_) {}

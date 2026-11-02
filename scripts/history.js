@@ -51,6 +51,7 @@ function isHumanPrompt(o, text, minWords) {
 async function scanFile(file, since, minWords, pack, language, acc) {
   const rl = readline.createInterface({ input: fs.createReadStream(file, { encoding: 'utf8' }), crlfDelay: Infinity });
   let cwd = null;
+  let idx = 0;
   for await (const line of rl) {
     if (!line || line.indexOf('"type":"user"') === -1) continue;
     let o; try { o = JSON.parse(line); } catch (_) { continue; }
@@ -59,7 +60,8 @@ async function scanFile(file, since, minWords, pack, language, acc) {
     if (!ts || ts < since) continue;
     const text = extractText(o.message);
     if (!isHumanPrompt(o, text, minWords)) continue;
-    const a = E.analyze(text, { pack, language });
+    idx += 1;
+    const a = E.analyze(text, { pack, language, followUp: idx > 2 });
     acc.push({ ts: new Date(ts).toISOString(), file: path.basename(file), score: a.score, type: a.type, depth: a.depth, lang: a.lang, dims: a.dims, missing: a.missing, filler: a.excess.filler, words: a.nWords, text: text.trim().slice(0, 400) });
   }
   return cwd;
