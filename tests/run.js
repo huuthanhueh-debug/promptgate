@@ -52,6 +52,16 @@ check('write detected', E.analyze('Viết caption Facebook cho khuyến mãi th�
 check('fast cue → light', E.analyze('Xây nhanh một script đổi tên file trong thư mục này', { pack }).depth === 'light');
 check('max cue → deep', E.analyze('Sửa chữ tiêu đề, làm kỹ nhất có thể', { pack }).depth === 'deep');
 
+console.log('cleanup and question depth');
+const howToA = E.analyze('Làm sao để deploy lên Render, cần làm gì với Neon Postgres?', { pack });
+check('how-to question is not deep without a cue', howToA.depth !== 'deep', howToA.depth);
+check('how-to question gets no Ultrathink line', !E.rewrite('Làm sao để deploy lên Render, cần làm gì với Neon Postgres?', howToA, pack, t('vi')).includes('Ultrathink'));
+check('explicit deep cue still wins on a question', E.analyze('Làm sao để deploy lên Render? Ultrathink, kỹ nhất có thể', { pack }).depth === 'deep');
+check('deploy command (not a question) stays deep', E.analyze('Deploy fsvt-opshub lên Render với Neon Postgres, giữ nguyên env hiện tại, báo lại từng bước', { pack }).depth === 'deep');
+check('"thanks so much" removed from goal', !/so much/i.test(E.cleanFiller('Make the app better please, thanks so much!')), E.cleanFiller('Make the app better please, thanks so much!'));
+check('leading "Ok," removed from goal', E.cleanFiller('Ok, sửa lỗi đăng nhập trong auth.js giúp tôi nhé').startsWith('Sửa'), E.cleanFiller('Ok, sửa lỗi đăng nhập trong auth.js giúp tôi nhé'));
+check('"Okay" in English removed too', E.cleanFiller('Okay, fix the login bug in auth.js').startsWith('Fix'), E.cleanFiller('Okay, fix the login bug in auth.js'));
+
 console.log('rewrite');
 const a1 = E.analyze('Bạn ơi giúp tôi sửa lỗi app với, nó không chạy', { pack });
 const r1 = E.rewrite('Bạn ơi giúp tôi sửa lỗi app với, nó không chạy', a1, pack, t('vi'));

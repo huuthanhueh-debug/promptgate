@@ -24,6 +24,8 @@ const VAGUE_VERBS = /\b(làm|xem|giúp|sửa lại|làm lại|cải thiện|tố
 const VAGUE_REFS = /\b(cái này|cái đó|cái kia|chỗ này|chỗ đó|nó|này|đó|việc này|phần này|mấy cái|this|that|these|those|it|stuff|things?|something|the thing|the issue|the problem|the code|the file|the app)\b/gi;
 
 // Question openers.
+// How-to questions ("làm sao để deploy…?"): asked to learn, not to build. Opening phrase only.
+const HOWTO = /^\s*(?:làm sao|làm thế nào|làm cách nào|cách nào|có cách nào|sao (?:để|cho|có thể)|như thế nào|how (?:do|can|should|would) (?:i|we|you)|how to |how do )/iu;
 const QUESTION = /^(tại sao|vì sao|sao|như thế nào|thế nào|là gì|có nên|có phải|có thể|bao nhiêu|khi nào|ở đâu|ai|cái gì|liệu|what|why|how|when|where|who|which|is|are|can|could|should|would|does|do|did|will)\b/i;
 
 // Concrete reference detectors (context grounding).
@@ -51,16 +53,17 @@ const MAX_CUE = /\b(ultrathink|max|hết công suất|kỹ nhất|tối đa côn
 // Filler / politeness that costs tokens and adds nothing.
 const FILLER = [
   /\b(làm ơn|vui lòng|xin vui lòng|xin hãy|giúp (?:tôi|mình|em|anh|chị) với|giúp (?:tôi|mình) nhé|bạn có thể|bạn ơi|claude ơi|cho (?:tôi|mình) hỏi|mình muốn hỏi|tôi muốn hỏi|cho (?:tôi|mình) nhờ|nhờ bạn|phiền bạn|xin lỗi(?: làm phiền)?|cảm ơn (?:bạn|nhiều|trước)|cám ơn|rất mong|hy vọng bạn)\b/gi,
-  /\b(please|pls|plz|kindly|could you(?: please)?|can you(?: please)?|would you(?: mind)?|i was wondering(?: if)?|i would like you to|i'd like you to|i want you to|if (?:you (?:don't mind|can)|possible)|thank you(?: so much| in advance)?|thanks(?: a lot| in advance)?|sorry (?:to bother|for)|hey claude|hi claude|hello claude|you are (?:a|an) (?:expert|senior|world[- ]class)[^.,\n]*)\b/gi,
+  /\b(please|pls|plz|kindly|could you(?: please)?|can you(?: please)?|would you(?: mind)?|i was wondering(?: if)?|i would like you to|i'd like you to|i want you to|if (?:you (?:don't mind|can)|possible)|thank you(?: so much| in advance| again)?|thanks(?: so much| a lot| in advance| again)?|many thanks|much appreciated|appreciate (?:it|that|your help)|sorry (?:to bother|for)|hey claude|hi claude|hello claude|you are (?:a|an) (?:expert|senior|world[- ]class)[^.,\n]*)\b/gi,
   /\b(nhé|nha|nhá|ạ|với ạ|đi ạ|hen)\b(?=\s*(?:[,.!?;]|$))/gi,
 ];
 
 // Leading / trailing politeness removed from the rewrite only (not counted against economy).
 const LEAD_FILLER = [
+  /^\s*(?:ok(?:ay)?|oke|ừ|uh|vâng|dạ)(?:[,.!]\s*|\s+)/iu,
   /^\s*(?:hãy giúp (?:tôi|mình|em)|giúp (?:tôi|mình|em|anh|chị)(?: với)?|hãy|xin|nhờ bạn|bạn|mình nhờ|tôi nhờ|tôi muốn bạn|tôi cần bạn|help me(?: to)?|i need you to|i need help (?:to|with)|i want to|i'd like to|i would like to|let's|lets)\s+/iu,
   /\s+(?:với|giùm|giúp|dùm|hộ|nhé|nha|nhá|ạ|đi)(?=[\s.,!?]*$)/iu,
 ];
 
 const STOPWORDS = new Set(['và', 'của', 'cho', 'tôi', 'không', 'làm', 'với', 'này', 'được', 'các', 'một', 'có', 'là', 'để', 'the', 'a', 'an', 'to', 'of', 'and', 'in', 'on', 'for', 'is', 'it', 'that', 'this', 'with', 'as', 'be', 'or', 'at', 'by', 'từ', 'theo', 'trong', 'ra', 'vào', 'thì', 'mà', 'nếu', 'khi', 'đã', 'sẽ', 'đang', 'cũng', 'rất', 'nhiều', 'ở', 'về', 'như', 'hơn', 'bị', 'lên', 'xuống']);
 
-module.exports = { VI_CHARS, VI_WORDS, ACK, AUTOMATED, AUTOMATED_TEXT, VERBS, VAGUE_VERBS, VAGUE_REFS, QUESTION, REFS, OUTPUT, CONSTRAINT, ACCEPTANCE, DEPTH_CUE, FAST_CUE, MAX_CUE, FILLER, LEAD_FILLER, STOPWORDS };
+module.exports = { VI_CHARS, VI_WORDS, ACK, AUTOMATED, AUTOMATED_TEXT, VERBS, VAGUE_VERBS, VAGUE_REFS, QUESTION, HOWTO, REFS, OUTPUT, CONSTRAINT, ACCEPTANCE, DEPTH_CUE, FAST_CUE, MAX_CUE, FILLER, LEAD_FILLER, STOPWORDS };

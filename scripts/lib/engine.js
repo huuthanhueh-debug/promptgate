@@ -94,6 +94,8 @@ function analyze(text, opts) {
   let depth = tdef.depth || 'standard';
   if (R.FAST_CUE.test(trimmed)) depth = 'light';
   else if (R.MAX_CUE.test(trimmed)) depth = 'deep';
+  // A how-to question ("làm sao để deploy…?") is answered, not built: no deep plan without an explicit cue.
+  if (L.HOWTO.test(trimmed) && depth === 'deep' && !R.MAX_CUE.test(trimmed) && count(trimmed, R.DEPTH_CUE) === 0) depth = 'standard';
   const refc = refs(trimmed);
   const base = Object.assign({ output: 3, constraints: 3, acceptance: 3 }, tdef.baseline || {});
   // Follow-up turns (3rd+ prompt in a session) lean on earlier context: relax grounding demands.

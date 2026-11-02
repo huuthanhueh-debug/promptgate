@@ -1,5 +1,7 @@
 # PromptGate
 
+[![tests](https://github.com/huuthanhueh-debug/promptgate/actions/workflows/test.yml/badge.svg)](https://github.com/huuthanhueh-debug/promptgate/actions/workflows/test.yml) [![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![node >=18](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](package.json) [![Pro on Gumroad](https://img.shields.io/badge/Pro-%2419%20on%20Gumroad-ff90e8.svg)](https://thequietconcierge.gumroad.com/l/promptgate)
+
 **A gate between your keyboard and Claude.** Every prompt you type in Claude Code is scored in milliseconds. Weak prompts are stopped and handed back tighter and deeper. Good prompts pass silently. Your whole prompt history is scanned locally so you can see your habits and your progress.
 
 [Tiếng Việt](README.vi.md) · [Spec](docs/SPEC.md) · [Team install guide (VI)](docs/TEAM-INSTALL.vi.md) · [Pro on Gumroad](https://thequietconcierge.gumroad.com/l/promptgate)
