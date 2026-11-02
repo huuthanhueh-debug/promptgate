@@ -1,0 +1,8 @@
+# Pro content is sold on Gumroad and never published in this repo
+pro/
+dist/
+node_modules/
+*.zip
+*.log
+.DS_Store
+Thumbs.db

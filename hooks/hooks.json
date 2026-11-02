@@ -1,0 +1,17 @@
+{
+  "description": "PromptGate scores every prompt before Claude sees it. Weak prompts are blocked with a tighter, deeper rewrite; good prompts pass silently.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"require(require('path').join(process.env.CLAUDE_PLUGIN_ROOT,'scripts','gate.js'))\"",
+            "timeout": 25,
+            "statusMessage": "PromptGate"
+          }
+        ]
+      }
+    ]
+  }
+}

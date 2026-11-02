@@ -1,0 +1,10 @@
+{
+  "name": "promptgate",
+  "version": "1.0.0",
+  "description": "A gate between your keyboard and Claude: every prompt is scored in milliseconds, weak prompts are blocked with a tighter and deeper rewrite, good prompts pass silently. Bilingual VI/EN. Scans your whole prompt history locally. Zero cost by default.",
+  "author": { "name": "The Quiet Concierge", "url": "https://thequietconcierge.gumroad.com" },
+  "homepage": "https://github.com/huuthanhueh-debug/promptgate",
+  "repository": "https://github.com/huuthanhueh-debug/promptgate",
+  "license": "MIT",
+  "keywords": ["prompt", "prompt-engineering", "hooks", "productivity", "tokens", "coaching", "vietnamese", "claude-code"]
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "promptgate",
+  "description": "PromptGate: score, block and rewrite weak prompts before Claude sees them.",
+  "owner": { "name": "The Quiet Concierge", "email": "huuthanhueh@gmail.com" },
+  "plugins": [
+    {
+      "name": "promptgate",
+      "source": "./",
+      "description": "Real-time prompt gate for Claude Code: 0-100 score, block + rewrite under threshold, depth profiles, local history reports. VI/EN.",
+      "version": "1.0.0",
+      "category": "productivity",
+      "keywords": ["prompt", "hooks", "productivity", "tokens"]
+    }
+  ]
+}
