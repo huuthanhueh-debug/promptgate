@@ -6,6 +6,6 @@ module.exports = {
   version: '1.0.0',
   url: 'https://thequietconcierge.gumroad.com/l/promptgate',
   gumroadPermalink: 'promptgate',
-  gumroadProductId: process.env.PROMPTGATE_GUMROAD_PRODUCT_ID || '',
+  gumroadProductId: process.env.PROMPTGATE_GUMROAD_PRODUCT_ID || 'X5mGj7Sxgc37R7qoStWkBg==',
   repo: 'https://github.com/huuthanhueh-debug/promptgate',
 };
