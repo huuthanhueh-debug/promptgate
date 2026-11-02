@@ -124,9 +124,15 @@ Gói Pro giao dưới dạng zip, giải nén vào `~/.claude/promptgate/packs/`
   packs/           gói Pro
 ```
 
-## 11. Pha 2 và 3 (chưa build)
+## 11. Pha 2 và 3
 
-- Pha 2: ứng dụng tray Windows (PowerShell+WinForms như Claude Usage Monitor hoặc Electron như Teams Subtitles) với phím tắt toàn cục: bôi đen prompt → nhấn → popup điểm + bản viết lại → nút "Thay vào clipboard". Dùng lại `scripts/lib/engine.js` qua Node.
+- Pha 2 (đã build, 1.2.0, thư mục `tray/`, xem `tray/README.vi.md`): tray Windows bằng PowerShell 5.1 + WinForms (chọn thay vì Electron vì một lệnh là chạy, không cài, không build), engine chạy qua Node (`tray/core.js` → `scripts/lib/engine.js`). File `.ps1` thuần ASCII; mọi chuỗi VI/EN ở `tray/lib/compose.js`; text đi qua file JSON UTF-8 trong `%TEMP%` để tránh lỗi mã hóa và dấu nháy của PowerShell 5.1.
+  - Luồng: hotkey (mặc định `Ctrl+Alt+P`, đổi qua menu hoặc `config.json` → `tray.hotkey`) → nhả modifier, Ctrl+C giả lập, chờ clipboard ≤ 600 ms, không có thì lấy clipboard cũ → `core.js --req` → popup gần con trỏ: điểm, loại việc, thiếu/thừa, mẹo, A Gọn / B Chuẩn / C Sâu → bấm hoặc phím A/B/C chép vào clipboard, tùy chọn dán đè (SetForegroundWindow + Ctrl+V) → Esc đóng.
+  - Composer `tray/lib/compose.js` (thuần, test được): A = `cleanFiller` + dòng đầu ra mặc định; B = Mục tiêu / Ngữ cảnh / Đầu ra / Ràng buộc / Hoàn thành khi, ngữ cảnh điền từ `REFS.path`, URL, dòng lỗi (lấy xuôi từ token lỗi), `@file`, tiêu đề cửa sổ nguồn nếu có tên file; ràng buộc mặc định theo loại việc; C = B + Ultrathink + kế hoạch ngắn + ca biên + tự kiểm tra. Khuyên dùng: deep→C, light→A, còn lại B (như hook).
+  - Tầng 2 (Pro): nút trên popup hoặc `tray.llm: true` gọi `brain-llm.rewrite` chạy nền; kết quả thay B, C = kết quả + dòng sâu.
+  - Dữ liệu: `config.json` khóa `tray` `{hotkey, paste, llm, enabled, node, language}`; `tray.log` vận hành; `log.jsonl` thêm `action: "tray"` (không lưu text) nên `history` tính cả tray.
+  - Menu tray: bật/tắt, đổi phím tắt, dán đè, tầng 2, mở lịch sử, mở thư mục dữ liệu, khởi động cùng Windows (shortcut Startup → `Start-Hidden.vbs`), thoát. Chạy: `tray\PromptGate.cmd` hoặc `npm run tray`. Test: `tests/tray.js`, gọi từ `tests/run.js`.
+  - Đã kiểm chứng trên máy phát triển: Notepad → bôi đen → Ctrl+Alt+P → popup 50/100 → phím A/B → clipboard nhận đúng bản. Chưa kiểm chứng: nút tầng 2 với `claude -p`, dán đè vào app chạy admin, máy bật Kaspersky Secure Keyboard Input (cách xử lý ghi trong `tray/README.vi.md`).
 - Pha 3 (đã có bản thử, xem `extension/README.vi.md`): Chrome extension Manifest V3 cho claude.ai, chèn nút "PG nn" cạnh ô nhập, bảng A/B/C thay vào ô nhập (không tự gửi), popup cài đặt. Engine được bundle từ `scripts/lib/` bằng `extension/build.js`, không copy tay. Quyền tối thiểu: `storage` và claude.ai. Không gửi prompt đi đâu. Chưa lên Chrome Web Store.
 
 ## 12. Tiêu chí hoàn thành pha 1

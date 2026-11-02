@@ -7,6 +7,13 @@
 - Permissions: `storage` and claude.ai only. No network calls.
 - Not published to the Chrome Web Store.
 
+## 1.2.0 — 2026-11-02
+- Phase 2: **Windows tray with a global hotkey** (`tray/`). Select a prompt in any app, press Ctrl+Alt+P, get score, task type, missing dimensions and three filled-in rewrites A Lean / B Standard / C Deep next to the cursor; click or press A/B/C to copy, optional paste-over. Same engine via Node (`tray/core.js`), PowerShell 5.1 + WinForms host, nothing to install: `tray\PromptGate.cmd` or `npm run tray`.
+- Rule-based A/B/C composer (`tray/lib/compose.js`): fills context from paths, URLs, error lines, `@file` mentions and the source window title; per-type default constraints so B has no empty placeholders. Tier 2 (Pro) button reuses `brain-llm.js`.
+- Tray menu: enable/disable, change hotkey, paste-over, tier 2, open history, open data folder, start with Windows, quit. Settings live in `config.json` under `tray`.
+- Tray scores are logged as `action: "tray"` (no prompt text) and show up in `/promptgate:history`.
+- Tests: `tests/tray.js` (composer, core bridge, config, logging), wired into `node tests/run.js`.
+
 ## 1.1.0 — 2026-11-02
 - New default `suggest` mode: weak prompts are no longer stopped. The hook asks Claude to write three expert rewrites (A Lean / B Standard / C Deep) with every gap filled from conversation context and to offer them as clickable choices plus "Send as written". Nothing to retype.
 - Classic gate kept as `/promptgate:config block`.

@@ -1,10 +1,13 @@
 {
   "name": "promptgate",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "description": "Claude Code plugin: score, suggest or block weak prompts before Claude sees them. VI/EN.",
   "scripts": {
     "test": "node tests/run.js",
+    "test:tray": "node tests/tray.js",
+    "tray": "powershell -NoProfile -ExecutionPolicy Bypass -STA -File tray/PromptGate.ps1",
+    "tray:hidden": "wscript tray/Start-Hidden.vbs",
     "optimize": "node scripts/optimize.js",
     "history": "node scripts/history.js",
     "build:pro": "node scripts/build-pro.js",

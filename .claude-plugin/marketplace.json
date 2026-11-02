@@ -8,7 +8,7 @@
       "name": "promptgate",
       "source": "./",
       "description": "Real-time prompt gate for Claude Code: 0-100 score, block + rewrite under threshold, depth profiles, local history reports. VI/EN.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "category": "productivity",
       "keywords": ["prompt", "hooks", "productivity", "tokens"]
     }
