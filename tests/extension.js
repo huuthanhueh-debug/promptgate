@@ -101,27 +101,41 @@ check('findComposer returns null when nothing matches', core.findComposer({ quer
 check('readComposer uses innerText for contenteditable', core.readComposer({ tagName: 'DIV', innerText: 'xin chào', textContent: 'x' }) === 'xin chào');
 check('readComposer uses value for textarea', core.readComposer({ tagName: 'TEXTAREA', value: 'abc' }) === 'abc');
 
-function mockDoc(execOk) {
+// execOk: whether execCommand reports success; target: the element whose text it updates.
+function mockDoc(execOk, target) {
   const calls = [];
   return {
     calls,
     getSelection: () => ({ removeAllRanges() {}, addRange() {} }),
     createRange: () => ({ selectNodeContents() {} }),
-    execCommand: (cmd, ui, val) => { calls.push([cmd, val]); return execOk; },
+    execCommand: (cmd, ui, val) => { calls.push([cmd, val]); if (execOk && target && cmd === 'insertText') { target.innerText = val; target.textContent = val; } return execOk; },
   };
 }
-function fakeEditable(text) {
-  return { tagName: 'DIV', innerText: text, textContent: text, focus() {}, dispatched: [], dispatchEvent(ev) { this.dispatched.push(ev.type); return true; } };
+function fakeEditable(text, onPaste) {
+  return {
+    tagName: 'DIV', innerText: text, textContent: text, focus() {}, dispatched: [],
+    dispatchEvent(ev) { this.dispatched.push(ev.type); if (ev.type === 'paste' && onPaste) onPaste(this, ev); return true; },
+  };
 }
 const ce = fakeEditable('old');
-const d1 = mockDoc(true);
-check('writeComposer uses insertText so the editor sees input', core.writeComposer(ce, 'mới', d1) && d1.calls[0][0] === 'insertText' && d1.calls[0][1] === 'mới');
+const d1 = mockDoc(true, ce);
+check('writeComposer uses insertText so the editor sees input', core.writeComposer(ce, 'mới', d1) === 'insertText' && d1.calls[0][0] === 'insertText' && d1.calls[0][1] === 'mới');
 const ce2 = fakeEditable('old');
-core.writeComposer(ce2, 'fallback', mockDoc(false));
-check('writeComposer falls back to textContent and fires input', ce2.textContent === 'fallback' && ce2.dispatched.includes('input'));
+check('writeComposer falls back to textContent and fires input', core.writeComposer(ce2, 'fallback', mockDoc(false)) === 'text' && ce2.textContent === 'fallback' && ce2.dispatched.includes('input'));
 const ta = { tagName: 'TEXTAREA', value: '', focus() {}, dispatchEvent() { return true; } };
-core.writeComposer(ta, 'xyz', mockDoc(false));
-check('writeComposer sets textarea value', ta.value === 'xyz');
+check('writeComposer sets textarea value', core.writeComposer(ta, 'xyz', mockDoc(false)) === 'value' && ta.value === 'xyz');
+
+// Synthetic paste path (what a browser offers): the editor handles the paste and keeps lines.
+bare.DataTransfer = class { constructor() { this.d = {}; } setData(k, v) { this.d[k] = v; } getData(k) { return this.d[k] || ''; } };
+bare.ClipboardEvent = class { constructor(type, init) { this.type = type; this.clipboardData = init.clipboardData; this.defaultPrevented = false; } preventDefault() { this.defaultPrevented = true; } };
+const multi = 'Mục tiêu: a\nNgữ cảnh: b\nĐầu ra: c';
+const pm = fakeEditable('old', (el, ev) => { el.innerText = ev.clipboardData.getData('text/plain'); el.textContent = el.innerText; ev.preventDefault(); });
+const d3 = mockDoc(true, pm);
+check('writeComposer prefers a synthetic paste when the editor accepts it', core.writeComposer(pm, multi, d3) === 'paste' && pm.innerText === multi && d3.calls.length === 0);
+const pmIgnore = fakeEditable('old');
+const d4 = mockDoc(true, pmIgnore);
+check('paste ignored by the editor → falls back to insertText', core.writeComposer(pmIgnore, multi, d4) === 'insertText' && pmIgnore.innerText === multi);
+delete bare.DataTransfer; delete bare.ClipboardEvent;
 
 // ---- content.js against a minimal claude.ai mock --------------------------------------
 console.log('content script (mock claude.ai)');
@@ -224,6 +238,21 @@ vm.runInContext(fs.readFileSync(path.join(dist, 'content.js'), 'utf8'), sandbox)
 
   const useButtons = panel ? allNodes(panel).filter((n) => n.tagName === 'BUTTON' && n.textContent === 'Thay vào ô nhập') : [];
   check('panel has three replace buttons', useButtons.length === 3, String(useButtons.length));
+
+  // Regression: pressing a panel button focuses it (focusin bubbles out of the shadow root).
+  // That must not rebuild the panel before the click lands, or the click is swallowed.
+  const host = doc.body.children.find((c) => c.id === 'promptgate-host');
+  (docListeners.focusin || []).forEach((fn) => fn({ type: 'focusin', target: useButtons[1], composedPath: () => [useButtons[1], panel, host, doc.body] }));
+  await sleep(40);
+  const after = panel ? allNodes(panel).filter((n) => n.tagName === 'BUTTON' && n.textContent === 'Thay vào ô nhập') : [];
+  check('focus inside the panel does not rebuild it (buttons keep identity)', after.length === 3 && after[1] === useButtons[1]);
+  // A composer edit while the panel is open still refreshes it.
+  composer.innerText = 'làm cho tôi cái này tốt hơn đi bạn ơi nhé ngay';
+  (docListeners.input || []).forEach((fn) => fn({ type: 'input', target: composer, composedPath: () => [composer, doc.body] }));
+  await sleep(340);
+  const rebuilt = allNodes(panel).filter((n) => n.tagName === 'BUTTON' && n.textContent === 'Thay vào ô nhập');
+  check('typing in the composer re-renders the open panel', rebuilt.length === 3 && rebuilt[1] !== useButtons[1]);
+  useButtons.splice(0, 3, ...rebuilt);
   const before = execLog.length;
   (useButtons[1]._l.click || []).forEach((fn) => fn({ preventDefault() {} }));
   const inserted = execLog.slice(before);

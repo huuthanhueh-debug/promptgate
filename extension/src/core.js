@@ -144,33 +144,53 @@ function readComposer(el) {
   return el.innerText != null ? el.innerText : (el.textContent || '');
 }
 
-// Replaces the composer content so the editor (ProseMirror) sees a real input event. Returns
-// true when the text landed. Never submits: the user still presses the site's own send button.
+const squash = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+
+function selectAll(el, doc) {
+  const sel = doc.getSelection && doc.getSelection();
+  if (!sel || !doc.createRange) return;
+  const range = doc.createRange();
+  range.selectNodeContents(el);
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+// Replaces the composer content so the editor (ProseMirror) sees a real edit. Returns the
+// strategy that landed ('value' | 'paste' | 'insertText' | 'text'). Never submits: the user
+// still presses the site's own send button.
+//
+// Order of attempts on a contenteditable:
+//   1. a synthetic paste with text/plain: ProseMirror turns each line into its own paragraph,
+//      which keeps the A/B/C line structure intact;
+//   2. execCommand('insertText'): reliable but newlines may collapse into one paragraph;
+//   3. textContent swap as a last resort (the editor may need one more keystroke to notice).
 function writeComposer(el, text, doc) {
   if (!el) return false;
   if (typeof el.focus === 'function') el.focus();
   if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
     el.value = text;
     if (typeof el.dispatchEvent === 'function') el.dispatchEvent({ type: 'input', bubbles: true });
-    return true;
+    return 'value';
   }
-  let ok = false;
+  const landed = () => squash(readComposer(el)) === squash(text);
+  const g = typeof globalThis !== 'undefined' ? globalThis : {};
+  if (typeof g.DataTransfer === 'function' && typeof g.ClipboardEvent === 'function' && typeof el.dispatchEvent === 'function') {
+    try {
+      selectAll(el, doc);
+      const dt = new g.DataTransfer();
+      dt.setData('text/plain', text);
+      const ev = new g.ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true });
+      el.dispatchEvent(ev);
+      if (ev.defaultPrevented && landed()) return 'paste';
+    } catch (_) { /* fall through */ }
+  }
   try {
-    const sel = doc.getSelection && doc.getSelection();
-    if (sel && doc.createRange) {
-      const range = doc.createRange();
-      range.selectNodeContents(el);
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
-    ok = !!(doc.execCommand && doc.execCommand('insertText', false, text));
-  } catch (_) { ok = false; }
-  if (!ok) {
-    // Last resort: plain text swap. The editor may need one more keystroke to notice.
-    el.textContent = text;
-    if (typeof el.dispatchEvent === 'function') el.dispatchEvent({ type: 'input', bubbles: true });
-  }
-  return true;
+    selectAll(el, doc);
+    if (doc.execCommand && doc.execCommand('insertText', false, text) && landed()) return 'insertText';
+  } catch (_) { /* fall through */ }
+  el.textContent = text;
+  if (typeof el.dispatchEvent === 'function') el.dispatchEvent({ type: 'input', bubbles: true });
+  return 'text';
 }
 
 module.exports = {

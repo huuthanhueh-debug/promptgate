@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PromptGate for claude.ai",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Scores your prompt on claude.ai (0-100) and offers three rewrites you can drop into the box. Runs locally. Nothing is sent out.",
   "permissions": ["storage"],
   "content_scripts": [

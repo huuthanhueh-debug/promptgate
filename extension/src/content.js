@@ -43,6 +43,7 @@
   let panelOpen = false;
   let timer = null;
   let bodyTimer = null;
+  let renderedKey = null;
 
   const host = document.createElement('div');
   host.id = 'promptgate-host';
@@ -104,9 +105,19 @@
     return PG.contextFrom(text.slice(-4000));
   }
 
-  function renderPanel() {
+  // Events that start inside our own badge or panel (clicking a button, focusing it) must not
+  // trigger a re-render: rebuilding the panel between mousedown and click swallows the click.
+  function fromHost(e) {
+    const path = typeof e.composedPath === 'function' ? e.composedPath() : [];
+    return path.includes(host) || !!(e.target && host.contains && host.contains(e.target));
+  }
+
+  function renderPanel(force) {
     if (!panelOpen) return;
     const text = PG.readComposer(composer);
+    const key = `${text}\u0000${settings.language}\u0000${settings.depthProfile}`;
+    if (!force && key === renderedKey) return;
+    renderedKey = key;
     panel.replaceChildren();
     if (!text.trim()) {
       panel.append(el('div', 'pg-meta', PG.ui(fallbackLang()).empty));
@@ -142,6 +153,8 @@
       card.append(h, el('pre', null, v[k]));
       const use = el('button', 'pg-action' + (v.rec === k ? ' pg-primary' : ''), U.use);
       use.type = 'button';
+      // Keep the composer's focus and selection: the write happens into the focused editor.
+      use.addEventListener('mousedown', (e) => e.preventDefault());
       use.addEventListener('click', (e) => { e.preventDefault(); applyVariant(v[k]); });
       card.append(use);
       panel.append(card);
@@ -171,12 +184,13 @@
     if (!composer || !place()) return;
     panelOpen = true;
     panel.hidden = false;
-    renderPanel();
+    renderPanel(true);
   }
 
   function closePanel() {
     panelOpen = false;
     panel.hidden = true;
+    renderedKey = null;
   }
 
   function togglePanel() {
@@ -224,8 +238,8 @@
 
   function start() {
     document.body.appendChild(host);
-    document.addEventListener('input', () => schedule(), true);
-    document.addEventListener('focusin', () => schedule(0), true);
+    document.addEventListener('input', (e) => { if (!fromHost(e)) schedule(); }, true);
+    document.addEventListener('focusin', (e) => { if (!fromHost(e)) schedule(0); }, true);
     document.addEventListener('keydown', onKeydown, true);
     window.addEventListener('resize', place);
     window.addEventListener('scroll', place, true);
