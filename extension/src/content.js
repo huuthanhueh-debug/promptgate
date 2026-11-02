@@ -95,7 +95,10 @@
     host.style.left = Math.max(8, left) + 'px';
     host.style.top = Math.max(4, top) + 'px';
     host.style.display = '';
-    panel.dataset.dir = top > 330 ? 'up' : 'down';
+    const dirUp = top > 330;
+    panel.dataset.dir = dirUp ? 'up' : 'down';
+    // Cap the panel to the space actually available in that direction so it never runs off-screen.
+    panel.style.maxHeight = Math.max(220, Math.min(Math.round(window.innerHeight * 0.7), dirUp ? top - 16 : window.innerHeight - top - 60)) + 'px';
     return true;
   }
 

@@ -19,7 +19,11 @@ Tạo `dist/promptgate-extension-<version>.zip` với `manifest.json` ở gốc.
 5. **Distribution**: Public, mọi khu vực, miễn phí.
 6. Submit for review. Thường 1 đến 3 ngày.
 
-## Ảnh cần chụp (chưa có)
+## Ảnh (đã có trong extension/store/, 1280×800)
+
+- 1-score-badge.png · 2-panel-abc.png · 3-after-choose-b.png (chụp trên claude.ai thật, thanh bên đã thu gọn).
+
+## Ảnh cần chụp thêm (tùy chọn)
 
 - 1280×800 (hoặc 640×400), tối thiểu 1, tối đa 5: (a) nút PG cạnh ô nhập claude.ai, (b) bảng mở với ba bản A/B/C, (c) sau khi bấm B, ô nhập đã thay nội dung, (d) popup cài đặt.
 - Small promo tile 440×280 (tùy chọn).
