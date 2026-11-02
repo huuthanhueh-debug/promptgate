@@ -2,6 +2,12 @@
 'use strict';
 // PromptGate UserPromptSubmit hook. Reads the hook payload on stdin, writes JSON on stdout.
 // Fail-open by design: any internal error → empty JSON → the prompt goes through untouched.
+//
+// Weak prompt (score < blockBelow):
+//   action=suggest (default): never blocks. Injects an instruction so Claude writes 3 expert
+//     rewrites (Lean / Standard / Deep) with the gaps filled from conversation context and offers
+//     them as clickable choices (AskUserQuestion). Nothing to retype.
+//   action=block: classic gate — block + rule-based rewrite in the message, user resends.
 const cfgm = require('./lib/config');
 const packs = require('./lib/packs');
 const E = require('./lib/engine');
@@ -59,10 +65,22 @@ async function main() {
   const a = E.analyze(trimmed, { pack, language: cfg.language, followUp });
   const blockAt = followUp ? cfg.blockBelow - 10 : cfg.blockBelow;
   const T = t(a.lang);
+  const typeLabel = T.types[a.type] || a.type;
+  const depthLabel = T.depth[a.depth] || a.depth;
   const base = { session, score: a.score, type: a.type, depth: a.depth, lang: a.lang, words: a.nWords, missing: a.missing, followUp };
 
   if (a.score < blockAt) {
-    let suggestion = E.rewrite(trimmed, a, pack, T);
+    const skeleton = E.rewrite(trimmed, a, pack, T);
+    if (cfg.action !== 'block') {
+      // suggest mode: Claude fills the gaps and offers A/B/C as buttons. No block, no retyping.
+      const rec = a.depth === 'deep' ? 'C' : a.depth === 'light' ? 'A' : 'B';
+      const missing = a.missing.map((k) => T.dims[k]).join(', ');
+      const ctx = T.suggest({ score: a.score, typeLabel, depthLabel }, missing, rec, skeleton);
+      state[session] = st; cfgm.saveState(state);
+      cfgm.appendLog(Object.assign(base, { action: 'suggest' }));
+      return out({ systemMessage: T.suggestSys(a.score, typeLabel), hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: ctx.slice(0, 9500) } });
+    }
+    let suggestion = skeleton;
     let viaLlm = false;
     if (cfg.brain === 'llm' && cfgm.isPro()) {
       try {
@@ -91,7 +109,7 @@ async function main() {
     const o = { systemMessage: sys, hookSpecificOutput: { hookEventName: 'UserPromptSubmit' } };
     const ctx = [];
     if (cfg.echo !== false) ctx.push(T.echo(sys));
-    if (cfg.inject !== false && a.depth === 'deep' && !a.flags.cue) ctx.push(T.inject(T.types[a.type] || a.type));
+    if (cfg.inject !== false && a.depth === 'deep' && !a.flags.cue) ctx.push(T.inject(typeLabel));
     if (ctx.length) o.hookSpecificOutput.additionalContext = ctx.join('\n');
     cfgm.appendLog(Object.assign(base, { action: 'show' }));
     return out(o);

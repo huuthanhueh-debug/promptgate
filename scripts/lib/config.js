@@ -24,6 +24,7 @@ const MODES = {
 
 const DEFAULTS = {
   mode: 'balanced',
+  action: 'suggest',       // suggest (Claude proposes A/B/C rewrites with buttons) | block (classic gate)
   brain: 'rules',          // rules | llm
   language: 'auto',        // auto | vi | en
   minWords: 6,

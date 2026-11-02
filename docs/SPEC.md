@@ -11,7 +11,7 @@ PromptGate là plugin Claude Code đứng giữa bàn phím và Claude: mỗi pr
 | # | Hạng mục | Quyết định |
 |---|---|---|
 | 1 | Nền tảng | Pha 1: Claude Code (CLI, desktop Code tab, VS Code) qua hook `UserPromptSubmit`. Pha 2: công cụ phím tắt Windows (phủ Claude desktop + mọi app). Pha 3: Chrome extension cho claude.ai. Điện thoại: không thể can thiệp, chỉ hưởng lợi gián tiếp qua lịch sử. |
-| 2 | Cách can thiệp | Lai theo điểm: dưới ngưỡng chặn → chặn + bản viết lại; vùng giữa → cho qua, hiện điểm + 1 mẹo, chèn gợi ý chiều sâu cho Claude; trên ngưỡng → im lặng. |
+| 2 | Cách can thiệp | Lai theo điểm. **Từ 1.1.0 (yêu cầu của chủ sản phẩm 02/11):** dưới ngưỡng → không chặn, hook chèn chỉ dẫn để Claude viết 3 bản viết lại kiểu chuyên gia (A Gọn / B Chuẩn / C Sâu) tự điền chỗ thiếu từ ngữ cảnh và hiện nút chọn (AskUserQuestion) + "Gửi nguyên bản"; không bắt gõ lại. Chế độ chặn cổ điển giữ lại qua `config block`. Vùng giữa → cho qua, hiện điểm + mẹo, chèn gợi ý chiều sâu; trên ngưỡng → im lặng. |
 | 3 | Bộ não | Tầng 1: quy tắc chạy local, 0 chi phí, dưới 50 ms. Tầng 2 (Pro, tự chọn): `claude -p --model haiku` dùng tài khoản người dùng, fallback API key. Chỉ gọi tầng 2 khi tầng 1 kết luận prompt yếu. |
 | 4 | "Hết công suất" | Hồ sơ chiều sâu tự nhận diện theo loại việc: light / standard / deep. Deep thêm ultrathink, lập kế hoạch ngắn, tiêu chí hoàn thành, tự kiểm tra, cấm dừng giữa chừng. Ghi đè bằng từ khóa `nhanh`/`fast` hoặc `max`. |
 | 5 | Ngôn ngữ | Gợi ý theo ngôn ngữ của prompt (VI/EN, tự nhận diện). Tài liệu song ngữ. |

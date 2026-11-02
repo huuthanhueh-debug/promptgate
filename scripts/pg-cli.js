@@ -18,20 +18,27 @@ function status() {
   const avg = scored.length ? Math.round(scored.reduce((s, e) => s + (e.score || 0), 0) / scored.length) : null;
   const lines = [
     `PromptGate ${PRODUCT.version}`,
-    `mode: ${cfg.mode} (block < ${cfg.blockBelow}, show < ${cfg.showBelow >= 101 ? 'always' : cfg.showBelow}) · brain: ${cfg.brain} · language: ${cfg.language}`,
+    `mode: ${cfg.mode} (weak < ${cfg.blockBelow}, show < ${cfg.showBelow >= 101 ? 'always' : cfg.showBelow}) · on weak: ${cfg.action} · brain: ${cfg.brain} · language: ${cfg.language}`,
     `tier: ${pro ? 'Pro' : 'Free'}${lic && lic.updatesUntil ? ' · updates until ' + lic.updatesUntil.slice(0, 10) : ''}${process.env.PROMPTGATE_PRO === '1' ? ' (dev override)' : ''}`,
     `packs: ${pack.ids.join(', ')}${pack.proLocked.length ? ' · locked Pro packs present: ' + pack.proLocked.join(', ') : ''}`,
-    `last 7 days: ${scored.length} scored · ${n('block')} blocked · ${n('show')} shown · ${n('pass')} passed · ${n('skip')} skipped${avg != null ? ' · avg ' + avg + '/100' : ''}`,
+    `last 7 days: ${scored.length} scored · ${n('suggest')} suggested · ${n('block')} blocked · ${n('show')} shown · ${n('pass')} passed · ${n('skip')} skipped${avg != null ? ' · avg ' + avg + '/100' : ''}`,
     `data: ${cfgm.HOME}`,
   ];
   console.log(lines.join('\n'));
 }
 
 function config(mode) {
-  if (!cfgm.MODES[mode]) { console.log(`Usage: config <strict|balanced|gentle|off>. Current: ${cfgm.loadConfig().mode}`); return; }
+  if (mode === 'suggest' || mode === 'block') {
+    cfgm.saveConfig({ action: mode });
+    console.log(mode === 'suggest'
+      ? 'PromptGate → suggest: weak prompts are never blocked; Claude proposes 3 filled-in rewrites (Lean / Standard / Deep) as buttons. Nothing to retype.'
+      : 'PromptGate → block: weak prompts are stopped with a rule-based rewrite in the message; you resend.');
+    return;
+  }
+  if (!cfgm.MODES[mode]) { const c = cfgm.loadConfig(); console.log(`Usage: config <strict|balanced|gentle|off> or config <suggest|block>. Current: mode=${c.mode}, action=${c.action}`); return; }
   cfgm.saveConfig({ mode });
   const m = cfgm.MODES[mode];
-  console.log(`PromptGate mode → ${mode} (block < ${m.blockBelow}, show < ${m.showBelow >= 101 ? 'always' : m.showBelow}). Takes effect on your next prompt.`);
+  console.log(`PromptGate mode → ${mode} (weak < ${m.blockBelow}, show < ${m.showBelow >= 101 ? 'always' : m.showBelow}). Takes effect on your next prompt.`);
 }
 
 function brain(which) {

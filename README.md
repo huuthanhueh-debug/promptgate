@@ -19,6 +19,21 @@ Verify the result before answering.
 Send as-is: prefix with // · Mode: /promptgate:config gentle | off
 ```
 
+## Two ways to react (you choose)
+
+**Suggest (default).** A weak prompt is not stopped. Claude first writes three expert rewrites with every gap filled in from the conversation (which file, what output, what counts as done) and shows them as buttons:
+
+```
+A · Lean       — shortest form, core intent + one output line
+B · Standard   — goal, context, output, constraints, done when
+C · Deep       — B + brief plan, edge cases, self-verification, finish fully   (Recommended)
+Send as written
+```
+
+Click one and Claude executes it. Nothing to retype. The recommended option follows the detected depth: light → A, standard → B, deep → C.
+
+**Block.** `/promptgate:config block` restores the classic gate: the prompt is stopped and the rule-based rewrite (with ⟨…⟩ placeholders) is shown for you to resend.
+
 ## Why
 
 Two things cost you with Claude: words that add nothing (greetings, "please", repetition) and words that are missing (what file, what output, what counts as done). PromptGate cuts the first and asks for the second. For big tasks it also adds the lines that make Claude plan, verify and finish instead of stopping halfway. Small tasks are left light.
@@ -50,7 +65,7 @@ Task type (question, edit, build, debug, analyze, write, review, ops) is detecte
 
 ## Modes
 
-| Mode | Blocks below | Shows score below |
+| Mode | Weak below (suggest or block) | Shows score below |
 |---|---|---|
 | `strict` | 70 | always |
 | `balanced` (default) | 50 | 75 |

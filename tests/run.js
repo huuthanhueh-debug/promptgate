@@ -88,8 +88,17 @@ h = hook('làm cho tôi cái này tốt hơn đi bạn ơi nhé', { agent_id: 's
 check('subagent prompt passes', Object.keys(h.out).length === 0);
 h = hook('// làm cho tôi cái này tốt hơn đi bạn ơi');
 check('// bypass passes', Object.keys(h.out).length === 0);
+h = hook('làm cho tôi cái này tốt hơn đi bạn ơi nhé', { session_id: 'sug' });
+check('suggest mode: weak prompt NOT blocked', !h.out.decision, JSON.stringify(h.out).slice(0, 160));
+check('suggest mode: instructs AskUserQuestion with A/B/C', /AskUserQuestion/.test(JSON.stringify(h.out)) && /A · Gọn/.test(JSON.stringify(h.out)) && /C · Sâu/.test(JSON.stringify(h.out)), JSON.stringify(h.out).slice(0, 200));
+check('suggest mode: recommends C for deep build task', /lựa chọn C lên đầu/.test(h.out.hookSpecificOutput.additionalContext));
+check('suggest mode: one-line system message', /đề xuất 3 bản/.test(h.out.systemMessage || ''));
+h = hook('fix this please thanks a lot', { session_id: 'sug-en' });
+check('suggest mode EN wording', /A · Lean/.test(JSON.stringify(h.out)) && /Send as written/.test(JSON.stringify(h.out)));
+fs.mkdirSync(path.join(TMP, 'promptgate'), { recursive: true });
+fs.writeFileSync(path.join(TMP, 'promptgate', 'config.json'), JSON.stringify({ action: 'block' }));
 h = hook('làm cho tôi cái này tốt hơn đi bạn ơi nhé');
-check('weak prompt blocked', h.out.decision === 'block' && /PromptGate ▸ \d+\/100/.test(h.out.reason || ''), JSON.stringify(h.out).slice(0, 200));
+check('block mode: weak prompt blocked', h.out.decision === 'block' && /PromptGate ▸ \d+\/100/.test(h.out.reason || ''), JSON.stringify(h.out).slice(0, 200));
 check('block suppresses original prompt', h.out.hookSpecificOutput && h.out.hookSpecificOutput.suppressOriginalPrompt === true);
 const suggested = (h.out.reason || '').split('\n').find((l) => l.startsWith('Mục tiêu:')) || '';
 h = hook('làm cho tôi cái này tốt hơn đi bạn ơi nhé');

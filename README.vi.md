@@ -19,6 +19,21 @@ Kiểm tra lại kết quả trước khi trả lời.
 Gửi nguyên bản: thêm // ở đầu · Chế độ: /promptgate:config gentle | off
 ```
 
+## Hai cách phản ứng (bạn chọn)
+
+**Đề xuất (mặc định).** Prompt yếu không bị chặn. Claude viết trước ba bản viết lại kiểu chuyên gia, tự điền mọi chỗ thiếu từ ngữ cảnh hội thoại (file nào, đầu ra gì, lúc nào là xong) và hiện thành nút bấm:
+
+```
+A · Gọn     — ngắn nhất, chỉ ý định cốt lõi + 1 dòng đầu ra
+B · Chuẩn   — mục tiêu, ngữ cảnh, đầu ra, ràng buộc, hoàn thành khi
+C · Sâu     — như B + kế hoạch ngắn, ca biên, tự kiểm tra, làm trọn   (Khuyên dùng)
+Gửi nguyên bản
+```
+
+Bấm một nút, Claude làm theo bản đó. Không phải gõ lại gì. Nút khuyên dùng theo chiều sâu nhận diện: nhẹ → A, chuẩn → B, sâu → C.
+
+**Chặn.** `/promptgate:config block` bật lại cổng cổ điển: prompt bị dừng, bản viết lại theo quy tắc (có chỗ trống ⟨…⟩) hiện ra để bạn gửi lại.
+
 ## Vì sao
 
 Hai thứ làm bạn tốn tiền với Claude: chữ thừa (chào hỏi, "làm ơn", lặp ý) và chữ thiếu (file nào, muốn nhận gì, lúc nào là xong). PromptGate cắt cái thứ nhất và đòi cái thứ hai. Với việc lớn, nó thêm đúng những dòng khiến Claude lập kế hoạch, tự kiểm tra và làm trọn thay vì dừng giữa chừng. Việc nhỏ thì giữ nhẹ.
@@ -50,7 +65,7 @@ Loại việc (hỏi, sửa nhỏ, xây dựng, sửa lỗi, phân tích, viết
 
 ## Chế độ
 
-| Chế độ | Chặn dưới | Hiện điểm dưới |
+| Chế độ | Yếu dưới (đề xuất hoặc chặn) | Hiện điểm dưới |
 |---|---|---|
 | `strict` | 70 | luôn |
 | `balanced` (mặc định) | 50 | 75 |
