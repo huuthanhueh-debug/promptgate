@@ -88,10 +88,25 @@ function build(opts) {
   const code = bundle();
   fs.writeFileSync(path.join(OUT, 'engine.js'), code);
   for (const f of COPY) fs.copyFileSync(path.join(SRC, f), path.join(OUT, f));
-  if (!opts.quiet) console.log(`built ${path.relative(ROOT, OUT)}/ (engine.js ${Buffer.byteLength(code)} bytes)`);
+  const icons = require('./src/icons');
+  fs.mkdirSync(path.join(OUT, 'icons'), { recursive: true });
+  for (const s of icons.SIZES) fs.writeFileSync(path.join(OUT, 'icons', `${s}.png`), icons.png(s));
+  if (!opts.quiet) console.log(`built ${path.relative(ROOT, OUT)}/ (engine.js ${Buffer.byteLength(code)} bytes, ${icons.SIZES.length} icons)`);
+  if (opts.zip) {
+    // Chrome Web Store upload: a zip whose root holds manifest.json. Written to <repo>/dist/.
+    const { execSync } = require('child_process');
+    const manifest = JSON.parse(fs.readFileSync(path.join(OUT, 'manifest.json'), 'utf8'));
+    const zipDir = path.join(ROOT, 'dist');
+    fs.mkdirSync(zipDir, { recursive: true });
+    const zip = path.join(zipDir, `promptgate-extension-${manifest.version}.zip`);
+    fs.rmSync(zip, { force: true });
+    if (process.platform === 'win32') execSync(`powershell -NoProfile -Command "Compress-Archive -Path '${OUT}\\*' -DestinationPath '${zip}' -Force"`);
+    else execSync(`cd "${OUT}" && zip -qr "${zip}" .`);
+    if (!opts.quiet) console.log(`zip ${path.relative(ROOT, zip)} (${fs.statSync(zip).size} bytes)`);
+  }
   return OUT;
 }
 
 module.exports = { build, bundle };
 
-if (require.main === module) build();
+if (require.main === module) build({ zip: process.argv.includes('--zip') });

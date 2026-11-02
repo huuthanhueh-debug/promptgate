@@ -33,6 +33,11 @@ check('manifest permissions are storage only', JSON.stringify(manifest.permissio
 check('manifest has no host_permissions', !manifest.host_permissions);
 check('content script only on claude.ai', JSON.stringify(manifest.content_scripts[0].matches) === '["https://claude.ai/*"]');
 check('engine loads before content script', manifest.content_scripts[0].js[0] === 'engine.js' && manifest.content_scripts[0].js[1] === 'content.js');
+const icon128 = path.join(dist, 'icons', '128.png');
+const PNG_SIG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+check('icons generated at build (16/32/48/128)', [16, 32, 48, 128].every((s) => fs.existsSync(path.join(dist, 'icons', `${s}.png`))));
+check('128px icon is a valid PNG header', fs.existsSync(icon128) && fs.readFileSync(icon128).subarray(0, 8).equals(PNG_SIG));
+check('manifest points at the generated icons', manifest.icons && manifest.icons['128'] === 'icons/128.png' && manifest.action.default_icon['16'] === 'icons/16.png');
 
 // ---- bundle in a bare sandbox ---------------------------------------------------------
 console.log('browser bundle (no Node, no DOM)');

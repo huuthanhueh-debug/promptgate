@@ -74,7 +74,7 @@ Nếu không tìm thấy ô nhập nào, nút PG ẩn đi và trang không bị 
 
 ## Chrome Web Store (chưa đăng)
 
-Để đăng, cần thêm: biểu tượng 128px (hiện chưa có, extension dùng biểu tượng mặc định), chính sách quyền riêng tư công khai (nội dung như mục "Riêng tư" ở trên), ảnh chụp màn hình, mô tả ngắn, và tài khoản nhà phát triển trả phí một lần. Chưa làm bước nào trong số này.
+Đã chuẩn bị sẵn: icon (sinh tự động khi build), [chính sách riêng tư](PRIVACY.md), [nội dung listing và các bước nộp](STORE-LISTING.md), gói zip bằng `npm run build:ext -- --zip`. Còn phải tự làm: tài khoản nhà phát triển (5 USD một lần), ảnh chụp màn hình, bấm Submit.
 
 ## Phát triển
 

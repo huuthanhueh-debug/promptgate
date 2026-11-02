@@ -74,7 +74,7 @@ If no composer is found, the badge hides and the page is left alone.
 
 ## Chrome Web Store (not published)
 
-To publish, you would still need: a 128px icon (none yet; the extension uses Chrome's default), a public privacy policy (the content of the Privacy section above), store screenshots, a short description, and a one-time paid developer account. None of these steps is done.
+Prepared: icons (generated at build time), the [privacy policy](PRIVACY.md), the [listing text and submission steps](STORE-LISTING.md), and the upload zip via `npm run build:ext -- --zip`. Still manual: a developer account (one-time $5), store screenshots, and pressing Submit.
 
 ## Development
 
