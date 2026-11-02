@@ -13,7 +13,7 @@ Chấm điểm prompt của bạn trên claude.ai ngay khi gõ, từ 0 đến 10
 Bản thử, cài thủ công. Chưa đăng Chrome Web Store.
 
 - Đã kiểm thử: engine chạy trong môi trường không có Node (bundle trong sandbox), điểm khớp với bản Claude Code, mô phỏng DOM claude.ai (nút hiện, điểm đổi khi gõ, bấm B thay đúng nội dung ô nhập, không gửi).
-- Chưa kiểm chứng: chạy trên claude.ai thật trong bản này. Giao diện claude.ai đổi thường xuyên; nếu nút không hiện, xem mục "Khi claude.ai đổi giao diện" bên dưới.
+- Đã kiểm chứng trên claude.ai thật (Chrome, Load unpacked, bản 0.1.1, ngày 2026-11-02): nút hiện, điểm đổi khi gõ, bảng mở, bấm bản B thay đúng nội dung ô nhập. Giao diện claude.ai đổi thường xuyên; nếu nút không hiện, xem mục "Khi claude.ai đổi giao diện" bên dưới.
 
 ## Cài đặt (cho máy có Node.js 18+ và Chrome)
 

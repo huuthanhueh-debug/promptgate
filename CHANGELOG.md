@@ -5,6 +5,7 @@
 - The engine is bundled from `scripts/lib/` by `npm run build:ext` (no copy). Node-only parts (`fs`, `path`, `os`) are swapped for browser shims.
 - Popup: on/off, threshold, depth profile, suggestion language, Pro key stored locally (does not unlock Pro in the extension yet).
 - Permissions: `storage` and claude.ai only. No network calls.
+- 0.1.1: panel buttons were unclickable (focus inside the panel rebuilt it mid-click); multi-line rewrites are now inserted via a synthetic paste so each line stays its own paragraph. Verified on the live claude.ai.
 - Not published to the Chrome Web Store.
 
 ## 1.2.0 — 2026-11-02

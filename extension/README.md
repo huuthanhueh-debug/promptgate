@@ -13,7 +13,7 @@ Scores your prompt on claude.ai as you type, from 0 to 100. Press the badge or *
 Preview, manual install. Not yet on the Chrome Web Store.
 
 - Tested: the engine runs in a sandbox with no Node globals, scores match the Claude Code plugin, and a mock of the claude.ai DOM confirms the badge appears, updates while typing, and that clicking B replaces the composer text without sending.
-- Not yet verified: a run on the live claude.ai in this release. The claude.ai interface changes often; if the badge does not appear, see "When claude.ai changes its layout" below.
+- Verified on the live claude.ai (Chrome, Load unpacked, 0.1.1, 2026-11-02): badge appears, score updates while typing, panel opens, choosing B replaces the composer text. The claude.ai interface changes often; if the badge does not appear, see "When claude.ai changes its layout" below.
 
 ## Install (needs Node.js 18+ and Chrome)
 
