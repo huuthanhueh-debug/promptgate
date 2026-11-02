@@ -127,7 +127,7 @@ Gói Pro giao dưới dạng zip, giải nén vào `~/.claude/promptgate/packs/`
 ## 11. Pha 2 và 3 (chưa build)
 
 - Pha 2: ứng dụng tray Windows (PowerShell+WinForms như Claude Usage Monitor hoặc Electron như Teams Subtitles) với phím tắt toàn cục: bôi đen prompt → nhấn → popup điểm + bản viết lại → nút "Thay vào clipboard". Dùng lại `scripts/lib/engine.js` qua Node.
-- Pha 3: Chrome extension cho claude.ai, chèn nút cạnh ô nhập, cùng engine đóng gói.
+- Pha 3 (đã có bản thử, xem `extension/README.vi.md`): Chrome extension Manifest V3 cho claude.ai, chèn nút "PG nn" cạnh ô nhập, bảng A/B/C thay vào ô nhập (không tự gửi), popup cài đặt. Engine được bundle từ `scripts/lib/` bằng `extension/build.js`, không copy tay. Quyền tối thiểu: `storage` và claude.ai. Không gửi prompt đi đâu. Chưa lên Chrome Web Store.
 
 ## 12. Tiêu chí hoàn thành pha 1
 

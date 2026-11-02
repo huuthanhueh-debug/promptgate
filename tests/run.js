@@ -135,6 +135,13 @@ console.log('perf');
 const t0 = Date.now(); for (let i = 0; i < 500; i++) E.analyze(cases[7][0], { pack }); const ms = (Date.now() - t0) / 500;
 check(`analyze < 2 ms avg (${ms.toFixed(2)} ms)`, ms < 2);
 
+console.log('chrome extension (phase 3, claude.ai)');
+const ext = spawnSync(process.execPath, [path.join(ROOT, 'tests/extension.js')], { encoding: 'utf8', env: process.env, timeout: 120000 });
+const extSummary = (ext.stdout || '').trim().split('
+').pop() || '';
+check(`tests/extension.js green (${extSummary})`, ext.status === 0, (ext.stdout || '').split('
+').filter((l) => /FAIL/.test(l)).join(' | ') || ext.stderr);
+
 try { fs.rmSync(TMP, { recursive: true, force: true }); } catch (_) {}
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

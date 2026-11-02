@@ -111,7 +111,7 @@ Pro packs are JSON files you drop into `~/.claude/promptgate/packs/`. Get them a
 
 - **Phase 1 (this)**: Claude Code plugin.
 - **Phase 2**: Windows tray tool with a global hotkey, so the same engine works in the Claude desktop app and any other window.
-- **Phase 3**: Chrome extension for claude.ai.
+- **Phase 3**: Chrome extension for claude.ai. Preview in [`extension/`](extension/README.md): manual install, not yet on the Chrome Web Store.
 
 ## Troubleshooting
 

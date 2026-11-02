@@ -7,7 +7,8 @@
     "test": "node tests/run.js",
     "optimize": "node scripts/optimize.js",
     "history": "node scripts/history.js",
-    "build:pro": "node scripts/build-pro.js"
+    "build:pro": "node scripts/build-pro.js",
+    "build:ext": "node extension/build.js"
   },
   "engines": { "node": ">=18" },
   "license": "MIT",

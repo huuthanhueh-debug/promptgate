@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PromptGate</title>
+<style>
+  body { font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; width: 300px; margin: 0; padding: 12px; color: #222; background: #fff; }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  label.block { display: block; margin: 10px 0 4px; font-weight: 600; }
+  select, input[type="text"] { width: 100%; box-sizing: border-box; padding: 6px; font: inherit; }
+  input[type="checkbox"] { width: 16px; height: 16px; }
+  button { margin-top: 6px; padding: 6px 10px; font: inherit; cursor: pointer; }
+  .hint { font-size: 11px; color: #666; margin-top: 4px; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #202020; color: #eee; }
+    select, input[type="text"] { background: #2a2a2a; color: #eee; border: 1px solid #444; }
+    .hint { color: #aaa; }
+  }
+</style>
+</head>
+<body>
+  <div class="row">
+    <strong>PromptGate</strong>
+    <label class="row"><input type="checkbox" id="enabled"> Bật trên claude.ai</label>
+  </div>
+
+  <label class="block" for="mode">Ngưỡng</label>
+  <select id="mode">
+    <option value="strict">Nghiêm: nút luôn hiện, đỏ dưới 70</option>
+    <option value="balanced">Cân bằng: đỏ dưới 50, vàng dưới 75</option>
+    <option value="gentle">Nhẹ: đỏ dưới 30</option>
+    <option value="off">Tắt: ẩn nút</option>
+  </select>
+
+  <label class="block" for="depth">Hồ sơ chiều sâu</label>
+  <select id="depth">
+    <option value="auto">Tự động theo loại việc</option>
+    <option value="light">Nhẹ: ưu tiên bản A</option>
+    <option value="standard">Chuẩn: ưu tiên bản B</option>
+    <option value="deep">Sâu: ưu tiên bản C</option>
+  </select>
+  <div class="hint">Chỉ đổi bản được khuyên dùng và nội dung bản viết lại, không đổi điểm.</div>
+
+  <label class="block" for="lang">Ngôn ngữ gợi ý</label>
+  <select id="lang">
+    <option value="auto">Theo prompt</option>
+    <option value="vi">Tiếng Việt</option>
+    <option value="en">English</option>
+  </select>
+
+  <label class="block" for="key">Khóa Pro (tùy chọn)</label>
+  <input type="text" id="key" placeholder="Dán khóa từ email Gumroad" autocomplete="off" spellcheck="false">
+  <button id="save" type="button">Lưu khóa</button>
+  <div class="hint" id="status"></div>
+
+  <div class="hint" style="margin-top: 12px">
+    Mọi thứ chạy trong trình duyệt. Prompt của bạn không được gửi đi đâu.
+    Khi nào cần, kích hoạt Pro bằng <code>/promptgate:activate</code> trong Claude Code.
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

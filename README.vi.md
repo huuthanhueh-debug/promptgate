@@ -109,6 +109,6 @@ Gói Pro là các file JSON thả vào `~/.claude/promptgate/packs/`. Mua tại 
 
 - **Pha 1 (bản này)**: plugin Claude Code.
 - **Pha 2**: công cụ chạy nền Windows có phím tắt toàn cục, dùng cùng engine cho app Claude desktop và mọi cửa sổ khác.
-- **Pha 3**: Chrome extension cho claude.ai.
+- **Pha 3**: Chrome extension cho claude.ai. Bản thử trong [`extension/`](extension/README.vi.md): cài thủ công, chưa đăng Chrome Web Store.
 
 MIT © The Quiet Concierge
