@@ -10,7 +10,6 @@
     "tray:hidden": "wscript tray/Start-Hidden.vbs",
     "optimize": "node scripts/optimize.js",
     "history": "node scripts/history.js",
-    "build:pro": "node scripts/build-pro.js",
     "build:ext": "node extension/build.js"
   },
   "engines": { "node": ">=18" },

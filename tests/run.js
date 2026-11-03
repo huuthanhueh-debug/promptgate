@@ -150,6 +150,11 @@ const ext = spawnSync(process.execPath, [path.join(ROOT, 'tests/extension.js')],
 const extSummary = (ext.stdout || '').trim().split('\n').pop() || '';
 check(`tests/extension.js green (${extSummary})`, ext.status === 0, (ext.stdout || '').split('\n').filter((l) => /FAIL/.test(l)).join(' | ') || ext.stderr);
 
+console.log('packaging');
+const scripts = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).scripts || {};
+const missingFiles = Object.entries(scripts).map(([n, c]) => { const m = /node\s+(\S+\.js)/.exec(c); return m && !fs.existsSync(path.join(ROOT, m[1])) ? n + ' -> ' + m[1] : null; }).filter(Boolean);
+check('every npm script points at an existing file', missingFiles.length === 0, missingFiles.join(', '));
+
 try { fs.rmSync(TMP, { recursive: true, force: true }); } catch (_) {}
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

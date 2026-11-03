@@ -48,7 +48,7 @@ Ngôn ngữ popup theo ngôn ngữ prompt (VI/EN). Ngôn ngữ menu tray mặc �
 | Bật PromptGate | Tích = phím tắt hoạt động; bỏ tích = tạm tắt (icon chuyển xám) |
 | Đổi phím tắt… (Ctrl+Alt+P) | Mở hộp thoại, nhấn tổ hợp mới, Lưu. Không đăng ký được thì giữ tổ hợp cũ và báo lý do |
 | Dán đè sau khi chọn bản | Bật/tắt Ctrl+V tự động sau khi chọn (chỉ khi lấy từ vùng bôi đen) |
-| Hỏi tầng 2 (Pro) khi chấm | Mỗi lần chấm tự gọi `claude -p --model haiku` viết lại B/C (cần Pro) |
+| Hỏi tầng 2 (Claude) khi chấm | Mỗi lần chấm tự gọi `claude -p --model haiku` viết lại B/C |
 | Mở lịch sử prompt | Chạy `scripts/history.js 30` rồi mở báo cáo Markdown mới nhất |
 | Mở thư mục dữ liệu | `%USERPROFILE%\.claude\promptgate` (config, log, reports) |
 | Khởi động cùng Windows | Shortcut trong thư mục Startup |
@@ -76,16 +76,16 @@ Nằm chung file với plugin: `%USERPROFILE%\.claude\promptgate\config.json`, k
 |---|---|---|
 | `hotkey` | `Ctrl+Alt+P` | Tổ hợp gồm ít nhất một trong Ctrl / Alt / Shift / Win + một phím: `Ctrl+Shift+Space`, `Win+Alt+G`, `Ctrl+Alt+F9`… |
 | `paste` | `false` | Dán đè sau khi chọn bản |
-| `llm` | `false` | Tự gọi tầng 2 mỗi lần chấm (Pro). `false` vẫn còn nút **Tầng 2 (Pro)** trên popup để gọi khi cần |
+| `llm` | `false` | Tự gọi tầng 2 mỗi lần chấm. `false` vẫn còn nút **Tầng 2 (Claude)** trên popup để gọi khi cần |
 | `enabled` | `true` | Trạng thái bật/tắt, menu tray ghi nhớ vào đây |
 | `node` | `""` | Đường dẫn `node.exe` khi không có trên PATH |
 | `language` | `auto` | `auto` = popup theo ngôn ngữ prompt, menu tiếng Việt; `vi` / `en` ép cả hai |
 
 Menu tray ghi lại file này; sửa tay thì khởi động lại tray.
 
-## Tầng 2 (Pro)
+## Tầng 2 (Claude)
 
-Nút **Tầng 2 (Pro)** trên popup (hoặc `llm: true`) gọi `scripts/lib/brain-llm.js` đúng như plugin: `claude -p --model haiku` bằng tài khoản Claude của bạn, có `ANTHROPIC_API_KEY` thì dùng API. Kết quả thay bản **B**, bản **C** = kết quả đó + các dòng sâu; bản **A** giữ nguyên. Chưa có Pro thì popup báo cách kích hoạt. Tầng 2 chạy nền, popup vẫn dùng được trong lúc chờ. Lỗi mạng hay chứng chỉ (Kaspersky chặn TLS) thì giữ bản quy tắc; xem mục Khắc phục trong README gốc.
+Nút **Tầng 2 (Claude)** trên popup (hoặc `llm: true`) gọi `scripts/lib/brain-llm.js` đúng như plugin: `claude -p --model haiku` bằng tài khoản Claude của bạn, có `ANTHROPIC_API_KEY` thì dùng API. Kết quả thay bản **B**, bản **C** = kết quả đó + các dòng sâu; bản **A** giữ nguyên. Từ 1.3.0 không cần key. Tầng 2 chạy nền, popup vẫn dùng được trong lúc chờ. Lỗi mạng hay chứng chỉ (Kaspersky chặn TLS) thì giữ bản quy tắc; xem mục Khắc phục trong README gốc.
 
 ## Cách hoạt động
 
@@ -133,7 +133,7 @@ node tray/core.js "giúp tôi sửa lỗi đăng nhập trong auth.js"
 ## Giới hạn hiện tại
 
 - Chỉ Windows. Phím Win trong hộp thoại đổi phím tắt không bắt được, gõ `Win+…` trực tiếp vào config.
-- Bản A/B/C điền từ quy tắc, không hiểu ngữ cảnh hội thoại như plugin; tầng 2 (Pro) bù phần này.
+- Bản A/B/C điền từ quy tắc, không hiểu ngữ cảnh hội thoại như plugin; tầng 2 bù phần này.
 - Popup là cửa sổ WinForms, không theo theme sáng/tối của Windows (luôn nền tối).
 
 ## Kiểm thử

@@ -1,5 +1,5 @@
 {
-  "description": "PromptGate scores every prompt before Claude sees it. Weak prompts are blocked with a tighter, deeper rewrite; good prompts pass silently.",
+  "description": "PromptGate scores every prompt before Claude sees it. Weak prompts get three filled-in rewrites to pick from (or are blocked in block mode); good prompts pass silently.",
   "hooks": {
     "UserPromptSubmit": [
       {

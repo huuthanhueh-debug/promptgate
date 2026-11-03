@@ -16,7 +16,7 @@ const { t } = require(path.join(root, "scripts/lib/i18n.js"));
 ## 2. Score a prompt
 
 ```js
-const pack = packs.load();                       // general pack + any Pro packs in ~/.claude/promptgate/packs
+const pack = packs.load();                       // all built-in packs + any custom packs in ~/.claude/promptgate/packs
 const a = E.analyze(text, { pack, followUp });    // followUp = true from the 3rd turn of a conversation
 // a.score (0-100), a.type, a.depth, a.lang ('vi'|'en'), a.missing (weak dimensions), a.dims
 const T = t(a.lang);

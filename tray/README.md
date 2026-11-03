@@ -50,7 +50,7 @@ Popup language follows the prompt (VI/EN). Tray menu language defaults to Vietna
 | Enable PromptGate | Ticked = hotkey active; unticked = paused (grey icon) |
 | Change hotkey… (Ctrl+Alt+P) | Dialog: press the new combination, Save. If it cannot be registered the old one is kept and the reason shown |
 | Paste over selection after choosing | Toggle automatic Ctrl+V after choosing (only when the text came from a selection) |
-| Ask tier 2 (Pro) when scoring | Call `claude -p --model haiku` on every score to rewrite B/C (Pro) |
+| Ask tier 2 (Claude) when scoring | Call `claude -p --model haiku` on every score to rewrite B/C |
 | Open prompt history | Runs `scripts/history.js 30` and opens the newest Markdown report |
 | Open data folder | `%USERPROFILE%\.claude\promptgate` (config, logs, reports) |
 | Start with Windows | Startup-folder shortcut |
@@ -78,16 +78,16 @@ Same file as the plugin: `%USERPROFILE%\.claude\promptgate\config.json`, key `tr
 |---|---|---|
 | `hotkey` | `Ctrl+Alt+P` | At least one of Ctrl / Alt / Shift / Win plus a key: `Ctrl+Shift+Space`, `Win+Alt+G`, `Ctrl+Alt+F9`… |
 | `paste` | `false` | Paste over the selection after choosing |
-| `llm` | `false` | Call tier 2 on every score (Pro). With `false` the popup still has a **Tier 2 (Pro)** button for on-demand use |
+| `llm` | `false` | Call tier 2 on every score. With `false` the popup still has a **Tier 2 (Claude)** button for on-demand use |
 | `enabled` | `true` | On/off state, remembered by the tray menu |
 | `node` | `""` | Path to `node.exe` when it is not on PATH |
 | `language` | `auto` | `auto` = popup follows the prompt, menu in Vietnamese; `vi` / `en` force both |
 
 The tray menu writes this file; after editing it by hand, restart the tray.
 
-## Tier 2 (Pro)
+## Tier 2 (Claude)
 
-The **Tier 2 (Pro)** button on the popup (or `llm: true`) calls `scripts/lib/brain-llm.js` exactly like the plugin does: `claude -p --model haiku` with your own Claude login, or the API when `ANTHROPIC_API_KEY` is set. The result replaces **B**; **C** becomes that result plus the deep lines; **A** is untouched. Without Pro the popup tells you how to activate. Tier 2 runs in the background; the popup stays usable while waiting. Network or certificate errors (Kaspersky TLS interception) keep the rule-based versions; see Troubleshooting in the root README.
+The **Tier 2 (Claude)** button on the popup (or `llm: true`) calls `scripts/lib/brain-llm.js` exactly like the plugin does: `claude -p --model haiku` with your own Claude login, or the API when `ANTHROPIC_API_KEY` is set. The result replaces **B**; **C** becomes that result plus the deep lines; **A** is untouched. No key is needed since 1.3.0. Tier 2 runs in the background; the popup stays usable while waiting. Network or certificate errors (Kaspersky TLS interception) keep the rule-based versions; see Troubleshooting in the root README.
 
 ## How it works
 
@@ -135,7 +135,7 @@ node tray/core.js "help me fix the login bug in auth.js"
 ## Current limits
 
 - Windows only. The Win key is not captured by the hotkey dialog; write `Win+…` directly in the config.
-- A/B/C are filled from rules, not from conversation context like the plugin; tier 2 (Pro) covers that gap.
+- A/B/C are filled from rules, not from conversation context like the plugin; tier 2 covers that gap.
 - The popup is a WinForms window with a fixed dark theme.
 
 ## Tests
