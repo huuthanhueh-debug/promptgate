@@ -40,7 +40,7 @@ Khi build lại, bấm nút tải lại (↻) của extension trong `chrome://ex
 - **Bảng gợi ý**: điểm /100, loại việc, chiều sâu, các chiều còn thiếu, và ba bản viết lại. Bản khuyên dùng được đánh dấu.
 - **Thay vào ô nhập**: thay toàn bộ nội dung ô nhập bằng bản đã chọn. Bạn tự kiểm tra rồi bấm gửi của claude.ai.
 - **Gửi nguyên bản**: giữ prompt gốc, đóng bảng, con trỏ về ô nhập.
-- **Popup** (biểu tượng extension): bật/tắt, ngưỡng (nghiêm / cân bằng / nhẹ / tắt), hồ sơ chiều sâu, ngôn ngữ gợi ý, khóa Pro.
+- **Popup** (biểu tượng extension): bật/tắt, ngưỡng (nghiêm / cân bằng / nhẹ / tắt), hồ sơ chiều sâu, ngôn ngữ gợi ý.
 
 Ngôn ngữ của bảng theo ngôn ngữ prompt. Prompt tiếng Việt thì bảng tiếng Việt.
 
@@ -53,18 +53,15 @@ Extension không gọi mô hình nào. Các bản A, B, C được dựng bằng
 - Đầu ra: dùng mặc định theo loại việc.
 - Phần không có nguồn sẽ để ô `⟨…⟩` để bạn điền.
 
-Vì vậy bản gợi ý không "thông minh" bằng bản Pro chạy LLM. Nó nhanh, không tốn token, và không rời máy.
+Vì vậy bản gợi ý không "thông minh" bằng tầng 2 trong Claude Code (gọi LLM). Nó nhanh, không tốn token, và không rời máy.
 
 ## Riêng tư
 
 - Prompt, lịch sử hội thoại và bản gợi ý không gửi ra ngoài trình duyệt. Extension không có quyền mạng và không gọi API nào.
-- Thứ duy nhất được lưu là cài đặt (kể cả ô khóa Pro), trong `chrome.storage.local` của chính trình duyệt bạn.
+- Thứ duy nhất được lưu là cài đặt, trong `chrome.storage.local` của chính trình duyệt bạn.
 - Đường dẫn và URL lấy từ hội thoại chỉ dùng để dựng bản gợi ý trong bộ nhớ, không lưu lại.
 - Quyền xin: `storage` và script chạy trên `https://claude.ai/*`. Không có quyền truy cập tab khác.
 
-## Khóa Pro
-
-Ô khóa Pro lưu khóa vào cài đặt cục bộ. Bản này chưa mở khóa tính năng Pro trong extension, vì extension không xin quyền gọi máy chủ Gumroad. Muốn kích hoạt Pro cho Claude Code, dùng `/promptgate:activate <KHÓA>` trong Claude Code.
 
 ## Khi claude.ai đổi giao diện
 

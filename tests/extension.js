@@ -47,6 +47,9 @@ vm.createContext(bare);
 vm.runInContext(engineSrc, bare);
 const core = bare.PromptGateCore;
 check('bundle exposes PromptGateCore', !!core && typeof core.evaluate === 'function');
+check('bundle carries all five packs in plugin order', core.PACK.ids.join(',') === 'general,business,coding,hospitality,writing', core.PACK.ids.join(','));
+check('bundle classifies with a domain pack (hospitality sop)', core.PACK.types.sop && typeof core.PACK.types.sop === 'object');
+check('settings no longer carry a license key', !('licenseKey' in core.DEFAULT_SETTINGS));
 check('sandbox has no require/process/fs', typeof bare.require === 'undefined' && typeof bare.process === 'undefined' && typeof bare.fs === 'undefined');
 
 const samples = [

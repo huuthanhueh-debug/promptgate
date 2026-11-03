@@ -6,9 +6,14 @@ const E = require('../../scripts/lib/engine');
 const packsLib = require('../../scripts/lib/packs');
 const { t } = require('../../scripts/lib/i18n');
 const { MODES } = require('../../scripts/lib/config');
-const GENERAL = require('@packs/general.json');
-
-const PACK = packsLib.merge([GENERAL]);
+// Same packs and order as scripts/lib/packs.js load(): general first, then the domain packs.
+const PACK = packsLib.merge([
+  require('@packs/general.json'),
+  require('@packs/business.json'),
+  require('@packs/coding.json'),
+  require('@packs/hospitality.json'),
+  require('@packs/writing.json'),
+]);
 
 // Composer candidates on claude.ai, most specific first. Each selector is tried in order and the
 // largest visible match wins, so a hidden or duplicate editor does not get picked.
@@ -19,7 +24,7 @@ const COMPOSER_SELECTORS = [
   'textarea',
 ];
 
-const DEFAULT_SETTINGS = { enabled: true, mode: 'balanced', depthProfile: 'auto', language: 'auto', licenseKey: '' };
+const DEFAULT_SETTINGS = { enabled: true, mode: 'balanced', depthProfile: 'auto', language: 'auto' };
 const DEPTHS = ['auto', 'light', 'standard', 'deep'];
 
 const AUTOFILL = {

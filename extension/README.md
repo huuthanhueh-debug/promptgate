@@ -40,7 +40,7 @@ After rebuilding, press the reload icon (↻) for the extension on `chrome://ext
 - **Panel**: score out of 100, task type, depth, the missing dimensions, and three rewrites. The recommended one is marked.
 - **Replace composer text**: replaces everything in the composer with the chosen rewrite. Review it, then press claude.ai's own send button.
 - **Send as written**: keeps your original prompt, closes the panel, and returns focus to the composer.
-- **Popup** (extension icon): on/off, threshold (strict / balanced / gentle / off), depth profile, suggestion language, Pro key.
+- **Popup** (extension icon): on/off, threshold (strict / balanced / gentle / off), depth profile, suggestion language.
 
 The panel language follows the prompt's language.
 
@@ -58,13 +58,10 @@ So the suggestions are less capable than tier 2 in Claude Code, which calls an L
 ## Privacy
 
 - Prompts, chat history and suggestions are not sent off the browser. The extension asks for no network permission and calls no API.
-- The only stored data is the settings (including the Pro key field), in `chrome.storage.local` of your browser profile.
+- The only stored data is the settings, in `chrome.storage.local` of your browser profile.
 - Paths and URLs read from the chat are used in memory to build a suggestion and are not kept.
 - Permissions: `storage`, and a content script on `https://claude.ai/*`. No access to other tabs.
 
-## Pro key field
-
-Left over from 1.x: the popup still has a key field and stores it locally, but since PromptGate 1.3.0 nothing is locked, so the field does nothing. It will be removed in the next extension build.
 
 ## When claude.ai changes its layout
 

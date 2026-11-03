@@ -13,6 +13,7 @@
 - Permissions: `storage` and claude.ai only. No network calls.
 - 0.1.1: panel buttons were unclickable (focus inside the panel rebuilt it mid-click); multi-line rewrites are now inserted via a synthetic paste so each line stays its own paragraph. Verified on the live claude.ai.
 - 0.1.2: panel height is capped to the space available above or below the composer (it ran off-screen at 1280×800). Store screenshots added in `extension/store/`.
+- 0.1.3: bundles all five packs (general, coding, writing, business, hospitality) like the plugin; the unused Pro key field is gone from the popup. Zip rebuilt for the store.
 - 0.1.2 submitted to the Chrome Web Store for review on 2026-11-03 (developer account The Quiet Concierge). Store link will be added here once approved.
 
 ## 1.2.0 — 2026-11-02

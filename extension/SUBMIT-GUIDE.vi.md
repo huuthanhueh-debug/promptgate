@@ -3,7 +3,7 @@
 Chrome không cho phần mềm tự động thao tác trên Developer Console, nên phần này làm tay. Mọi giá trị dưới đây dán được thẳng.
 
 ## File cần dùng
-- Gói nộp: `D:\PERSONAL\MY CLAUDE\promptgate\dist\promptgate-extension-0.1.2.zip`
+- Gói nộp: `D:\PERSONAL\MY CLAUDE\promptgate\dist\promptgate-extension-0.1.3.zip`
 - Ảnh 1280×800 (3 file): `D:\PERSONAL\MY CLAUDE\promptgate\extension\store\1-score-badge.png`, `2-panel-abc.png`, `3-after-choose-b.png`
 - Icon 128: đã nằm trong zip, không cần tải riêng.
 

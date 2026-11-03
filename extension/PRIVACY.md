@@ -10,7 +10,7 @@ Last updated: 2026-11-02 · Publisher: The Quiet Concierge · Contact: huuthanhu
 
 **What it reads.** The text in the claude.ai composer, and file paths or URLs visible in the current chat, only to build a suggestion in memory. Nothing read from the page is stored or sent anywhere.
 
-**What it stores.** Your settings (on/off, threshold, depth profile, language, and the optional Pro key field) in `chrome.storage.local` on your own device. Removing the extension deletes them.
+**What it stores.** Your settings (on/off, threshold, depth profile, language) in `chrome.storage.local` on your own device. Removing the extension deletes them.
 
 **Permissions.** `storage` (to keep settings) and a content script on `https://claude.ai/*` (to show the badge and panel). No access to other sites, tabs, history or cookies.
 
@@ -24,7 +24,7 @@ Last updated: 2026-11-02 · Publisher: The Quiet Concierge · Contact: huuthanhu
 
 **Đọc gì.** Văn bản trong ô nhập của claude.ai, và đường dẫn hoặc URL đang hiện trong hội thoại, chỉ để dựng gợi ý trong bộ nhớ. Không lưu, không gửi đi đâu.
 
-**Lưu gì.** Cài đặt của bạn (bật/tắt, ngưỡng, hồ sơ chiều sâu, ngôn ngữ, ô khóa Pro tùy chọn) trong `chrome.storage.local` trên máy bạn. Gỡ extension là xóa hết.
+**Lưu gì.** Cài đặt của bạn (bật/tắt, ngưỡng, hồ sơ chiều sâu, ngôn ngữ) trong `chrome.storage.local` trên máy bạn. Gỡ extension là xóa hết.
 
 **Quyền.** `storage` (lưu cài đặt) và content script trên `https://claude.ai/*` (hiện nút và bảng). Không truy cập trang khác, tab khác, lịch sử hay cookie.
 
