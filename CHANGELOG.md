@@ -7,7 +7,7 @@
 - Permissions: `storage` and claude.ai only. No network calls.
 - 0.1.1: panel buttons were unclickable (focus inside the panel rebuilt it mid-click); multi-line rewrites are now inserted via a synthetic paste so each line stays its own paragraph. Verified on the live claude.ai.
 - 0.1.2: panel height is capped to the space available above or below the composer (it ran off-screen at 1280×800). Store screenshots added in `extension/store/`.
-- Not yet published to the Chrome Web Store: developer account sign-in and submission are manual steps.
+- 0.1.2 submitted to the Chrome Web Store for review on 2026-11-03 (developer account The Quiet Concierge). Store link will be added here once approved.
 
 ## 1.2.0 — 2026-11-02
 - Phase 2: **Windows tray with a global hotkey** (`tray/`). Select a prompt in any app, press Ctrl+Alt+P, get score, task type, missing dimensions and three filled-in rewrites A Lean / B Standard / C Deep next to the cursor; click or press A/B/C to copy, optional paste-over. Same engine via Node (`tray/core.js`), PowerShell 5.1 + WinForms host, nothing to install: `tray\PromptGate.cmd` or `npm run tray`.
