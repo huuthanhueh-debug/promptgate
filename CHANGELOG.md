@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.3.1 — 2026-11-03 — doctor
+- New `/promptgate:doctor [--fix]` (`npm run doctor`): one command that checks every edition on this machine — plugin registration and a live hook run, Windows tray process, claude.ai bundle freshness, the optional virtual-office widget — and with `--fix` starts the tray and rebuilds the extension. `--json` for scripts; exit 1 only when the plugin or hook is broken.
+- Tests: `tests/doctor.js` (helpers with synthetic input + a real run in a temp config dir), wired into `node tests/run.js`.
+- Gumroad listing got a cover image (the A/B/C panel screenshot).
+
 ## 1.3.0 — 2026-11-03 — everything is free
 - No more Pro tier. The four domain packs (`coding`, `writing`, `business`, `hospitality`) now ship in `packs/` next to `general`; tier-2 rewrite (`/promptgate:brain llm`) and the full history report (per-project, weekly, 20 weakest, HTML dashboard) need no key.
 - `/promptgate:activate` only prints a note; `isPro()` always returns true so older callers keep working. `scripts/build-pro.js` removed.

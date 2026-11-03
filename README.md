@@ -86,6 +86,7 @@ After a block, the next prompt in the same session goes through regardless (one 
 | `/promptgate:optimize <text>` | score + rewrite on demand, no blocking |
 | `/promptgate:history [days\|--all]` | scan all local transcripts, write a report |
 | `/promptgate:config <strict\|balanced\|gentle\|off>` | strictness |
+| `/promptgate:doctor [--fix]` | are all editions running here: plugin + hook, Windows tray, claude.ai extension, office widget; `--fix` starts the tray and rebuilds the extension |
 | `/promptgate:brain <rules\|llm>` | rewrite engine (llm = tier 2 via your `claude -p`) |
 
 ## Privacy

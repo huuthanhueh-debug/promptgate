@@ -84,6 +84,7 @@ Sau một lần chặn, prompt kế tiếp trong cùng phiên luôn được đi
 | `/promptgate:optimize <text>` | chấm + viết lại theo yêu cầu, không chặn |
 | `/promptgate:history [ngày\|--all]` | quét toàn bộ lịch sử trên máy, ra báo cáo |
 | `/promptgate:config <strict\|balanced\|gentle\|off>` | độ khó tính |
+| `/promptgate:doctor [--fix]` | kiểm tra cả ba phiên bản đang chạy chưa: plugin + hook, tray Windows, extension claude.ai, widget văn phòng; `--fix` bật tray và build lại extension |
 | `/promptgate:brain <rules\|llm>` | bộ não viết lại (llm = tầng 2 qua `claude -p` của bạn) |
 
 ## Riêng tư

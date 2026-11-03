@@ -145,6 +145,11 @@ const tr = spawnSync(process.execPath, [path.join(ROOT, 'tests/tray.js')], { enc
 const trSummary = (tr.stdout || '').trim().split('\n').pop() || '';
 check(`tests/tray.js green (${trSummary})`, tr.status === 0, (tr.stdout || '').split('\n').filter((l) => /FAIL/.test(l)).join(' | ') || tr.stderr);
 
+console.log('doctor (all editions)');
+const dr = spawnSync(process.execPath, [path.join(ROOT, 'tests/doctor.js')], { encoding: 'utf8', env: process.env, timeout: 180000 });
+const drSummary = (dr.stdout || '').trim().split('\n').pop() || '';
+check(`tests/doctor.js green (${drSummary})`, dr.status === 0, (dr.stdout || '').split('\n').filter((l) => /FAIL/.test(l)).join(' | ') || dr.stderr);
+
 console.log('chrome extension (phase 3, claude.ai)');
 const ext = spawnSync(process.execPath, [path.join(ROOT, 'tests/extension.js')], { encoding: 'utf8', env: process.env, timeout: 120000 });
 const extSummary = (ext.stdout || '').trim().split('\n').pop() || '';
