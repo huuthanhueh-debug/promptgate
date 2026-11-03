@@ -2,7 +2,7 @@
 
 **Cánh cổng giữa bàn phím và Claude.** Mỗi prompt bạn gõ trong Claude Code được chấm điểm trong vài mili-giây. Prompt yếu bị chặn và trả lại cho bạn dưới dạng gọn hơn, sâu hơn. Prompt tốt đi thẳng, không ai làm phiền. Toàn bộ lịch sử prompt trên máy được quét cục bộ để bạn thấy thói quen và tiến bộ của mình.
 
-[English](README.md) · [Đặc tả](docs/SPEC.md) · [Hướng dẫn cài cho văn phòng](docs/TEAM-INSTALL.vi.md) · [Bản Pro trên Gumroad](https://thequietconcierge.gumroad.com/l/promptgate)
+[English](README.md) · [Đặc tả](docs/SPEC.md) · [Hướng dẫn cài cho văn phòng](docs/TEAM-INSTALL.vi.md) · [Trang Gumroad (miễn phí)](https://thequietconcierge.gumroad.com/l/promptgate)
 
 ```
 PromptGate ▸ 32/100 · sửa lỗi · chiều sâu chuẩn
@@ -84,26 +84,25 @@ Sau một lần chặn, prompt kế tiếp trong cùng phiên luôn được đi
 | `/promptgate:optimize <text>` | chấm + viết lại theo yêu cầu, không chặn |
 | `/promptgate:history [ngày\|--all]` | quét toàn bộ lịch sử trên máy, ra báo cáo |
 | `/promptgate:config <strict\|balanced\|gentle\|off>` | độ khó tính |
-| `/promptgate:brain <rules\|llm>` | bộ não viết lại (llm = Pro) |
-| `/promptgate:activate <KEY>` | mở khóa Pro |
+| `/promptgate:brain <rules\|llm>` | bộ não viết lại (llm = tầng 2 qua `claude -p` của bạn) |
 
 ## Riêng tư
 
-Mọi thứ chạy trên máy bạn. Hook không gửi prompt đi đâu. Log tại `~/.claude/promptgate/log.jsonl` chỉ lưu điểm và loại việc, không lưu nội dung. Báo cáo lịch sử ghi vào `~/.claude/promptgate/reports/`. Không telemetry, không tài khoản. Tầng 2 của bản Pro dùng chính đăng nhập `claude -p` của bạn (hoặc `ANTHROPIC_API_KEY`), chỉ chạy trên prompt bạn vừa gõ, không bao giờ chạy trên lịch sử.
+Mọi thứ chạy trên máy bạn. Hook không gửi prompt đi đâu. Log tại `~/.claude/promptgate/log.jsonl` chỉ lưu điểm và loại việc, không lưu nội dung. Báo cáo lịch sử ghi vào `~/.claude/promptgate/reports/`. Không telemetry, không tài khoản. Tầng 2 (tùy chọn) dùng chính đăng nhập `claude -p` của bạn (hoặc `ANTHROPIC_API_KEY`), chỉ chạy trên prompt bạn vừa gõ, không bao giờ chạy trên lịch sử.
 
-## Free và Pro
+## Miễn phí toàn bộ
 
-| | Free (repo này, MIT) | Pro (19 USD một lần, cập nhật 12 tháng) |
-|---|---|---|
-| Cổng thời gian thực, viết lại theo quy tắc, VI/EN | ✓ | ✓ |
-| Gói mẫu `general` | ✓ | ✓ |
-| Báo cáo lịch sử: tổng quan, điểm yếu, 5 prompt tệ nhất | ✓ | ✓ |
-| Lịch sử: theo project, xu hướng tuần, 20 prompt tệ nhất kèm viết lại, dashboard HTML | – | ✓ |
-| Tầng 2 viết lại bằng LLM qua `claude -p` của bạn | – | ✓ |
-| Gói ngành: **lập trình**, **viết**, **kinh doanh**, **khách sạn & dịch vụ** | – | ✓ |
-| Hồ sơ chiều sâu theo project đầy đủ | cơ bản | ✓ |
+Từ 1.3.0 không còn bản Pro. Toàn bộ sản phẩm nằm trong repo này, giấy phép MIT:
 
-Gói Pro là các file JSON thả vào `~/.claude/promptgate/packs/`. Mua tại [thequietconcierge.gumroad.com/l/promptgate](https://thequietconcierge.gumroad.com/l/promptgate), rồi `/promptgate:activate <KEY>`.
+- Cổng thời gian thực với chế độ gợi ý A/B/C, viết lại theo quy tắc, VI/EN.
+- **Năm gói ngành** trong [`packs/`](packs/): `general`, `coding` (lập trình), `writing` (viết), `business` (kinh doanh), `hospitality` (khách sạn & dịch vụ). Mỗi gói thêm nhận diện loại việc, định dạng đầu ra mặc định và tiêu chí hoàn thành cho ngành đó, song ngữ Việt-Anh.
+- Tầng 2 viết lại bằng LLM qua chính đăng nhập `claude -p` của bạn (`/promptgate:brain llm`), không cần key.
+- Báo cáo lịch sử đầy đủ: theo project, xu hướng tuần, 20 prompt yếu nhất kèm bản viết lại, dashboard HTML.
+- Công cụ phím tắt Windows và extension claude.ai.
+
+Gói riêng của bạn: thả thêm file `*.json` vào `~/.claude/promptgate/packs/`, chúng được gộp lên trên các gói có sẵn (cùng cấu trúc với `packs/general.json`).
+
+Nếu PromptGate giúp bạn tiết kiệm token, một ngôi sao trên GitHub hoặc một lần ghé bộ công cụ khách sạn tại [thequietconcierge.gumroad.com](https://thequietconcierge.gumroad.com) là lời cảm ơn đủ rồi. PromptGate cũng được đăng miễn phí ở đó để ai mua tài liệu đều thấy.
 
 ## Lộ trình
 

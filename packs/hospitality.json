@@ -1,0 +1,26 @@
+{
+  "id": "hospitality", "version": "1.0.0", "tier": "pro",
+  "description": "Hotel and service operations: SOPs, pre-opening, training, guest recovery, compliance and PPM.",
+  "types": {
+    "sop": {
+      "keywords": { "vi": ["sop", "quy trình", "checklist", "tiêu chuẩn dịch vụ", "tiêu chuẩn thương hiệu", "brand standard", "lsop", "hướng dẫn thao tác", "bảng kiểm", "quy định"], "en": ["sop", "procedure", "checklist", "service standard", "brand standard", "lsop", "work instruction", "policy", "standard operating"] },
+      "depth": "standard", "needsContext": "medium", "baseline": { "output": 0, "constraints": 4, "acceptance": 3 },
+      "defaults": { "output": { "vi": "mục đích → phạm vi → người thực hiện → các bước đánh số (mỗi bước 1 hành động, có thời gian/chuẩn đo) → điểm kiểm soát → biểu mẫu kèm; song ngữ nếu cho nhân viên", "en": "purpose → scope → owner → numbered steps (one action each, with time/standard) → control points → attached form; bilingual if for line staff" }, "done": { "vi": "nhân viên mới đọc xong làm được mà không cần hỏi", "en": "a new hire can perform it after reading, without asking" } } },
+    "preopening": {
+      "keywords": { "vi": ["pre-opening", "pre opening", "khai trương", "countdown", "snagging", "ff&e", "os&e", "critical path", "soft opening", "mở cửa", "bàn giao", "nghiệm thu", "mock-up room", "tuyển dụng trước khai trương"], "en": ["pre-opening", "pre opening", "opening", "countdown", "snagging", "ff&e", "os&e", "critical path", "soft opening", "handover", "mock-up room", "defects list", "punch list"] },
+      "depth": "deep", "needsContext": "medium", "baseline": { "output": 0, "constraints": 0, "acceptance": 0 },
+      "defaults": { "output": { "vi": "bảng theo tuần ngược về ngày mở cửa (T-xx): hạng mục, phòng ban, người chịu trách nhiệm, phụ thuộc, trạng thái, rủi ro", "en": "week-by-week countdown table (T-xx): item, department, owner, dependency, status, risk" }, "done": { "vi": "mọi hạng mục critical path có ngày chốt và người chốt", "en": "every critical-path item has a lock date and an owner" } } },
+    "training": {
+      "keywords": { "vi": ["đào tạo", "lớp học", "bài giảng", "e-learning", "giáo án", "bài kiểm tra", "quiz", "onboarding nhân viên", "huấn luyện", "role play", "kịch bản tình huống", "đánh giá sau đào tạo"], "en": ["training", "class", "lesson", "e-learning", "lesson plan", "quiz", "onboarding", "coaching", "role play", "scenario", "post-training assessment", "curriculum"] },
+      "depth": "standard", "needsContext": "medium", "baseline": { "output": 0, "constraints": 4, "acceptance": 3 }, "askConstraints": false,
+      "defaults": { "output": { "vi": "mục tiêu học tập đo được → nội dung theo khối 15-20 phút → hoạt động thực hành → câu hỏi kiểm tra có đáp án → tài liệu phát tay", "en": "measurable learning objectives → 15-20 minute blocks → practice activity → quiz with answer key → handout" }, "done": { "vi": "học viên làm được hành vi mục tiêu trước mặt trainer", "en": "the trainee performs the target behaviour in front of the trainer" } } },
+    "guest": {
+      "keywords": { "vi": ["khách phàn nàn", "complaint", "phản hồi khách", "review tripadvisor", "review google", "đánh giá xấu", "service recovery", "đền bù", "xin lỗi khách", "trả lời review", "khách vip", "yêu cầu đặc biệt"], "en": ["guest complaint", "complaint", "guest feedback", "tripadvisor", "google review", "bad review", "service recovery", "compensation", "apologize to guest", "reply to review", "vip guest", "special request"] },
+      "depth": "standard", "needsContext": "high", "baseline": { "output": 0, "constraints": 4, "acceptance": 3 }, "askConstraints": false,
+      "defaults": { "output": { "vi": "phản hồi cho khách (≤ 120 từ, không đổ lỗi, có hành động cụ thể) + ghi chú nội bộ: nguyên nhân gốc, người xử lý, cách ngăn tái diễn", "en": "guest reply (≤ 120 words, no blame, one concrete action) + internal note: root cause, owner, prevention" }, "done": { "vi": "khách biết ai lo việc này và khi nào xong", "en": "the guest knows who owns it and when it is resolved" } } },
+    "compliance": {
+      "keywords": { "vi": ["tuân thủ", "pccc", "phòng cháy", "attp", "an toàn thực phẩm", "giấy phép", "kiểm định", "kiểm tra định kỳ", "ppm", "bảo trì định kỳ", "bảo dưỡng", "thang máy", "nồi hơi", "hồ bơi", "môi trường", "haccp", "pháp lý", "nghị định", "thông tư"], "en": ["compliance", "fire safety", "food safety", "license", "permit", "inspection", "periodic check", "ppm", "preventive maintenance", "lift", "boiler", "pool", "environment", "haccp", "legal", "regulation", "decree", "circular"] },
+      "depth": "deep", "needsContext": "high", "baseline": { "output": 0, "constraints": 0, "acceptance": 0 },
+      "defaults": { "output": { "vi": "bảng: nghĩa vụ → căn cứ pháp lý (số văn bản, điều) → tần suất → bằng chứng cần lưu → người chịu trách nhiệm → hạn kế tiếp; đánh dấu mục chưa có căn cứ", "en": "table: obligation → legal basis (document, article) → frequency → evidence to keep → owner → next due; flag items with no basis found" }, "done": { "vi": "mỗi dòng có hạn kế tiếp và bằng chứng kiểm tra được", "en": "every row has a next due date and verifiable evidence" } } }
+  }
+}

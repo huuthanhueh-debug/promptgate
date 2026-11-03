@@ -1,5 +1,5 @@
 ---
-description: PromptGate — choose the rewrite engine. Usage - /promptgate:brain <rules|llm>  (llm is a Pro feature, uses your own `claude -p` login)
+description: PromptGate — choose the rewrite engine. Usage - /promptgate:brain <rules|llm>  (llm uses your own `claude -p` login, no key needed)
 argument-hint: <rules|llm>
 allowed-tools: Bash(node:*)
 ---

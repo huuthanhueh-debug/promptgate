@@ -1,6 +1,6 @@
 # Bài chia sẻ ra mắt (bản nháp, chưa đăng ở đâu)
 
-Link: https://github.com/huuthanhueh-debug/promptgate · Pro: https://thequietconcierge.gumroad.com/l/promptgate
+Link: https://github.com/huuthanhueh-debug/promptgate (miễn phí toàn bộ, kể cả 4 gói ngành)
 
 Nơi nên đăng: r/ClaudeAI và r/ClaudeCode trên Reddit, X, nhóm Facebook về lập trình / AI tại Việt Nam, LinkedIn cá nhân. Mỗi nơi một bài, kèm một ảnh chụp bảng A/B/C.
 
@@ -15,7 +15,7 @@ Ba nơi dùng được, cùng một engine:
 • Tray Windows với phím tắt Ctrl+Alt+P, dùng cho app Claude desktop và mọi cửa sổ khác
 • Chrome extension cho claude.ai
 
-Chạy hoàn toàn trên máy, không gửi prompt đi đâu, song ngữ Việt / Anh. Miễn phí, MIT. Bản Pro 19 USD thêm 4 gói ngành (lập trình, viết, kinh doanh, khách sạn) và báo cáo lịch sử đầy đủ.
+Chạy hoàn toàn trên máy, không gửi prompt đi đâu, song ngữ Việt / Anh. Miễn phí toàn bộ, MIT: 4 gói ngành (lập trình, viết, kinh doanh, khách sạn) và báo cáo lịch sử đầy đủ đều có sẵn trong repo.
 
 github.com/huuthanhueh-debug/promptgate
 

@@ -1,5 +1,5 @@
 ---
-description: PromptGate — current mode, brain, license tier, loaded packs and 7-day stats
+description: PromptGate — current mode, brain, loaded packs and 7-day stats
 allowed-tools: Bash(node:*)
 ---
 

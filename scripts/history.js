@@ -111,14 +111,12 @@ function renderMarkdown(agg, pack, lang, days, pro) {
     overall: 'Tổng quan', avgS: 'Điểm trung bình', med: 'Trung vị', dist: 'Phân bố', blocked: 'sẽ bị chặn (<50)', shown: 'hiện điểm (50–74)', silent: 'đi thẳng (≥75)',
     dims: 'Bảy chiều (trung bình, % điểm tối đa)', weak: 'Ba điểm yếu lớn nhất', filler: (n, c) => `Câu xã giao: ${n} lần trong ${c} prompt`,
     types: 'Loại việc', weeks: 'Xu hướng theo tuần', projects: 'Theo project', worst: (n) => `${n} prompt yếu nhất kèm bản viết lại`,
-    proNote: 'Bản Pro mở khóa: theo project, xu hướng tuần, 20 prompt yếu nhất kèm viết lại, dashboard HTML. → /promptgate:activate',
     next: 'Bước tiếp theo', nextBody: 'Giữ mode balanced 1 tuần rồi chạy lại /promptgate:history 7 để xem tiến bộ.',
   } : {
     title: 'PromptGate · Prompt history report', scope: (d, n) => `${d >= 36500 ? 'Entire history' : 'last ' + d + ' days'} · ${n} prompts you typed · read locally, nothing sent anywhere`,
     overall: 'Overview', avgS: 'Average score', med: 'Median', dist: 'Distribution', blocked: 'would be blocked (<50)', shown: 'score shown (50–74)', silent: 'pass silently (≥75)',
     dims: 'Seven dimensions (average, % of max)', weak: 'Top three weaknesses', filler: (n, c) => `Filler phrases: ${n} across ${c} prompts`,
     types: 'Task types', weeks: 'Weekly trend', projects: 'By project', worst: (n) => `${n} weakest prompts with rewrites`,
-    proNote: 'Pro unlocks: per-project breakdown, weekly trend, 20 weakest prompts with rewrites, HTML dashboard. → /promptgate:activate',
     next: 'Next step', nextBody: 'Keep balanced mode for a week, then run /promptgate:history 7 to see progress.',
   };
   const out = [];
@@ -145,7 +143,6 @@ function renderMarkdown(agg, pack, lang, days, pro) {
     const TT = t(a.lang);
     out.push(`### ${e.score}/100 · ${TT.types[e.type] || e.type} · ${e.ts.slice(0, 10)}`, '', '> ' + e.text.replace(/\n+/g, ' ').slice(0, 220), '', '```', E.rewrite(e.text, a, pack, TT), '```', '');
   }
-  if (!pro) out.push('', `_${L2.proNote}_`);
   out.push('', `## ${L2.next}`, '', L2.nextBody, '');
   return out.join('\n');
 }
@@ -172,7 +169,7 @@ function renderHtml(agg, lang) {
   const o = parseArgs(process.argv.slice(2));
   const cfg = cfgm.loadConfig(process.cwd());
   const pack = packs.load();
-  const pro = cfgm.isPro();
+  const pro = true; // full report for everyone since 1.3.0
   const since = Date.now() - o.days * 86400e3;
   const entries = [];
   let dirs = [];

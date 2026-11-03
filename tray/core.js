@@ -23,7 +23,7 @@ const C = require('./lib/compose');
 const TRAY_DEFAULTS = {
   hotkey: 'Ctrl+Alt+P',   // global hotkey; "Ctrl+Shift+Space", "Win+Alt+G" ... also fine
   paste: false,           // after picking a version, paste it over the selection (Ctrl+V)
-  llm: false,             // ask tier 2 (Pro, `claude -p`) on each score; false = button only
+  llm: false,             // ask tier 2 (`claude -p`) on each score; false = button only
   enabled: true,
   node: '',               // explicit path to node.exe when it is not on PATH
   language: 'auto',       // popup/menu language: auto (follow the prompt) | vi | en

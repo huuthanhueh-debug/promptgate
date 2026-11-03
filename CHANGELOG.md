@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0 — 2026-11-03 — everything is free
+- No more Pro tier. The four domain packs (`coding`, `writing`, `business`, `hospitality`) now ship in `packs/` next to `general`; tier-2 rewrite (`/promptgate:brain llm`) and the full history report (per-project, weekly, 20 weakest, HTML dashboard) need no key.
+- `/promptgate:activate` only prints a note; `isPro()` always returns true so older callers keep working. `scripts/build-pro.js` removed.
+- Packs dropped into `~/.claude/promptgate/packs/` are still merged (custom packs); copies of built-in packs there are skipped, so machines that installed the old Pro zip are not double-loaded.
+- Docs: README EN/VI, SPEC, team install guide, launch posts updated. Gumroad listing switched to $0 and referenced from the other toolkits' receipts.
+
 ## Unreleased — Chrome extension for claude.ai (preview)
 - New `extension/`: Manifest V3 extension. A "PG nn" badge sits by the composer and updates as you type. Ctrl+Shift+P or a click opens a panel with score, missing dimensions and three rewrites (A Lean / B Standard / C Deep). Choosing one replaces the composer text; nothing is sent.
 - The engine is bundled from `scripts/lib/` by `npm run build:ext` (no copy). Node-only parts (`fs`, `path`, `os`) are swapped for browser shims.

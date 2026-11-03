@@ -1,5 +1,5 @@
 'use strict';
-// Tier 2 (Pro): LLM rewrite. Prefers `claude -p` (reuses the user's own Claude login, no API
+// Tier 2: LLM rewrite. Prefers `claude -p` (reuses the user's own Claude login, no API
 // billing); falls back to the Anthropic API when ANTHROPIC_API_KEY is set. Any failure → null,
 // and the caller keeps the rule-based rewrite. Never used on history scans.
 const { spawnSync } = require('child_process');

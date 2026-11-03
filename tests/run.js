@@ -45,10 +45,15 @@ for (const [text, expected, lang] of cases) {
 
 console.log('classification');
 check('debug detected', E.analyze('App báo lỗi 500 khi submit form', { pack }).type === 'debug');
-check('build detected', E.analyze('Tạo trang landing page cho sản phẩm mới', { pack }).type === 'build');
+check('build detected', E.analyze('Tạo trang landing page cho sản phẩm mới', { pack }).type === 'build' /* tie with business 'sales' resolves to the general type */);
+const generalOnly = packs.merge([packs.readPack(path.join(ROOT, 'packs', 'general.json'))]);
+check('general pack alone: landing page → build', E.analyze('Tạo trang landing page cho sản phẩm mới', { pack: generalOnly }).type === 'build');
+check('general pack alone: caption → write', E.analyze('Viết caption Facebook cho khuyến mãi tháng 11', { pack: generalOnly }).type === 'write');
+check('all five packs load, no duplicates', pack.ids.join(',') === 'general,business,coding,hospitality,writing', pack.ids.join(','));
+check('isPro() is always true since 1.3.0', require(path.join(ROOT, 'scripts/lib/config.js')).isPro() === true);
 check('build detected (làm cái dashboard)', E.analyze('giúp tôi làm cái dashboard doanh thu', { pack }).type === 'build');
 check('question detected', E.analyze('Tại sao Node dùng event loop?', { pack }).type === 'question');
-check('write detected', E.analyze('Viết caption Facebook cho khuyến mãi tháng 11', { pack }).type === 'write');
+check('write detected', E.analyze('Viết caption Facebook cho khuyến mãi tháng 11', { pack }).type === 'write' /* tie with writing 'social' resolves to the general type */);
 check('fast cue → light', E.analyze('Xây nhanh một script đổi tên file trong thư mục này', { pack }).depth === 'light');
 check('max cue → deep', E.analyze('Sửa chữ tiêu đề, làm kỹ nhất có thể', { pack }).depth === 'deep');
 

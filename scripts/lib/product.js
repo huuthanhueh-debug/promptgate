@@ -1,11 +1,9 @@
 'use strict';
-// Product constants. Fill gumroadProductId after creating the Pro product on Gumroad
-// (Gumroad → product → Settings → "Product ID"), or keep the permalink.
+// Product constants. PromptGate is fully free and open source since 1.3.0 (all packs in this repo, no license).
 module.exports = {
   name: 'PromptGate',
-  version: '1.2.0',
-  url: 'https://thequietconcierge.gumroad.com/l/promptgate',
-  gumroadPermalink: 'promptgate',
-  gumroadProductId: process.env.PROMPTGATE_GUMROAD_PRODUCT_ID || 'X5mGj7Sxgc37R7qoStWkBg==',
+  version: '1.3.0',
+  url: 'https://github.com/huuthanhueh-debug/promptgate',
   repo: 'https://github.com/huuthanhueh-debug/promptgate',
+  releases: 'https://github.com/huuthanhueh-debug/promptgate/releases',
 };

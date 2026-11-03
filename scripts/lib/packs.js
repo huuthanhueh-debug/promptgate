@@ -1,6 +1,6 @@
 'use strict';
-// Loads and merges pattern packs. Free packs ship in <plugin>/packs; Pro packs live in
-// ~/.claude/promptgate/packs and are only merged when a valid license is present.
+// Loads and merges pattern packs. All packs ship in <plugin>/packs (general, coding, writing,
+// business, hospitality). Extra packs dropped into ~/.claude/promptgate/packs are merged on top.
 const fs = require('fs');
 const path = require('path');
 const cfg = require('./config');
@@ -19,8 +19,10 @@ function merge(packs) {
     out.ids.push(p.id || path.basename(p.__file || 'pack', '.json'));
     for (const [t, d] of Object.entries(p.types || {})) {
       const cur = out.types[t] || { keywords: { vi: [], en: [] }, defaults: { output: {}, done: {} } };
-      cur.keywords.vi = cur.keywords.vi.concat((d.keywords && d.keywords.vi) || []);
-      cur.keywords.en = cur.keywords.en.concat((d.keywords && d.keywords.en) || []);
+      // dedupe: general and a domain pack often list the same word; counting it twice skews classify()
+      cur.keywords.vi = [...new Set(cur.keywords.vi.concat((d.keywords && d.keywords.vi) || []))];
+      cur.keywords.en = [...new Set(cur.keywords.en.concat((d.keywords && d.keywords.en) || []))];
+      cur.keywords.en = cur.keywords.en.filter((k) => !cur.keywords.vi.includes(k)); // same word in both lists = one hit
       for (const k of ['depth', 'needsContext', 'weight', 'askConstraints']) if (d[k] !== undefined) cur[k] = d[k];
       if (d.baseline) cur.baseline = Object.assign({}, cur.baseline || {}, d.baseline);
       if (d.ph) { cur.ph = cur.ph || {}; for (const [k, v] of Object.entries(d.ph)) cur.ph[k] = Object.assign({}, cur.ph[k] || {}, v); }
@@ -45,12 +47,14 @@ function load(opts) {
   const free = listJson(freeDir).map(readPack).filter(Boolean);
   // general first so later packs override its defaults
   free.sort((a, b) => (a.id === 'general' ? -1 : b.id === 'general' ? 1 : 0));
-  const proFiles = listJson(cfg.FILES.packs);
-  const pro = cfg.isPro() ? proFiles.map(readPack).filter(Boolean) : [];
-  const merged = merge([...free, ...pro]);
-  merged.proLocked = cfg.isPro() ? [] : proFiles.map((f) => path.basename(f, '.json'));
+  const builtIn = new Set(free.map((p) => p.id));
+  // skip copies of built-in packs (users of 1.x copied the former Pro packs here)
+  const custom = listJson(cfg.FILES.packs).map(readPack).filter((p) => p && !builtIn.has(p.id));
+  const merged = merge([...free, ...custom]);
+  merged.proLocked = [];                 // kept for compatibility: nothing is locked since 1.3.0
   merged.freeIds = free.map((p) => p.id);
-  merged.proIds = pro.map((p) => p.id);
+  merged.proIds = custom.map((p) => p.id); // custom packs from ~/.claude/promptgate/packs
+  merged.customIds = merged.proIds;
   cache = merged;
   return merged;
 }

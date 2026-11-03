@@ -1,0 +1,26 @@
+{
+  "id": "business", "version": "1.0.0", "tier": "pro",
+  "description": "Analysis and planning: business plans, finance, market, decisions, reporting.",
+  "types": {
+    "plan": {
+      "keywords": { "vi": ["kế hoạch kinh doanh", "business plan", "okr", "mục tiêu quý", "mục tiêu năm", "lộ trình", "roadmap", "kế hoạch triển khai", "kế hoạch 90 ngày", "timeline", "gantt", "milestone"], "en": ["business plan", "okr", "quarterly goals", "annual goals", "roadmap", "rollout plan", "90-day plan", "timeline", "gantt", "milestone", "project plan"] },
+      "depth": "deep", "needsContext": "medium", "baseline": { "output": 0, "constraints": 4, "acceptance": 0 },
+      "defaults": { "output": { "vi": "mục tiêu đo được → các mốc theo tuần → người chịu trách nhiệm → rủi ro + phương án dự phòng; dạng bảng", "en": "measurable goals → weekly milestones → owner → risks + fallback; as a table" }, "done": { "vi": "mỗi mốc có ngày, người, và cách biết là đạt", "en": "every milestone has a date, an owner, and a way to know it is met" } } },
+    "finance": {
+      "keywords": { "vi": ["ngân sách", "p&l", "lãi lỗ", "dòng tiền", "cash flow", "định giá", "giá bán", "chi phí", "doanh thu", "lợi nhuận", "hòa vốn", "break-even", "roi", "margin", "biên lợi nhuận", "dự toán", "capex", "opex"], "en": ["budget", "p&l", "profit and loss", "cash flow", "pricing", "price", "cost", "revenue", "profit", "break-even", "roi", "margin", "forecast", "capex", "opex", "unit economics"] },
+      "depth": "deep", "needsContext": "high", "baseline": { "output": 0, "constraints": 0, "acceptance": 0 },
+      "defaults": { "output": { "vi": "bảng số liệu với giả định ghi rõ từng dòng, 3 kịch bản (thấp/cơ sở/cao), kết luận ≤ 5 dòng", "en": "a numbers table with every assumption stated, 3 scenarios (low/base/high), conclusion ≤ 5 lines" }, "done": { "vi": "đổi một giả định thì thấy ngay kết quả đổi theo", "en": "changing one assumption visibly changes the result" } } },
+    "market": {
+      "keywords": { "vi": ["thị trường", "đối thủ", "cạnh tranh", "khách hàng mục tiêu", "phân khúc", "swot", "định vị", "xu hướng", "quy mô thị trường", "tam", "chân dung khách hàng", "persona"], "en": ["market", "competitor", "competition", "target customer", "segment", "swot", "positioning", "trend", "market size", "tam", "customer persona", "go-to-market"] },
+      "depth": "deep", "needsContext": "medium", "baseline": { "output": 0, "constraints": 4, "acceptance": 3 },
+      "defaults": { "output": { "vi": "kết luận trước, bảng so sánh đối thủ (giá, điểm mạnh, điểm yếu, khoảng trống), nguồn cho mỗi số liệu", "en": "conclusion first, competitor table (price, strengths, weaknesses, gap), a source for every number" }, "done": { "vi": "chỉ ra được 1 khoảng trống cụ thể có thể vào ngay", "en": "names one concrete gap that can be entered now" } } },
+    "decision": {
+      "keywords": { "vi": ["nên chọn", "có nên", "quyết định", "phương án", "lựa chọn", "trade-off", "đánh đổi", "ưu nhược điểm", "so sánh phương án", "chọn cái nào"], "en": ["should we", "should i", "decide", "decision", "option", "alternative", "trade-off", "tradeoff", "pros and cons", "which one", "choose between"] },
+      "depth": "standard", "needsContext": "medium", "baseline": { "output": 0, "constraints": 4, "acceptance": 4 }, "askConstraints": false,
+      "defaults": { "output": { "vi": "khuyến nghị một phương án ngay dòng đầu, rồi bảng tiêu chí có trọng số, rồi điều kiện khiến đổi ý", "en": "one recommended option in the first line, then a weighted criteria table, then what would change the call" }, "done": { "vi": "người đọc quyết được trong 2 phút mà không cần hỏi thêm", "en": "the reader can decide in 2 minutes without a follow-up question" } } },
+    "report": {
+      "keywords": { "vi": ["báo cáo tuần", "báo cáo tháng", "báo cáo quý", "dashboard", "kpi", "tổng kết", "status report", "cập nhật tiến độ", "biên bản", "minutes"], "en": ["weekly report", "monthly report", "quarterly report", "dashboard", "kpi", "status report", "progress update", "meeting minutes", "stakeholder update"] },
+      "depth": "standard", "needsContext": "high", "baseline": { "output": 0, "constraints": 4, "acceptance": 4 }, "askConstraints": false,
+      "defaults": { "output": { "vi": "3 dòng tóm tắt cho sếp → số liệu so với mục tiêu → việc cần quyết → việc tuần tới; ≤ 1 trang", "en": "3-line summary for leadership → numbers vs target → decisions needed → next week; ≤ 1 page" }, "done": { "vi": "sếp đọc 3 dòng đầu là đủ, phần sau để tra cứu", "en": "leadership can stop after 3 lines; the rest is reference" } } }
+  }
+}

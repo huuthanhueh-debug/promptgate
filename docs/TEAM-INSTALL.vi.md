@@ -29,18 +29,13 @@ Trong Claude Code gõ:
 Phải thấy `mode: balanced`. Thử gõ một prompt cẩu thả như `làm cho tôi cái này tốt hơn đi` để xem nó bị chặn và nhận bản gợi ý.
 
 ## Dùng hằng ngày
-- Prompt bị chặn: copy khối gợi ý, điền các chỗ `⟨…⟩`, gửi lại.
+- Prompt yếu: Claude đưa 3 bản A Gọn / B Chuẩn / C Sâu, bấm chọn một bản (hoặc "Gửi nguyên bản").
 - Muốn gửi nguyên bản một lần: thêm `//` ở đầu.
 - Thấy phiền: `/promptgate:config gentle` (chỉ chặn prompt rất tệ) hoặc `off`.
 - Xem mình tiến bộ: `/promptgate:history 7`.
 
-## Gói Pro cho văn phòng (tùy chọn)
-Gói Pro (19 USD/máy, 12 tháng cập nhật) thêm bộ mẫu ngành **Khách sạn & dịch vụ** (SOP, pre-opening, đào tạo, xử lý khách, tuân thủ/PPM), Lập trình, Viết, Kinh doanh. Mua tại https://thequietconcierge.gumroad.com/l/promptgate. Sau khi mua:
-1. Giải nén file zip, copy các file trong `packs/` vào `%USERPROFILE%\.claude\promptgate\packs\` (Mac/Linux: `~/.claude/promptgate/packs/`).
-2. Trong Claude Code gõ `/promptgate:activate <KEY>` (key nằm trong email biên nhận của Gumroad).
-3. `/promptgate:status` phải liệt kê `coding, writing, business, hospitality`.
-
-Cài cho nhiều máy một lúc: mua số lượng tương ứng, mỗi máy một key.
+## Gói ngành (có sẵn, miễn phí)
+Từ 1.3.0 bốn gói ngành **Khách sạn & dịch vụ** (SOP, pre-opening, đào tạo, xử lý khách, tuân thủ/PPM), Lập trình, Viết, Kinh doanh nằm sẵn trong plugin. Không cần mua, không cần key. `/promptgate:status` phải liệt kê `general, business, coding, hospitality, writing`. Máy nào từng chép gói vào `%USERPROFILE%\.claude\promptgate\packs\` có thể xóa các file đó (để lại cũng không sao, plugin bỏ qua bản trùng).
 
 ## Gỡ
 ```bash

@@ -1,0 +1,29 @@
+{
+  "id": "coding", "version": "1.0.0", "tier": "pro",
+  "description": "Software work: tests, refactors, APIs, UI, data layer. Adds sharper defaults for build/debug.",
+  "types": {
+    "build": { "keywords": { "vi": ["endpoint", "route", "component", "hook", "service", "middleware", "crud", "form", "trang admin", "dashboard", "auth", "đăng nhập", "phân quyền", "upload", "export excel", "realtime", "websocket", "sse", "cron job"], "en": ["endpoint", "route", "component", "middleware", "crud", "form", "admin page", "dashboard", "auth", "login", "permissions", "upload", "export", "realtime", "websocket", "sse", "cron job", "cli"] },
+      "defaults": { "output": { "vi": "code chạy được + test cho phần mới + cách chạy + tóm tắt thay đổi ≤ 10 dòng, không giải thích dài", "en": "working code + tests for the new part + how to run + change summary ≤ 10 lines, no long explanations" } } },
+    "debug": { "defaults": { "output": { "vi": "1) cách tái hiện 2) nguyên nhân gốc (file:dòng) 3) bản sửa tối thiểu 4) lệnh/test xác nhận", "en": "1) repro steps 2) root cause (file:line) 3) minimal fix 4) command/test that confirms it" } } },
+    "test": {
+      "keywords": { "vi": ["viết test", "unit test", "test case", "coverage", "jest", "vitest", "pytest", "playwright", "e2e", "kiểm thử", "test tự động", "mock"], "en": ["write tests", "unit test", "test case", "coverage", "jest", "vitest", "pytest", "playwright", "e2e", "integration test", "mock", "fixture"] },
+      "depth": "standard", "needsContext": "high", "baseline": { "output": 4, "constraints": 4, "acceptance": 2 },
+      "defaults": { "output": { "vi": "file test riêng, mỗi case một hành vi, tên test mô tả hành vi, chạy được bằng một lệnh", "en": "separate test file, one behaviour per case, descriptive names, runnable with one command" }, "done": { "vi": "test mới pass, test cũ không hỏng, coverage phần đó ≥ 80%", "en": "new tests pass, old tests untouched, ≥ 80% coverage on the target" } } },
+    "refactor": {
+      "keywords": { "vi": ["refactor", "dọn code", "tách hàm", "tách file", "gộp hàm", "đổi cấu trúc", "giảm trùng lặp", "clean code", "đơn giản hóa", "tối ưu code", "bỏ dependency"], "en": ["refactor", "clean up", "extract", "split", "merge functions", "restructure", "deduplicate", "simplify", "remove dependency", "modernize", "migrate to"] },
+      "depth": "standard", "needsContext": "high", "baseline": { "output": 4, "constraints": 0, "acceptance": 0 },
+      "defaults": { "output": { "vi": "diff theo từng bước nhỏ, mỗi bước chạy được", "en": "small reviewable steps, each one runnable" }, "done": { "vi": "hành vi bên ngoài giữ nguyên, toàn bộ test cũ vẫn pass, không thêm tính năng", "en": "external behaviour unchanged, every existing test passes, no new features" } } },
+    "api": {
+      "keywords": { "vi": ["rest api", "graphql", "swagger", "openapi", "webhook", "tích hợp api", "gọi api", "token", "oauth", "rate limit"], "en": ["rest api", "graphql", "swagger", "openapi", "webhook", "api integration", "call the api", "oauth", "rate limit", "sdk"] },
+      "depth": "deep", "needsContext": "high", "baseline": { "output": 0, "constraints": 0, "acceptance": 0 },
+      "defaults": { "output": { "vi": "hợp đồng API (method, path, body, response, mã lỗi) trước, code sau, kèm ví dụ curl", "en": "API contract first (method, path, body, response, error codes), then code, with a curl example" }, "done": { "vi": "mọi endpoint có ví dụ gọi thành công và một ca lỗi được xử lý", "en": "every endpoint has a working example call and one handled error case" } } },
+    "ui": {
+      "keywords": { "vi": ["giao diện", "màn hình", "responsive", "css", "tailwind", "layout", "nút", "modal", "bảng dữ liệu", "dark mode", "mobile", "ux", "hiệu ứng"], "en": ["ui", "screen", "responsive", "css", "tailwind", "layout", "button", "modal", "data table", "dark mode", "mobile", "ux", "animation", "accessibility"] },
+      "depth": "standard", "needsContext": "high", "baseline": { "output": 3, "constraints": 3, "acceptance": 0 },
+      "defaults": { "output": { "vi": "component + ảnh chụp/mô tả trạng thái trước-sau, hoạt động ở 375px và 1280px", "en": "component + before/after screenshot or description, works at 375px and 1280px" }, "done": { "vi": "không lỗi console, điều hướng được bằng bàn phím, dark mode không vỡ", "en": "no console errors, keyboard navigable, dark mode intact" } } },
+    "data": {
+      "keywords": { "vi": ["schema", "migration", "bảng", "cột", "index", "query", "sql", "postgres", "mysql", "sqlite", "prisma", "orm", "seed", "import dữ liệu", "chuẩn hóa"], "en": ["schema", "migration", "table", "column", "index", "query", "sql", "postgres", "mysql", "sqlite", "prisma", "orm", "seed", "data import", "normalize"] },
+      "depth": "deep", "needsContext": "high", "baseline": { "output": 0, "constraints": 0, "acceptance": 0 },
+      "defaults": { "output": { "vi": "migration có up/down, query kèm EXPLAIN nếu đụng bảng lớn, dữ liệu mẫu để kiểm tra", "en": "migration with up/down, EXPLAIN for queries on large tables, sample data to verify" }, "done": { "vi": "migration chạy xuôi và ngược sạch trên bản sao dữ liệu thật", "en": "migration runs up and down cleanly on a copy of real data" } } }
+  }
+}

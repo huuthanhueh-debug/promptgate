@@ -12,15 +12,15 @@ PromptGate là plugin Claude Code đứng giữa bàn phím và Claude: mỗi pr
 |---|---|---|
 | 1 | Nền tảng | Pha 1: Claude Code (CLI, desktop Code tab, VS Code) qua hook `UserPromptSubmit`. Pha 2: công cụ phím tắt Windows (phủ Claude desktop + mọi app). Pha 3: Chrome extension cho claude.ai. Điện thoại: không thể can thiệp, chỉ hưởng lợi gián tiếp qua lịch sử. |
 | 2 | Cách can thiệp | Lai theo điểm. **Từ 1.1.0 (yêu cầu của chủ sản phẩm 02/11):** dưới ngưỡng → không chặn, hook chèn chỉ dẫn để Claude viết 3 bản viết lại kiểu chuyên gia (A Gọn / B Chuẩn / C Sâu) tự điền chỗ thiếu từ ngữ cảnh và hiện nút chọn (AskUserQuestion) + "Gửi nguyên bản"; không bắt gõ lại. Chế độ chặn cổ điển giữ lại qua `config block`. Vùng giữa → cho qua, hiện điểm + mẹo, chèn gợi ý chiều sâu; trên ngưỡng → im lặng. |
-| 3 | Bộ não | Tầng 1: quy tắc chạy local, 0 chi phí, dưới 50 ms. Tầng 2 (Pro, tự chọn): `claude -p --model haiku` dùng tài khoản người dùng, fallback API key. Chỉ gọi tầng 2 khi tầng 1 kết luận prompt yếu. |
+| 3 | Bộ não | Tầng 1: quy tắc chạy local, 0 chi phí, dưới 50 ms. Tầng 2 (tự chọn): `claude -p --model haiku` dùng tài khoản người dùng, fallback API key. Chỉ gọi tầng 2 khi tầng 1 kết luận prompt yếu. |
 | 4 | "Hết công suất" | Hồ sơ chiều sâu tự nhận diện theo loại việc: light / standard / deep. Deep thêm ultrathink, lập kế hoạch ngắn, tiêu chí hoàn thành, tự kiểm tra, cấm dừng giữa chừng. Ghi đè bằng từ khóa `nhanh`/`fast` hoặc `max`. |
 | 5 | Ngôn ngữ | Gợi ý theo ngôn ngữ của prompt (VI/EN, tự nhận diện). Tài liệu song ngữ. |
 | 6 | Lịch sử | Quét toàn bộ `~/.claude/projects/**/*.jsonl`, lưu điểm cục bộ tại `~/.claude/promptgate/`, không gửi đi đâu. Tầng 2 không bao giờ chạy trên lịch sử. |
-| 7 | Kiếm tiền | Open-core. Free trên GitHub đủ dùng; Pro 19 USD mua một lần, cập nhật 1 năm, bán trên thequietconcierge.gumroad.com. |
-| 8 | License | Key Gumroad, xác thực online một lần khi `activate`, lưu cục bộ, dùng offline. |
+| 7 | Kiếm tiền | **Đổi 03/11/2026: miễn phí toàn bộ.** Mọi thứ (kể cả 4 gói ngành cũ của Pro) nằm trong repo MIT. Trên Gumroad, PromptGate là sản phẩm giá 0 và được nhắc như quà tặng kèm mọi tài liệu của The Quiet Concierge. (Trước đó: open-core, Pro 19 USD.) |
+| 8 | License | Không còn. `/promptgate:activate` giữ lại chỉ để in thông báo miễn phí; `isPro()` luôn true cho mã cũ. |
 | 9 | Độ khó tính mặc định | Balanced: chặn dưới 50/100, hiện điểm dưới 75. Chế độ `strict` (70 / luôn hiện), `gentle` (30 / không hiện), `off`. |
 | 10 | Tên | PromptGate. Repo `huuthanhueh-debug/promptgate`. Lệnh `/promptgate:*`. |
-| 11 | Gói Pro đầu tiên | Lập trình & xây app · Viết & nội dung · Phân tích & kế hoạch kinh doanh · Khách sạn & dịch vụ. |
+| 11 | Gói ngành | Lập trình & xây app · Viết & nội dung · Phân tích & kế hoạch kinh doanh · Khách sạn & dịch vụ. Tất cả trong `packs/`, miễn phí. |
 | 12 | Kỹ thuật | Node.js ≥ 18, không dependency ngoài. Không telemetry. API key đọc từ `ANTHROPIC_API_KEY`. Fail-open: hook lỗi thì prompt vẫn đi qua. |
 
 ## 3. Ràng buộc kỹ thuật đã kiểm chứng (tài liệu chính thức, 2026-11-02)
@@ -51,7 +51,7 @@ prompt → [0] bỏ qua? (sự kiện tự động, lệnh /, < minWords, ack "o
        → [3] so ngưỡng theo mode
             ≥ showBelow      → exit 0, im lặng (ghi log)
             blockBelow..show → exit 0, systemMessage "PromptGate 68/100 · mẹo", additionalContext gợi ý chiều sâu nếu deep mà thiếu cue
-            < blockBelow     → [4] viết lại (quy tắc; nếu Pro+llm thì gọi tầng 2, timeout 20 s, lỗi thì dùng quy tắc)
+            < blockBelow     → [4] viết lại (quy tắc; nếu brain=llm thì gọi tầng 2, timeout 20 s, lỗi thì dùng quy tắc)
                               → decision block, reason = điểm + thiếu/thừa + bản viết lại + cách bỏ qua; lưu hash bản viết lại + mốc cooldown
 ```
 
@@ -69,7 +69,7 @@ Cooldown: sau một lần chặn, prompt kế tiếp trong cùng session trong 1
 | Tiết kiệm | 10 | Phạt câu xã giao, lặp từ, mật độ thông tin thấp |
 | Khớp chiều sâu | 10 | Việc lớn mà thiếu cue suy nghĩ/kiểm tra → trừ; việc nhỏ mà kèm ultrathink → trừ nhẹ |
 
-Loại việc: `question`, `edit`, `build`, `debug`, `analyze`, `write`, `review`, `ops`. Hồ sơ chiều sâu mặc định: question/edit → light; write/review/debug → standard; build/analyze/ops → deep. Gói Pro có thể định nghĩa thêm loại việc và trọng số riêng.
+Loại việc: `question`, `edit`, `build`, `debug`, `analyze`, `write`, `review`, `ops`. Hồ sơ chiều sâu mặc định: question/edit → light; write/review/debug → standard; build/analyze/ops → deep. Gói ngành có thể định nghĩa thêm loại việc và trọng số riêng.
 
 ## 7. Bản viết lại theo quy tắc
 
@@ -88,28 +88,18 @@ Ultrathink. Lập kế hoạch ngắn trước khi làm, tự kiểm tra kết q
 
 | Lệnh | Việc |
 |---|---|
-| `/promptgate:status` | Mode hiện tại, brain, license, thống kê 7 ngày |
+| `/promptgate:status` | Mode hiện tại, brain, gói đã nạp, thống kê 7 ngày |
 | `/promptgate:optimize <text>` | Chấm và viết lại một prompt theo yêu cầu, không chặn |
 | `/promptgate:history [days]` | Quét lịch sử toàn máy, báo cáo + lưu điểm |
 | `/promptgate:config <strict\|balanced\|gentle\|off>` | Đổi mode (lưu `~/.claude/promptgate/config.json`) |
-| `/promptgate:brain <rules\|llm>` | Chọn tầng 2 (llm cần Pro) |
-| `/promptgate:activate <KEY>` | Kích hoạt Pro qua Gumroad |
+| `/promptgate:brain <rules\|llm>` | Chọn tầng 2 (llm, không cần key) |
+| `/promptgate:activate` | (cũ) in thông báo: mọi thứ đã miễn phí |
 
 Bỏ qua một lần: gõ prompt bắt đầu bằng `//`.
 
-## 9. Free vs Pro
+## 9. Miễn phí toàn bộ (từ 1.3.0)
 
-| | Free (GitHub, MIT) | Pro (Gumroad, 19 USD) |
-|---|---|---|
-| Hook chấm điểm + viết lại quy tắc | ✓ | ✓ |
-| Gói mẫu `general` (VI/EN) | ✓ | ✓ |
-| /optimize, /config, /status | ✓ | ✓ |
-| /history báo cáo tổng quan | ✓ | ✓ + theo project, xu hướng tuần, 20 prompt tệ nhất kèm viết lại, dashboard HTML |
-| Tầng 2 LLM (`claude -p` / API) | – | ✓ |
-| Gói ngành: coding, writing, business, hospitality | – | ✓, cập nhật hàng tháng 12 tháng |
-| Hồ sơ chiều sâu tùy biến theo project (`.promptgate.json`) | cơ bản | đầy đủ |
-
-Gói Pro giao dưới dạng zip, giải nén vào `~/.claude/promptgate/packs/`. Mã nguồn Pro không nằm trong repo public.
+Không còn phân tầng. Tất cả trong repo: hook chấm điểm + gợi ý A/B/C, 5 gói ngành (`general`, `coding`, `writing`, `business`, `hospitality`), tầng 2 LLM qua `claude -p`, /history đầy đủ (theo project, xu hướng tuần, 20 prompt tệ nhất, dashboard HTML), hồ sơ chiều sâu theo project (`.promptgate.json`), tray Windows, extension claude.ai. Người dùng thêm gói riêng vào `~/.claude/promptgate/packs/` (trùng id với gói có sẵn thì bỏ qua).
 
 ## 10. Dữ liệu cục bộ
 
@@ -117,11 +107,11 @@ Gói Pro giao dưới dạng zip, giải nén vào `~/.claude/promptgate/packs/`
 ~/.claude/promptgate/
   config.json      mode, brain, language, ngưỡng
   state.json       cooldown + hash bản gợi ý theo session
-  license.json     key, product, ngày xác thực, hạn cập nhật
+  license.json     (cũ, không dùng từ 1.3.0)
   log.jsonl        mỗi prompt đã chấm: ts, session, score, type, action (không lưu nội dung prompt)
   history.json     điểm lịch sử sau khi quét
   reports/         báo cáo markdown/html
-  packs/           gói Pro
+  packs/           gói riêng của người dùng, gộp lên trên packs/ của plugin
 ```
 
 ## 11. Pha 2 và 3
@@ -129,7 +119,7 @@ Gói Pro giao dưới dạng zip, giải nén vào `~/.claude/promptgate/packs/`
 - Pha 2 (đã build, 1.2.0, thư mục `tray/`, xem `tray/README.vi.md`): tray Windows bằng PowerShell 5.1 + WinForms (chọn thay vì Electron vì một lệnh là chạy, không cài, không build), engine chạy qua Node (`tray/core.js` → `scripts/lib/engine.js`). File `.ps1` thuần ASCII; mọi chuỗi VI/EN ở `tray/lib/compose.js`; text đi qua file JSON UTF-8 trong `%TEMP%` để tránh lỗi mã hóa và dấu nháy của PowerShell 5.1.
   - Luồng: hotkey (mặc định `Ctrl+Alt+P`, đổi qua menu hoặc `config.json` → `tray.hotkey`) → nhả modifier, Ctrl+C giả lập, chờ clipboard ≤ 600 ms, không có thì lấy clipboard cũ → `core.js --req` → popup gần con trỏ: điểm, loại việc, thiếu/thừa, mẹo, A Gọn / B Chuẩn / C Sâu → bấm hoặc phím A/B/C chép vào clipboard, tùy chọn dán đè (SetForegroundWindow + Ctrl+V) → Esc đóng.
   - Composer `tray/lib/compose.js` (thuần, test được): A = `cleanFiller` + dòng đầu ra mặc định; B = Mục tiêu / Ngữ cảnh / Đầu ra / Ràng buộc / Hoàn thành khi, ngữ cảnh điền từ `REFS.path`, URL, dòng lỗi (lấy xuôi từ token lỗi), `@file`, tiêu đề cửa sổ nguồn nếu có tên file; ràng buộc mặc định theo loại việc; C = B + Ultrathink + kế hoạch ngắn + ca biên + tự kiểm tra. Khuyên dùng: deep→C, light→A, còn lại B (như hook).
-  - Tầng 2 (Pro): nút trên popup hoặc `tray.llm: true` gọi `brain-llm.rewrite` chạy nền; kết quả thay B, C = kết quả + dòng sâu.
+  - Tầng 2: nút trên popup hoặc `tray.llm: true` gọi `brain-llm.rewrite` chạy nền; kết quả thay B, C = kết quả + dòng sâu.
   - Dữ liệu: `config.json` khóa `tray` `{hotkey, paste, llm, enabled, node, language}`; `tray.log` vận hành; `log.jsonl` thêm `action: "tray"` (không lưu text) nên `history` tính cả tray.
   - Menu tray: bật/tắt, đổi phím tắt, dán đè, tầng 2, mở lịch sử, mở thư mục dữ liệu, khởi động cùng Windows (shortcut Startup → `Start-Hidden.vbs`), thoát. Chạy: `tray\PromptGate.cmd` hoặc `npm run tray`. Test: `tests/tray.js`, gọi từ `tests/run.js`.
   - Đã kiểm chứng trên máy phát triển: Notepad → bôi đen → Ctrl+Alt+P → popup 50/100 → phím A/B → clipboard nhận đúng bản. Chưa kiểm chứng: nút tầng 2 với `claude -p`, dán đè vào app chạy admin, máy bật Kaspersky Secure Keyboard Input (cách xử lý ghi trong `tray/README.vi.md`).

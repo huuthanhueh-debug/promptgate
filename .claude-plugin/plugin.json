@@ -1,7 +1,7 @@
 {
   "name": "promptgate",
-  "version": "1.2.0",
-  "description": "A gate between your keyboard and Claude: every prompt is scored in milliseconds, weak prompts are blocked with a tighter and deeper rewrite, good prompts pass silently. Bilingual VI/EN. Scans your whole prompt history locally. Zero cost by default.",
+  "version": "1.3.0",
+  "description": "A gate between your keyboard and Claude: every prompt is scored in milliseconds, weak prompts get three filled-in rewrites to pick with a click, good prompts pass silently. Bilingual VI/EN, five domain packs, local history scan. Fully free, MIT.",
   "author": { "name": "The Quiet Concierge", "url": "https://thequietconcierge.gumroad.com" },
   "homepage": "https://github.com/huuthanhueh-debug/promptgate",
   "repository": "https://github.com/huuthanhueh-debug/promptgate",

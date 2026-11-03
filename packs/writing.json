@@ -1,0 +1,26 @@
+{
+  "id": "writing", "version": "1.0.0", "tier": "pro",
+  "description": "Content work: email, social, long-form, translation, sales copy.",
+  "types": {
+    "email": {
+      "keywords": { "vi": ["email", "thư", "gửi sếp", "gửi khách", "gửi đối tác", "reply", "trả lời mail", "follow up", "nhắc nợ", "xin lỗi khách", "từ chối"], "en": ["email", "letter", "reply to", "follow up", "follow-up", "cold email", "apology", "decline", "reminder email"] },
+      "depth": "light", "needsContext": "medium", "baseline": { "output": 0, "constraints": 4, "acceptance": 4 }, "askConstraints": false,
+      "defaults": { "output": { "vi": "tiêu đề + thân mail ≤ ⟨120⟩ từ, 1 lời kêu gọi hành động rõ, giọng ⟨…⟩, gửi cho ⟨ai⟩", "en": "subject + body ≤ ⟨120⟩ words, one clear call to action, tone ⟨…⟩, to ⟨whom⟩" }, "done": { "vi": "người nhận đọc 20 giây là biết phải làm gì", "en": "the reader knows what to do within 20 seconds" } } },
+    "social": {
+      "keywords": { "vi": ["caption", "bài đăng", "post facebook", "facebook", "tiktok", "instagram", "linkedin", "threads", "hashtag", "story", "reel", "kịch bản video ngắn", "hook mở đầu"], "en": ["caption", "social post", "facebook", "tiktok", "instagram", "linkedin", "threads", "hashtag", "story", "reel", "short video script", "hook"] },
+      "depth": "light", "needsContext": "medium", "baseline": { "output": 0, "constraints": 4, "acceptance": 4 }, "askConstraints": false,
+      "defaults": { "output": { "vi": "⟨3⟩ phương án, mỗi phương án: hook dòng đầu + thân + CTA + hashtag, độ dài theo nền tảng ⟨…⟩", "en": "⟨3⟩ variants, each: first-line hook + body + CTA + hashtags, length per platform ⟨…⟩" }, "done": { "vi": "dòng đầu đứng một mình vẫn khiến người ta dừng cuộn", "en": "the first line alone stops the scroll" } } },
+    "longform": {
+      "keywords": { "vi": ["bài blog", "bài viết dài", "ebook", "chương", "whitepaper", "case study", "hướng dẫn chi tiết", "series bài"], "en": ["blog post", "long-form", "ebook", "chapter", "whitepaper", "case study", "in-depth guide", "article series", "essay"] },
+      "depth": "deep", "needsContext": "medium", "baseline": { "output": 0, "constraints": 4, "acceptance": 3 }, "askConstraints": false,
+      "defaults": { "output": { "vi": "dàn ý trước để duyệt, rồi bản đầy đủ ⟨số từ⟩, có tiêu đề phụ mỗi 200-300 từ, kết luận có hành động", "en": "outline first for approval, then full draft ⟨word count⟩, subheads every 200-300 words, actionable conclusion" }, "done": { "vi": "mỗi phần trả lời một câu hỏi của người đọc mục tiêu", "en": "every section answers one question the target reader has" } } },
+    "translate": {
+      "keywords": { "vi": ["dịch", "dịch sang", "song ngữ", "bản tiếng anh", "bản tiếng việt", "chuyển ngữ", "localize", "việt hóa"], "en": ["translate", "translation", "bilingual", "english version", "vietnamese version", "localize", "localise"] },
+      "depth": "light", "needsContext": "high", "baseline": { "output": 4, "constraints": 4, "acceptance": 4 }, "askConstraints": false,
+      "defaults": { "output": { "vi": "bản dịch giữ nguyên định dạng và thuật ngữ gốc trong ngoặc khi cần; giọng ⟨trang trọng/thân mật⟩", "en": "translation that keeps the original formatting, source terms in brackets where needed; register ⟨formal/casual⟩" }, "done": { "vi": "người bản ngữ đọc không nhận ra là bản dịch", "en": "a native reader would not spot it as a translation" } } },
+    "sales": {
+      "keywords": { "vi": ["landing page", "mô tả sản phẩm", "trang bán", "gumroad", "payhip", "cta", "lời chào hàng", "bán hàng", "quảng cáo", "ad copy", "headline bán", "ưu đãi"], "en": ["landing page", "product description", "sales page", "gumroad", "cta", "pitch", "ad copy", "headline", "offer", "pricing page", "value proposition"] },
+      "depth": "standard", "needsContext": "medium", "baseline": { "output": 0, "constraints": 4, "acceptance": 3 }, "askConstraints": false,
+      "defaults": { "output": { "vi": "headline + 3 lợi ích + bằng chứng + xử lý 2 phản đối + CTA; cho khách hàng ⟨ai, nỗi đau gì⟩", "en": "headline + 3 benefits + proof + 2 objections handled + CTA; for customer ⟨who, what pain⟩" }, "done": { "vi": "khách đọc xong trả lời được 'cái này giúp tôi gì, giá bao nhiêu, bấm đâu'", "en": "the reader can answer 'what does this do for me, how much, where do I click'" } } }
+  }
+}

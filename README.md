@@ -1,10 +1,10 @@
 # PromptGate
 
-[![tests](https://github.com/huuthanhueh-debug/promptgate/actions/workflows/test.yml/badge.svg)](https://github.com/huuthanhueh-debug/promptgate/actions/workflows/test.yml) [![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![node >=18](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](package.json) [![Pro on Gumroad](https://img.shields.io/badge/Pro-%2419%20on%20Gumroad-ff90e8.svg)](https://thequietconcierge.gumroad.com/l/promptgate)
+[![tests](https://github.com/huuthanhueh-debug/promptgate/actions/workflows/test.yml/badge.svg)](https://github.com/huuthanhueh-debug/promptgate/actions/workflows/test.yml) [![license: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE) [![node >=18](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](package.json) [![free](https://img.shields.io/badge/price-free-ff90e8.svg)](https://thequietconcierge.gumroad.com/l/promptgate)
 
 **A gate between your keyboard and Claude.** Every prompt you type in Claude Code is scored in milliseconds. Weak prompts are stopped and handed back tighter and deeper. Good prompts pass silently. Your whole prompt history is scanned locally so you can see your habits and your progress.
 
-[Tiếng Việt](README.vi.md) · [Spec](docs/SPEC.md) · [Team install guide (VI)](docs/TEAM-INSTALL.vi.md) · [Pro on Gumroad](https://thequietconcierge.gumroad.com/l/promptgate)
+[Tiếng Việt](README.vi.md) · [Spec](docs/SPEC.md) · [Team install guide (VI)](docs/TEAM-INSTALL.vi.md) · [Gumroad listing (free)](https://thequietconcierge.gumroad.com/l/promptgate)
 
 ```
 PromptGate ▸ 32/100 · debug · depth standard
@@ -86,26 +86,25 @@ After a block, the next prompt in the same session goes through regardless (one 
 | `/promptgate:optimize <text>` | score + rewrite on demand, no blocking |
 | `/promptgate:history [days\|--all]` | scan all local transcripts, write a report |
 | `/promptgate:config <strict\|balanced\|gentle\|off>` | strictness |
-| `/promptgate:brain <rules\|llm>` | rewrite engine (llm = Pro) |
-| `/promptgate:activate <KEY>` | unlock Pro |
+| `/promptgate:brain <rules\|llm>` | rewrite engine (llm = tier 2 via your `claude -p`) |
 
 ## Privacy
 
-Everything runs on your machine. The hook never sends your prompt anywhere. The log at `~/.claude/promptgate/log.jsonl` stores scores and types, never prompt text. History reports are written to `~/.claude/promptgate/reports/`. No telemetry, no accounts. The optional Pro tier-2 rewrite uses your own `claude -p` login (or your `ANTHROPIC_API_KEY`) and only runs on the prompt you just typed, never on history.
+Everything runs on your machine. The hook never sends your prompt anywhere. The log at `~/.claude/promptgate/log.jsonl` stores scores and types, never prompt text. History reports are written to `~/.claude/promptgate/reports/`. No telemetry, no accounts. The optional tier-2 rewrite uses your own `claude -p` login (or your `ANTHROPIC_API_KEY`) and only runs on the prompt you just typed, never on history.
 
-## Free vs Pro
+## Everything is free
 
-| | Free (this repo, MIT) | Pro ($19 once, 12 months of updates) |
-|---|---|---|
-| Real-time gate, rule-based rewrite, VI/EN | ✓ | ✓ |
-| `general` pattern pack | ✓ | ✓ |
-| History report: overview, weaknesses, 5 worst prompts | ✓ | ✓ |
-| History: per-project, weekly trend, 20 worst with rewrites, HTML dashboard | – | ✓ |
-| Tier-2 LLM rewrite via your own `claude -p` | – | ✓ |
-| Domain packs: **coding**, **writing**, **business**, **hospitality** | – | ✓ |
-| Full per-project depth profiles | basic | ✓ |
+Since 1.3.0 there is no Pro tier. The whole product is in this repo under MIT:
 
-Pro packs are JSON files you drop into `~/.claude/promptgate/packs/`. Get them at [thequietconcierge.gumroad.com/l/promptgate](https://thequietconcierge.gumroad.com/l/promptgate), then `/promptgate:activate <KEY>`.
+- Real-time gate with the A/B/C suggest mode, rule-based rewrite, VI/EN.
+- **Five domain packs** in [`packs/`](packs/): `general`, `coding`, `writing`, `business`, `hospitality`. Each adds task detection, default output formats and done-when criteria for its field, in Vietnamese and English.
+- Tier-2 LLM rewrite through your own `claude -p` login (`/promptgate:brain llm`), no key.
+- Full history report: per-project scores, weekly trend, the 20 weakest prompts with rewrites, HTML dashboard.
+- Windows tray hotkey and the claude.ai extension.
+
+Your own packs: drop extra `*.json` files into `~/.claude/promptgate/packs/` and they are merged on top of the built-in ones (same shape as `packs/general.json`).
+
+If PromptGate saves you tokens, a star on GitHub or a look at the hotel toolkits on [thequietconcierge.gumroad.com](https://thequietconcierge.gumroad.com) is appreciated. PromptGate itself is also listed there for free so buyers of any toolkit find it.
 
 ## Roadmap
 
@@ -115,7 +114,7 @@ Pro packs are JSON files you drop into `~/.claude/promptgate/packs/`. Get them a
 
 ## Troubleshooting
 
-- **`/promptgate:activate` or tier-2 fails with a certificate error** (common with Kaspersky or a corporate proxy on Windows): run Claude Code with `NODE_OPTIONS=--use-system-ca`, or set `NODE_EXTRA_CA_CERTS` to a PEM bundle that includes your interception root. Details in [docs/INTEGRATION.md](docs/INTEGRATION.md).
+- **Tier-2 (`brain llm`) fails with a certificate error** (common with Kaspersky or a corporate proxy on Windows): run Claude Code with `NODE_OPTIONS=--use-system-ca`, or set `NODE_EXTRA_CA_CERTS` to a PEM bundle that includes your interception root. Details in [docs/INTEGRATION.md](docs/INTEGRATION.md).
 - **Nothing happens on weak prompts in the desktop app**: open a new session or run `/reload-plugins`; hooks load at session start.
 - **Too chatty**: `/promptgate:config gentle`. **Too quiet**: `/promptgate:config strict`.
 

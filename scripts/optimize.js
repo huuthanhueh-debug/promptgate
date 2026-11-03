@@ -22,7 +22,7 @@ async function readStdin() {
   const T = t(a.lang);
   let suggestion = E.rewrite(text, a, pack, T);
   let viaLlm = false;
-  if (cfg.brain === 'llm' && cfgm.isPro()) {
+  if (cfg.brain === 'llm') {
     try { const s = await require('./lib/brain-llm').rewrite(text, a, cfg, T); if (s) { suggestion = s; viaLlm = true; } } catch (_) {}
   }
   if (json) { console.log(JSON.stringify({ analysis: a, suggestion, viaLlm }, null, 2)); return; }

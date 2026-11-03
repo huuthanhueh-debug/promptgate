@@ -60,11 +60,9 @@ function saveState(s) {
 }
 
 function loadLicense() { return readJson(FILES.license, null); }
-function isPro() {
-  if (process.env.PROMPTGATE_PRO === '1') return true;
-  const l = loadLicense();
-  return !!(l && l.valid);
-}
+// Since 1.3.0 everything in PromptGate is free: the former Pro packs ship in <plugin>/packs and the
+// tier-2 rewrite needs no key. isPro() stays for compatibility with older callers and always returns true.
+function isPro() { return true; }
 
 function appendLog(entry) {
   try { ensureHome(); fs.appendFileSync(FILES.log, JSON.stringify(Object.assign({ ts: new Date().toISOString() }, entry)) + '\n'); } catch (_) {}

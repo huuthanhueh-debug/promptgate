@@ -1,3 +1,5 @@
+> **03/11/2026: PromptGate is fully free.** The Gumroad listing stays up as a $0 product so that buyers of any The Quiet Concierge toolkit find it, and the receipt of every toolkit points to it. The notes below describe the former paid setup and are kept for history only.
+
 # PromptGate Pro — trang bán trên Gumroad (bản nháp)
 
 **URL dự kiến:** https://thequietconcierge.gumroad.com/l/promptgate · **Giá:** 19 USD, mua một lần, cập nhật 12 tháng · **Loại:** digital file (zip) + license key tự sinh (bật "Generate a unique license key per sale")

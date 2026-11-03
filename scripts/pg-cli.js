@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-// /promptgate:* control commands: status | config <mode> | brain <rules|llm> | activate <key> | deactivate | packs
+// /promptgate:* control commands: status | config <mode|suggest|block> | brain <rules|llm> | packs | activate (legacy, prints a note)
 const cfgm = require('./lib/config');
 const packs = require('./lib/packs');
 const PRODUCT = require('./lib/product');
@@ -9,8 +9,6 @@ const [cmd, ...rest] = process.argv.slice(2);
 
 function status() {
   const cfg = cfgm.loadConfig(process.cwd());
-  const lic = cfgm.loadLicense();
-  const pro = cfgm.isPro();
   const pack = packs.load();
   const log = cfgm.readLog(7);
   const scored = log.filter((e) => e.action !== 'skip');
@@ -19,8 +17,8 @@ function status() {
   const lines = [
     `PromptGate ${PRODUCT.version}`,
     `mode: ${cfg.mode} (weak < ${cfg.blockBelow}, show < ${cfg.showBelow >= 101 ? 'always' : cfg.showBelow}) · on weak: ${cfg.action} · brain: ${cfg.brain} · language: ${cfg.language}`,
-    `tier: ${pro ? 'Pro' : 'Free'}${lic && lic.updatesUntil ? ' · updates until ' + lic.updatesUntil.slice(0, 10) : ''}${process.env.PROMPTGATE_PRO === '1' ? ' (dev override)' : ''}`,
-    `packs: ${pack.ids.join(', ')}${pack.proLocked.length ? ' · locked Pro packs present: ' + pack.proLocked.join(', ') : ''}`,
+    `tier: free, all packs and tier 2 included (since 1.3.0)`,
+    `packs: ${pack.ids.join(', ')}${pack.customIds && pack.customIds.length ? ' (custom: ' + pack.customIds.join(', ') + ')' : ''}`,
     `last 7 days: ${scored.length} scored · ${n('suggest')} suggested · ${n('block')} blocked · ${n('show')} shown · ${n('pass')} passed · ${n('skip')} skipped${avg != null ? ' · avg ' + avg + '/100' : ''}`,
     `data: ${cfgm.HOME}`,
   ];
@@ -43,33 +41,17 @@ function config(mode) {
 
 function brain(which) {
   if (!['rules', 'llm'].includes(which)) { console.log(`Usage: brain <rules|llm>. Current: ${cfgm.loadConfig().brain}`); return; }
-  if (which === 'llm' && !cfgm.isPro()) { console.log('Tier 2 (LLM rewrite) is a Pro feature. Get a key at ' + PRODUCT.url + ' then run /promptgate:activate <KEY>.'); return; }
   cfgm.saveConfig({ brain: which });
   console.log(`PromptGate brain → ${which}${which === 'llm' ? ' (uses `claude -p --model haiku` with your own login; falls back to ANTHROPIC_API_KEY)' : ''}.`);
 }
 
-async function activate(key) {
-  if (!key) { console.log('Usage: activate <LICENSE-KEY>  (the key is in your Gumroad receipt email)'); return; }
-  if (typeof fetch !== 'function') { console.log('Node 18+ is required for activation.'); return; }
-  const body = new URLSearchParams({ license_key: key.trim(), increment_uses_count: 'true' });
-  if (PRODUCT.gumroadProductId) body.set('product_id', PRODUCT.gumroadProductId); else body.set('product_permalink', PRODUCT.gumroadPermalink);
-  let j;
-  try { const r = await fetch('https://api.gumroad.com/v2/licenses/verify', { method: 'POST', body }); j = await r.json(); } catch (e) { console.log('Could not reach Gumroad: ' + e.message); return; }
-  if (!j || !j.success) { console.log('License not valid: ' + ((j && j.message) || 'unknown error')); return; }
-  const p = j.purchase || {};
-  if (p.refunded || p.chargebacked || p.disputed) { console.log('This license was refunded or disputed and cannot be activated.'); return; }
-  const sale = p.sale_timestamp ? new Date(p.sale_timestamp) : new Date();
-  const updatesUntil = new Date(sale.getTime() + 366 * 86400e3).toISOString();
-  cfgm.writeJson(cfgm.FILES.license, { valid: true, key: key.trim().slice(0, 8) + '…', keyHash: require('crypto').createHash('sha256').update(key.trim()).digest('hex').slice(0, 16), product: p.product_name || PRODUCT.gumroadPermalink, verifiedAt: new Date().toISOString(), purchasedAt: sale.toISOString(), updatesUntil });
-  packs.load({ fresh: true });
-  console.log(`PromptGate Pro activated. Updates until ${updatesUntil.slice(0, 10)}. Drop Pro packs into ${cfgm.FILES.packs} and run /promptgate:status.`);
-}
-
-function deactivate() { try { require('fs').unlinkSync(cfgm.FILES.license); } catch (_) {} console.log('PromptGate Pro deactivated on this machine.'); }
+const FREE_NOTE = 'PromptGate is fully free since 1.3.0: the coding, writing, business and hospitality packs ship with the plugin and tier 2 (/promptgate:brain llm) needs no key. Nothing to activate. Update with: claude plugin update promptgate@promptgate';
+async function activate() { console.log(FREE_NOTE); }
+function deactivate() { try { require('fs').unlinkSync(cfgm.FILES.license); } catch (_) {} console.log(FREE_NOTE); }
 
 function listPacks() {
   const pack = packs.load();
-  console.log(`free: ${pack.freeIds.join(', ')}\npro loaded: ${pack.proIds.join(', ') || '-'}\npro locked: ${pack.proLocked.join(', ') || '-'}\npro dir: ${cfgm.FILES.packs}`);
+  console.log(`built-in: ${pack.freeIds.join(', ')}\ncustom: ${pack.customIds.join(', ') || '-'}\ncustom dir (drop extra *.json here): ${cfgm.FILES.packs}`);
 }
 
 (async () => {
@@ -77,9 +59,9 @@ function listPacks() {
     case 'status': return status();
     case 'config': return config(rest[0]);
     case 'brain': return brain(rest[0]);
-    case 'activate': return activate(rest.join(' '));
+    case 'activate': return activate();
     case 'deactivate': return deactivate();
     case 'packs': return listPacks();
-    default: console.log('Usage: pg-cli.js <status|config <mode>|brain <rules|llm>|activate <key>|deactivate|packs>');
+    default: console.log('Usage: pg-cli.js <status|config <mode|suggest|block>|brain <rules|llm>|packs|activate|deactivate>');
   }
 })();

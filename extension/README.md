@@ -53,7 +53,7 @@ The extension calls no model. The A, B and C rewrites come from the same rule en
 - Output: pack default for the task type.
 - Anything with no source stays as a `⟨…⟩` placeholder for you to fill.
 
-So the suggestions are less capable than the Pro tier that calls an LLM. They are fast, cost no tokens, and never leave the machine.
+So the suggestions are less capable than tier 2 in Claude Code, which calls an LLM. They are fast, cost no tokens, and never leave the machine.
 
 ## Privacy
 
@@ -62,9 +62,9 @@ So the suggestions are less capable than the Pro tier that calls an LLM. They ar
 - Paths and URLs read from the chat are used in memory to build a suggestion and are not kept.
 - Permissions: `storage`, and a content script on `https://claude.ai/*`. No access to other tabs.
 
-## Pro key
+## Pro key field
 
-The Pro key field saves the key locally. This release does not unlock Pro features inside the extension, because the extension does not request permission to call Gumroad. To activate Pro for Claude Code, run `/promptgate:activate <KEY>` in Claude Code.
+Left over from 1.x: the popup still has a key field and stores it locally, but since PromptGate 1.3.0 nothing is locked, so the field does nothing. It will be removed in the next extension build.
 
 ## When claude.ai changes its layout
 

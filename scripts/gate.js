@@ -82,7 +82,7 @@ async function main() {
     }
     let suggestion = skeleton;
     let viaLlm = false;
-    if (cfg.brain === 'llm' && cfgm.isPro()) {
+    if (cfg.brain === 'llm') {
       try {
         const brain = require('./lib/brain-llm');
         const s = await brain.rewrite(trimmed, a, cfg, T);
