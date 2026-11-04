@@ -69,9 +69,11 @@ Nút tìm ô nhập theo thứ tự: `div.ProseMirror[contenteditable="true"]`, 
 
 Nếu không tìm thấy ô nhập nào, nút PG ẩn đi và trang không bị ảnh hưởng.
 
-## Chrome Web Store (chưa đăng)
+## Chrome Web Store
 
-Đã chuẩn bị sẵn: icon (sinh tự động khi build), [chính sách riêng tư](PRIVACY.md), [nội dung listing và các bước nộp](STORE-LISTING.md), gói zip bằng `npm run build:ext -- --zip`. Còn phải tự làm: tài khoản nhà phát triển (5 USD một lần), ảnh chụp màn hình, bấm Submit.
+Trang sản phẩm: https://chromewebstore.google.com/detail/ohfifdheanlidimoffbkbkednifkpiae
+
+Tài liệu nguồn cho listing: [chính sách riêng tư](PRIVACY.md), [nội dung listing và các bước nộp](STORE-LISTING.md), và gói zip từ `npm run build:ext -- --zip`.
 
 ## Phát triển
 

@@ -109,6 +109,6 @@ Nếu PromptGate giúp bạn tiết kiệm token, một ngôi sao trên GitHub h
 
 - **Pha 1 (xong, 1.0)**: plugin Claude Code.
 - **Pha 2 (xong, 1.2)**: công cụ chạy nền Windows có phím tắt toàn cục, cùng engine cho app Claude desktop và mọi cửa sổ khác. Bôi đen, nhấn Ctrl+Alt+P, chọn A/B/C. Xem [tray/README.vi.md](tray/README.vi.md); chạy `tray\PromptGate.cmd` hoặc `npm run tray`.
-- **Pha 3 (đang làm)**: Chrome extension cho claude.ai. Bản thử trong [`extension/`](extension/README.vi.md): cài thủ công, chưa đăng Chrome Web Store.
+- **Pha 3 (xong)**: Chrome extension cho claude.ai, [đã có trên Chrome Web Store](https://chromewebstore.google.com/detail/ohfifdheanlidimoffbkbkednifkpiae). Mã nguồn và cài thủ công trong [`extension/`](extension/README.vi.md).
 
 MIT © The Quiet Concierge
