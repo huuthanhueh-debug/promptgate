@@ -10,7 +10,9 @@ Spec đầy đủ: [`docs/specs/2026-11-09-fold-island-design.md`](docs/specs/20
 
 | Bước | Làm gì |
 |---|---|
-| 1 | Tải file `FoldIsland-x.y.z.apk` về máy, mở file → **Cài đặt**. Nếu máy hỏi, cho phép *Cài ứng dụng không rõ nguồn gốc* cho app đang mở file (Chrome / My Files). |
+| 1 | **Tạm tắt Play Protect:** CH Play → avatar (góc trên phải) → **Play Protect** → ⚙ → tắt *Quét ứng dụng bằng Play Protect*. Lý do: tính năng chống lừa đảo của Google chặn mọi APK cài tay có quyền Trợ năng / Đọc thông báo, và chỉ có nút "Got it", không có "Vẫn cài". |
+| 1b | Tải file `FoldIsland-x.y.z.apk` về máy, mở file → **Cài đặt**. Nếu máy hỏi, cho phép *Cài ứng dụng không rõ nguồn gốc* cho app đang mở file (Chrome / My Files). |
+| 1c | Cài xong → **bật lại Play Protect** ngay. Nếu Play Protect hỏi gửi app đi quét, chọn gửi hoặc bỏ qua đều được. |
 | 2 | Mở **Fold Island**. Màn hình **Thiết lập** liệt kê từng quyền với đèn xanh/đỏ. Bấm **Mở** ở từng dòng đỏ. |
 | 3 | **Cho phép cài đặt hạn chế**: Cài đặt → Ứng dụng → Fold Island → **⋮** (góc trên phải) → *Cho phép cài đặt hạn chế*. Không làm bước này thì hai bước sau bị khoá (mục bật bị mờ). |
 | 4 | **Trợ năng** → Ứng dụng đã cài đặt → **Fold Island** → Bật. |
@@ -18,7 +20,9 @@ Spec đầy đủ: [`docs/specs/2026-11-09-fold-island-design.md`](docs/specs/20
 | 6 | **Pin: Không hạn chế**, rồi Chăm sóc thiết bị → Pin → Giới hạn sử dụng nền → **Ứng dụng không bao giờ ngủ** → thêm Fold Island. |
 | 7 | Thêm địa điểm Grab, số gọi nhanh, app ghim, nhắc lịch trong app. |
 
-**Cập nhật bản mới:** cài file APK mới đè lên, không cần gỡ; cài đặt được giữ nguyên.
+**Cập nhật bản mới:** cài file APK mới đè lên, không cần gỡ; cài đặt được giữ nguyên. Mỗi lần cài bản mới cũng cần tạm tắt Play Protect như bước 1.
+
+**Cách khác, không cần tắt Play Protect:** cài qua máy tính bằng ADB. Bật *Tuỳ chọn nhà phát triển* (chạm 7 lần vào Số hiệu bản tạo) → bật *Gỡ lỗi USB* → cắm cáp → `adb install -r FoldIsland-x.y.z.apk`. Lệnh chặn của Play Protect chỉ áp dụng cho APK mở từ trình duyệt, app nhắn tin hoặc trình quản lý file.
 
 ---
 
