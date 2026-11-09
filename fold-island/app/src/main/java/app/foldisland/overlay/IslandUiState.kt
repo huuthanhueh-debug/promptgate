@@ -13,6 +13,7 @@ import app.foldisland.settings.IdleStyle
 /** Pixel geometry of the current screen, recomputed on fold / rotation. */
 data class ScreenGeometry(
     val screenWidth: Int = 0,
+    val screenHeight: Int = 0,
     val cutoutCenterX: Int = 0,
     val cutoutCenterY: Int = 0,
     val cutoutWidth: Int = 0,
@@ -33,6 +34,17 @@ sealed interface Presentation {
     data object Shortcuts : Presentation
 
     val isCard: Boolean get() = this is Popup || this is Expanded || this is Shortcuts
+
+    /** Changes only when a different thing is shown (not when its data updates). */
+    val key: String
+        get() = when (this) {
+            Hidden -> "hidden"
+            Idle -> "idle"
+            is Compact -> "compact:" + view.primary?.id
+            is Popup -> "popup:" + item.id
+            is Expanded -> "expanded:" + item.id
+            Shortcuts -> "shortcuts"
+        }
 }
 
 /** Compose-observable state of the overlay. Only touched on the main thread. */

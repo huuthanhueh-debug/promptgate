@@ -1,7 +1,7 @@
 # Fold Island – Spec v1
 
 > Dynamic Island cho Galaxy Z Fold 8 (One UI 9 / Android 17). App cá nhân, cài bằng APK.
-> Ngày: 2026-11-09 · Trạng thái: **v1.0.0 đã build** (chờ anh test trên máy thật).
+> Ngày: 2026-11-09 · Trạng thái: **v1.0.1** (sửa rung lắc/lag khi chạm), chờ anh test tiếp trên máy thật.
 
 ---
 
@@ -139,7 +139,13 @@ Popup tạm (tin nhắn, sạc, pin yếu) hiện đè trong vài giây rồi tr
 | **Pin** | Sự kiện cắm sạc / pin ≤ 15% | Popup: % pin + biểu tượng | — |
 | **Nhắc lịch** | Nhắc lịch anh tạo trong app (tên, giờ, các ngày trong tuần), báo bằng `AlarmManager` chính xác, chạy cả khi máy ngủ | Chuông + tên nhắc | **Đã xong** (tắt) · **Nhắc lại 10 phút**. Tự ẩn sau 30 phút. **Luôn kèm một thông báo thường** để không lỡ nếu island đang tắt |
 
-### 6.5 Vị trí trên Z Fold 8
+### 6.5 Chuyển động (từ v1.0.1)
+- Cửa sổ overlay **không đổi kích thước trong lúc animation**. Nó chỉ nở ra một lần khi bắt đầu chuyển trạng thái (đủ chứa cả hình cũ lẫn hình mới) và thu lại một lần khi animation kết thúc. Khối đen biến hình được vẽ bên trong cửa sổ.
+- Lò xo không nảy (`DampingRatioNoBouncy`, stiffness 550), dừng sau khoảng 0,4 giây.
+- Icon app và ảnh đại diện tải ở luồng nền.
+- Lý do: bản 1.0.0 đổi kích thước cửa sổ ở mỗi khung hình nên bị rung lắc và lag (anh báo sau lần test đầu).
+
+### 6.6 Vị trí trên Z Fold 8
 - Đọc vùng lỗ camera của màn hiện tại qua `DisplayCutout`. Viên island căn giữa theo lỗ camera.
 - Gập/mở máy, xoay màn hình → tính lại vị trí ngay.
 - Thẻ mở rộng / phím tắt: căn giữa màn hình, tránh tràn mép khi camera màn trong nằm lệch phải.

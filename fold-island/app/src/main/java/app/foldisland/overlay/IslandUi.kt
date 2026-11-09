@@ -1,8 +1,8 @@
 package app.foldisland.overlay
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -21,7 +21,10 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -47,11 +50,32 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -70,11 +94,18 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
+import app.foldisland.core.IslandLayout
 import app.foldisland.core.IslandView
+import app.foldisland.core.PxRect
 import app.foldisland.core.LiveItem
 import app.foldisland.hub.ActivityHub
 import app.foldisland.settings.AppConfig
-import kotlin.math.max
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.math.ceil
+import kotlin.math.floor
 
 private object Palette {
     val text = Color.White
@@ -87,83 +118,193 @@ private object Palette {
     val blue = Color(0xFF0A84FF)
 }
 
-private val islandSpring = spring<androidx.compose.ui.unit.IntSize>(
-    dampingRatio = 0.78f,
-    stiffness = Spring.StiffnessMediumLow,
-)
+/** Shape morph: no bounce (a bouncing island reads as shaking), settles in about 0.4 s. */
+private val morphSpec = spring<Rect>(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = 550f)
+private val radiusSpec = spring<Float>(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = 550f)
 
+/** Window frame used while nothing is shown. */
+private val HIDDEN_FRAME = PxRect(0, 0, 1, 1)
+
+/** Rounded rect at an arbitrary position inside the layer, used to clip the island content. */
+private data class RoundRectShape(val rect: Rect, val radius: Float) : Shape {
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline =
+        Outline.Rounded(RoundRect(rect, CornerRadius(radius)))
+}
+
+private fun PxRect.toRect() = Rect(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat())
+
+private fun Rect.toPxRect() = PxRect(floor(left).toInt(), floor(top).toInt(), ceil(right).toInt(), ceil(bottom).toInt())
+
+/**
+ * The island. The overlay window is sized to [onFrame]'s rectangle, which changes only when a
+ * transition starts or ends; the black shape morphs inside it by drawing only (no layout),
+ * so the system never has to move or resize the window while it animates.
+ */
 @Composable
-fun IslandRoot(state: IslandUiState, controller: IslandController) {
+fun IslandRoot(state: IslandUiState, controller: IslandController, onFrame: (PxRect) -> Unit) {
     val p = state.presentation()
-    if (p is Presentation.Hidden) return
-
-    val density = LocalDensity.current
     val g = state.geometry
+    val density = LocalDensity.current.density
     val tuning = if (g.innerScreen) state.config.innerTuning else state.config.coverTuning
-    val pillH = with(density) { IslandDimens.pillHeightPx(g, tuning, density.density).toDp() }
-    val cameraGap = with(density) { IslandDimens.cameraGapPx(g, density.density).toDp() }
-    val cardW = with(density) { IslandDimens.cardWidthPx(g.screenWidth, density.density).toDp() }
-    val corner by animateDpAsState(if (p.isCard) 30.dp else pillH / 2, label = "corner")
+    val m = remember(g, tuning, density) { IslandMetrics(g, tuning, density) }
     val haptics = LocalHapticFeedback.current
     val touchSlop = LocalViewConfiguration.current.touchSlop
 
+    var cardHeight by remember(p.key) { mutableIntStateOf(0) }
+    val target: PxRect? = when (p) {
+        Presentation.Hidden -> null
+        Presentation.Idle -> m.idle
+        is Presentation.Compact -> m.compact
+        is Presentation.Popup, is Presentation.Expanded, Presentation.Shortcuts ->
+            m.card(if (cardHeight > 0) cardHeight else m.cardEstimate)
+    }
+    val targetRadius = when {
+        target == null -> 0f
+        p.isCard -> m.cardRadius
+        else -> target.height / 2f
+    }
     val secondary = (p as? Presentation.Compact)?.view?.secondary
-    val bubbleSpace = if (secondary != null) pillH + IslandDimens.BUBBLE_GAP_DP.dp else 0.dp
+    val bubble = if (secondary != null) m.bubble else null
 
-    Row(verticalAlignment = Alignment.Top) {
-        // Mirror of the bubble on the right so the pill itself stays centred on the camera.
-        Spacer(Modifier.width(bubbleSpace))
-        Box(
-            Modifier
-                .animateContentSize(islandSpring)
-                .clip(RoundedCornerShape(corner))
-                .background(Color.Black)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = { controller.onTap() },
-                        onLongPress = {
+    val shape = remember { Animatable(Rect.Zero, Rect.VectorConverter) }
+    val radius = remember { Animatable(0f) }
+    val contentAlpha = remember { Animatable(1f) }
+    var settledOn by remember { mutableStateOf<PxRect?>(null) }
+    var shownGeometry by remember { mutableStateOf<ScreenGeometry?>(null) }
+
+    // Shape at the moment the target changed: the window covers it and the target until settled.
+    // Read without observing, so the animation does not recompose this function on every frame.
+    val start = remember(target) {
+        Snapshot.withoutReadObservation { shape.value }.takeIf { it != Rect.Zero }?.toPxRect()
+    }
+    val frame = when {
+        target == null -> HIDDEN_FRAME
+        settledOn == target -> IslandLayout.windowFrame(null, target, bubble)
+        else -> IslandLayout.windowFrame(start, target, bubble)
+    }
+    // Runs in the same frame as this composition, so the window and its content move together.
+    SideEffect { onFrame(frame) }
+    val currentFrame by rememberUpdatedState(frame)
+
+    LaunchedEffect(target, targetRadius) {
+        if (target == null) {
+            shownGeometry = null
+            return@LaunchedEffect
+        }
+        val snap = shape.value == Rect.Zero || shownGeometry != g
+        shownGeometry = g
+        if (snap) {
+            // First show, fold/unfold or rotation: jump, do not fly across the screen.
+            shape.snapTo(target.toRect())
+            radius.snapTo(targetRadius)
+        } else {
+            coroutineScope {
+                launch { radius.animateTo(targetRadius, radiusSpec) }
+                shape.animateTo(target.toRect(), morphSpec)
+            }
+        }
+        settledOn = target
+    }
+    LaunchedEffect(p.key) {
+        contentAlpha.snapTo(0f)
+        contentAlpha.animateTo(1f, tween(durationMillis = 180, delayMillis = 70))
+    }
+
+    if (target == null) return
+
+    fun local(r: PxRect) = IntOffset(r.left - frame.left, r.top - frame.top)
+    fun insideShape(pos: Offset): Boolean {
+        val f = currentFrame
+        return shape.value.contains(Offset(pos.x + f.left, pos.y + f.top))
+    }
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .drawBehind {
+                val r = shape.value
+                drawRoundRect(
+                    color = Color.Black,
+                    topLeft = Offset(r.left - frame.left, r.top - frame.top),
+                    size = r.size,
+                    cornerRadius = CornerRadius(radius.value),
+                )
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { pos -> if (insideShape(pos)) controller.onTap() else state.collapse() },
+                    onLongPress = { pos ->
+                        if (insideShape(pos)) {
                             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                             controller.onLongPress()
-                        },
-                    )
+                        }
+                    },
+                )
+            }
+            .pointerInput(Unit) {
+                var dx = 0f
+                var dy = 0f
+                detectDragGestures(
+                    onDragStart = { dx = 0f; dy = 0f },
+                    onDragEnd = { controller.onDrag(dx, dy, touchSlop) },
+                ) { change, amount ->
+                    change.consume()
+                    dx += amount.x
+                    dy += amount.y
                 }
-                .pointerInput(Unit) {
-                    var dx = 0f
-                    var dy = 0f
-                    detectDragGestures(
-                        onDragStart = { dx = 0f; dy = 0f },
-                        onDragEnd = { controller.onDrag(dx, dy, touchSlop) },
-                    ) { change, amount ->
-                        change.consume()
-                        dx += amount.x
-                        dy += amount.y
-                    }
+            },
+    ) {
+        // Content layer: clipped to the morphing shape and faded in when what is shown changes.
+        Box(
+            Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    val r = shape.value
+                    this.shape = RoundRectShape(r.translate(-frame.left.toFloat(), -frame.top.toFloat()), radius.value)
+                    clip = true
+                    alpha = contentAlpha.value
                 },
         ) {
             when (p) {
-                Presentation.Idle -> Spacer(
-                    Modifier
-                        .height(pillH)
-                        .width(max(cameraGap.value + 24f, pillH.value * 1.6f).dp),
-                )
-                is Presentation.Compact -> Compact(p.view, state.now, pillH, cameraGap)
-                is Presentation.Popup -> Card(cardW, pillH) { Popup(p.item, state) }
-                is Presentation.Expanded -> Card(cardW, pillH) { Expanded(p.item, state, controller) }
-                Presentation.Shortcuts -> Card(cardW, pillH) { Shortcuts(state.config, controller) }
-                Presentation.Hidden -> Unit
+                is Presentation.Compact -> Box(Modifier.offset { local(m.compact) }) {
+                    Compact(p.view, state.now, with(LocalDensity.current) { m.pillHeight.toDp() },
+                        with(LocalDensity.current) { m.cameraGap.toDp() })
+                }
+                is Presentation.Popup, is Presentation.Expanded, Presentation.Shortcuts -> {
+                    val card = m.card(if (cardHeight > 0) cardHeight else m.cardEstimate)
+                    Box(
+                        Modifier
+                            .offset { local(card) }
+                            .wrapContentSize(Alignment.TopStart, unbounded = true)
+                            .onSizeChanged { cardHeight = it.height },
+                    ) {
+                        val cardW = with(LocalDensity.current) { m.cardWidth.toDp() }
+                        val pillH = with(LocalDensity.current) { m.pillHeight.toDp() }
+                        Card(cardW, pillH) {
+                            when (p) {
+                                is Presentation.Popup -> Popup(p.item, state)
+                                is Presentation.Expanded -> Expanded(p.item, state, controller)
+                                else -> Shortcuts(state.config, controller)
+                            }
+                        }
+                    }
+                }
+                Presentation.Idle, Presentation.Hidden -> Unit
             }
         }
-        if (secondary != null) {
-            Spacer(Modifier.width(IslandDimens.BUBBLE_GAP_DP.dp))
+        if (secondary != null && bubble != null) {
+            val size = with(LocalDensity.current) { bubble.height.toDp() }
             Box(
                 Modifier
-                    .size(pillH)
+                    .offset { local(bubble) }
+                    .size(size)
+                    .graphicsLayer { alpha = contentAlpha.value }
                     .clip(CircleShape)
                     .background(Color.Black)
                     .clickable { controller.choose(secondary) },
                 contentAlignment = Alignment.Center,
             ) {
-                Leading(secondary, size = pillH * 0.58f)
+                Leading(secondary, size = size * 0.58f)
             }
         }
     }
@@ -528,22 +669,30 @@ private fun Thumb(image: ImageBitmap, size: Dp, corner: Dp) {
 @Composable
 private fun AppIcon(packageName: String?, size: Dp) {
     val context = LocalContext.current
-    val icon = remember(packageName) { AppIcons.get(context, packageName) }
-    if (icon != null) Thumb(icon, size, size / 4) else Spacer(Modifier.size(size))
+    // Loaded off the main thread: the first lookup of another app's icon can take a while.
+    val icon by produceState(AppIcons.cached(packageName), packageName) {
+        if (value == null) value = withContext(Dispatchers.Default) { AppIcons.get(context, packageName) }
+    }
+    val loaded = icon
+    if (loaded != null) Thumb(loaded, size, size / 4) else Spacer(Modifier.size(size))
 }
 
 /** Notification picture (caller photo, driver, chat avatar) or the app icon. */
 @Composable
 private fun Avatar(item: LiveItem, size: Dp) {
     val context = LocalContext.current
-    val picture = remember(item.id, item.postedAt) {
-        ActivityHub.handles(item.id).largeIcon?.let { icon ->
-            runCatching { icon.loadDrawable(context)?.toBitmap(160, 160)?.asImageBitmap() }.getOrNull()
+    val largeIcon = ActivityHub.handles(item.id).largeIcon
+    val picture by produceState<ImageBitmap?>(null, largeIcon) {
+        value = largeIcon?.let { icon ->
+            withContext(Dispatchers.Default) {
+                runCatching { icon.loadDrawable(context)?.toBitmap(160, 160)?.asImageBitmap() }.getOrNull()
+            }
         }
     }
+    val loaded = picture
     when {
-        picture != null -> Image(
-            bitmap = picture,
+        loaded != null -> Image(
+            bitmap = loaded,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.size(size).clip(CircleShape),

@@ -1,6 +1,5 @@
 package app.foldisland.overlay
 
-import android.animation.ValueAnimator
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.res.Configuration
@@ -12,9 +11,7 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.WindowInsets
 import android.view.WindowManager
-import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.Lifecycle
@@ -26,20 +23,18 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import app.foldisland.IslandApp
-import app.foldisland.core.IslandGeometry
+import app.foldisland.core.PxRect
 import app.foldisland.hub.ActivityHub
-import app.foldisland.settings.Tuning
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
  * The island window: an accessibility overlay (drawn above the status bar and lock screen)
- * that hosts the Compose UI and keeps itself centred on the camera hole of whichever
- * Z Fold screen is in use.
+ * that hosts the Compose UI. Its position and size come from [IslandRoot] through
+ * [applyFrame] and change only when a transition starts or ends, never per animation frame.
  */
 class OverlayWindow(private val context: Context) {
 
@@ -50,13 +45,13 @@ class OverlayWindow(private val context: Context) {
     private val scope = MainScope()
     private val owner = OverlayLifecycleOwner()
     private var root: OutsideTouchLayout? = null
-    private var xAnimator: ValueAnimator? = null
+    private var frame = PxRect(0, 0, 1, 1)
 
     val state = IslandUiState()
 
     private val params = WindowManager.LayoutParams(
-        WindowManager.LayoutParams.WRAP_CONTENT,
-        WindowManager.LayoutParams.WRAP_CONTENT,
+        1,
+        1,
         WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
         WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
@@ -64,7 +59,7 @@ class OverlayWindow(private val context: Context) {
             WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
         PixelFormat.TRANSLUCENT,
     ).apply {
-        gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+        gravity = Gravity.TOP or Gravity.START
         layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
         title = "FoldIsland"
     }
@@ -80,7 +75,7 @@ class OverlayWindow(private val context: Context) {
         val compose = ComposeView(context).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
             val controller = IslandController(context, state)
-            setContent { IslandRoot(state, controller) }
+            setContent { IslandRoot(state, controller, ::applyFrame) }
         }
         root = OutsideTouchLayout(context) { state.collapse() }.apply {
             addView(compose)
@@ -89,26 +84,17 @@ class OverlayWindow(private val context: Context) {
         }
         state.config = IslandApp.instance.settings.config.value
         state.geometry = measureScreen()
-        applyPosition(animate = false)
         wm.addView(root, params)
         displays.registerDisplayListener(displayListener, handler)
 
         scope.launch {
-            IslandApp.instance.settings.config.collect {
-                state.config = it
-                applyPosition(animate = false)
-            }
+            IslandApp.instance.settings.config.collect { state.config = it }
         }
         scope.launch {
             ActivityHub.items.collect {
                 state.now = System.currentTimeMillis()
                 state.items = it
             }
-        }
-        scope.launch {
-            snapshotFlow { state.presentation().isCard to state.geometry }
-                .distinctUntilChanged()
-                .collect { applyPosition(animate = true) }
         }
         scope.launch {
             while (isActive) {
@@ -123,7 +109,6 @@ class OverlayWindow(private val context: Context) {
 
     fun detach() {
         scope.cancel()
-        xAnimator?.cancel()
         runCatching { displays.unregisterDisplayListener(displayListener) }
         root?.let { runCatching { wm.removeView(it) } }
         root = null
@@ -139,7 +124,17 @@ class OverlayWindow(private val context: Context) {
         if (next == state.geometry) return
         state.geometry = next
         state.collapse()
-        applyPosition(animate = false)
+    }
+
+    /** Moves/resizes the window. Called by [IslandRoot] only when the frame really changes. */
+    private fun applyFrame(next: PxRect) {
+        if (next == frame) return
+        frame = next
+        params.x = next.left
+        params.y = next.top
+        params.width = next.width.coerceAtLeast(1)
+        params.height = next.height.coerceAtLeast(1)
+        root?.takeIf { it.isAttachedToWindow }?.let { wm.updateViewLayout(it, params) }
     }
 
     private fun measureScreen(): ScreenGeometry {
@@ -153,6 +148,7 @@ class OverlayWindow(private val context: Context) {
         return if (rect != null) {
             ScreenGeometry(
                 screenWidth = bounds.width(),
+                screenHeight = bounds.height(),
                 cutoutCenterX = rect.centerX(),
                 cutoutCenterY = rect.centerY(),
                 cutoutWidth = rect.width(),
@@ -164,48 +160,12 @@ class OverlayWindow(private val context: Context) {
             val statusBar = insets.getInsets(WindowInsets.Type.statusBars()).top
             ScreenGeometry(
                 screenWidth = bounds.width(),
+                screenHeight = bounds.height(),
                 cutoutCenterX = bounds.width() / 2,
                 cutoutCenterY = statusBar / 2,
                 landscape = landscape,
                 innerScreen = inner,
             )
-        }
-    }
-
-    private fun tuning(): Tuning =
-        if (state.geometry.innerScreen) state.config.innerTuning else state.config.coverTuning
-
-    private fun applyPosition(animate: Boolean) {
-        val g = state.geometry
-        val t = tuning()
-        val density = context.resources.displayMetrics.density
-        val pillHeight = IslandDimens.pillHeightPx(g, t, density)
-        val contentWidth = if (state.presentation().isCard) {
-            IslandDimens.cardWidthPx(g.screenWidth, density)
-        } else {
-            IslandDimens.compactMaxWidthPx(g, t, density)
-        }
-        val targetX = g.cutoutCenterX + IslandGeometry.clampOffset(t.offsetX, Tuning.MAX_OFFSET)
-        val x = IslandGeometry.centerOffset(g.screenWidth, targetX, contentWidth, (12 * density).toInt())
-        val y = IslandGeometry.top(g.cutoutCenterY, pillHeight) +
-            IslandGeometry.clampOffset(t.offsetY, Tuning.MAX_OFFSET)
-        params.y = y
-        val view = root
-        if (view == null || !view.isAttachedToWindow || !animate || x == params.x) {
-            xAnimator?.cancel()
-            params.x = x
-            view?.takeIf { it.isAttachedToWindow }?.let { wm.updateViewLayout(it, params) }
-            return
-        }
-        xAnimator?.cancel()
-        xAnimator = ValueAnimator.ofInt(params.x, x).apply {
-            duration = 220
-            interpolator = DecelerateInterpolator()
-            addUpdateListener {
-                params.x = it.animatedValue as Int
-                if (view.isAttachedToWindow) wm.updateViewLayout(view, params)
-            }
-            start()
         }
     }
 
