@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Fold Island</string>
+    <string name="a11y_label">Fold Island</string>
+    <string name="a11y_description">Fold Island chỉ dùng quyền này để vẽ Dynamic Island đè lên thanh trạng thái và màn hình khóa. App không đọc nội dung màn hình, không bấm thay anh và không có quyền truy cập Internet.</string>
+</resources>

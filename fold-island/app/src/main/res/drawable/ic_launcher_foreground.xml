@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Pill -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M38,46 L70,46 A8,8 0 0 1 70,62 L38,62 A8,8 0 0 1 38,46 Z" />
+    <!-- Camera dot -->
+    <path
+        android:fillColor="#FF0B0B0F"
+        android:pathData="M64,54 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
+    <!-- Live dot -->
+    <path
+        android:fillColor="#FF34C759"
+        android:pathData="M42,54 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+</vector>
