@@ -1,3 +1,4 @@
+- **PromptGate Video (bản thử)**: app dựng video offline, có prompt cho 11 công cụ AI video, chạy trên máy tính và Android (APK). Xem [video/README.vi.md](video/README.vi.md); chạy `npm run video`.
 # PromptGate
 
 **Cánh cổng giữa bàn phím và Claude.** Mỗi prompt bạn gõ trong Claude Code được chấm điểm trong vài mili-giây. Prompt yếu bị chặn và trả lại cho bạn dưới dạng gọn hơn, sâu hơn. Prompt tốt đi thẳng, không ai làm phiền. Toàn bộ lịch sử prompt trên máy được quét cục bộ để bạn thấy thói quen và tiến bộ của mình.

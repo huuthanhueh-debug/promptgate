@@ -11,7 +11,10 @@
     "optimize": "node scripts/optimize.js",
     "history": "node scripts/history.js",
     "doctor": "node scripts/doctor.js",
-    "build:ext": "node extension/build.js"
+    "build:ext": "node extension/build.js",
+    "video": "node video/server.js",
+    "test:video": "node tests/video.js",
+    "build:apk": "node video/android/build.js"
   },
   "engines": { "node": ">=18" },
   "license": "MIT",
