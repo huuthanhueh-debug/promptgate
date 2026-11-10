@@ -13,6 +13,7 @@ const VID = path.join(ROOT, 'video');
 const V = require(path.join(VID, 'src', 'core.js'));
 const { createServer } = require(path.join(VID, 'server.js'));
 const apk = require(path.join(VID, 'android', 'build.js'));
+const I = require(path.join(VID, 'src', 'i18n.js'));
 
 let pass = 0, fail = 0, skip = 0;
 function check(name, cond, extra) {
@@ -59,7 +60,8 @@ function get(port, p, method) {
   console.log('tool profiles + prompts');
   const want = ['veo', 'runway', 'kling', 'heygen', 'synthesia', 'invideo', 'capcut', 'canva', 'sora', 'pika', 'luma'];
   check('all 11 requested tools are present', V.TOOLS.map((t) => t.id).join() === want.join(), V.TOOLS.map((t) => t.id).join());
-  check('every profile has name, category, aspects, tips and an https source', V.TOOLS.every((t) => t.name && ['generative', 'avatar', 'editor'].includes(t.category) && t.aspects.length && t.tips.length && /^https:\/\//.test(t.url)));
+  check('every profile has name, category, aspects, tips and an https source', V.TOOLS.every((t) => t.name && ['generative', 'avatar', 'editor'].includes(t.category) && t.aspects.length && /^https:\/\//.test(t.url)));
+  check('every profile has inputs and two tips in both languages', V.TOOLS.every((t) => ['vi', 'en'].every((l) => t.inputs[l] && t.tips[l].length === 2)));
   check('generative tools define clip lengths and an element order', V.TOOLS.filter((t) => t.category === 'generative').every((t) => (t.clips || t.range) && t.order.includes('subject')));
   for (const id of want) {
     const pack = V.buildPack(id, p);
@@ -80,6 +82,9 @@ function get(port, p, method) {
   check('capcut follows direction → actions → final state → format', /^Scene direction:[\s\S]*Actions in order:[\s\S]*Final state:[\s\S]*Format: 16:9/.test(V.buildPack('capcut', p).items[0].text));
   check('heygen: script per scene', V.buildPack('heygen', p).items.every((it) => /^Scene \d+\nScript: /.test(it.text)));
   check('empty project gives no prompts and does not throw', want.every((id) => V.buildPack(id, {}).items.length === 0));
+  const enPack = V.buildPack('canva', tall, 'en');
+  check('English packs: labels and warnings in English, prompt text unchanged', /^Scene 1 · /.test(enPack.items[0].label) && enPack.warnings.some((w) => /does not support 9:16/.test(w)) && !/[ạảãàáâăđêôơư]/i.test(enPack.warnings.join('') + enPack.items.map((it) => it.label).join('')) && enPack.items[0].text === V.buildPack('canva', tall).items[0].text);
+  check('every style, shot, move and transition has a label in both languages', [V.STYLES, V.SHOTS, V.MOTIONS, V.TRANSITIONS].every((m) => Object.values(m).every((e) => V.label(e, 'vi') && V.label(e, 'en') && V.label(e, 'en') !== V.label(e, 'vi'))));
   let threw = false; try { V.buildPack('nope', p); } catch (_) { threw = true; }
   check('unknown tool id throws', threw);
 
@@ -96,6 +101,20 @@ function get(port, p, method) {
   check('pickMime prefers mp4, falls back to webm, survives throwing probes', V.pickMime(() => true).startsWith('video/mp4') && V.pickMime((m) => /webm/.test(m)).startsWith('video/webm') && V.pickMime(() => { throw new Error('x'); }) === '');
   check('SRT has cue numbers and timestamps', V.toSRT(tp).startsWith('1\n00:00:00,000 --> 00:00:02,000\na\n\n2\n00:00:02,000 --> 00:00:05,000\nb'));
   check('file names are ASCII-safe', V.fileName('Bình minh ở Vũng Tàu / Đêm!', 'mp4') === 'Binh-minh-o-Vung-Tau-Dem.mp4' && V.fileName('', 'webm') === 'video.webm');
+
+  console.log('languages');
+  const keys = (l) => Object.keys(I.STRINGS[l]).sort().join();
+  check('VI and EN dictionaries have the same keys', I.LANGS.join() === 'vi,en' && keys('vi') === keys('en'));
+  check('same keys are functions in both, with the same arity', Object.keys(I.STRINGS.vi).every((k) => typeof I.STRINGS.vi[k] === typeof I.STRINGS.en[k] && (typeof I.STRINGS.vi[k] !== 'function' || I.STRINGS.vi[k].length === I.STRINGS.en[k].length)));
+  check('translate: plain, with values, unknown key, unknown language', I.translate('en')('tab.export') === 'Export' && I.translate('vi')('scene.n', 3) === 'Cảnh 3' && I.translate('en')('nope') === 'nope' && I.translate('xx')('tab.export') === 'Xuất');
+  const usedKeys = [...fs.readFileSync(path.join(VID, 'src', 'app.js'), 'utf8').matchAll(/\bt\('([\w.:]+)'/g)].map((m) => m[1])
+    .concat([...fs.readFileSync(path.join(VID, 'src', 'index.html'), 'utf8').matchAll(/data-(?:t|ph)="([^"]+)"/g)].map((m) => m[1]));
+  const missing = [...new Set(usedKeys)].filter((k) => !(k in I.STRINGS.vi) && !/\.$/.test(k));
+  check(`every key the app uses exists (${new Set(usedKeys).size} keys)`, usedKeys.length > 60 && missing.length === 0, missing.join(', '));
+  // render.js rejects with codes; saveFile in app.js throws create / write / save.
+  const codes = [...fs.readFileSync(path.join(VID, 'src', 'render.js'), 'utf8').matchAll(/new Error\('(\w+)'\)/g)].map((m) => m[1]).concat(['create', 'write', 'save']);
+  check('every error code has a message in both languages', codes.length === 8 && codes.every((c) => 'err.' + c in I.STRINGS.vi && 'err.' + c in I.STRINGS.en), codes.join());
+  check('app.js holds no hard-coded Vietnamese outside comments', !fs.readFileSync(path.join(VID, 'src', 'app.js'), 'utf8').split('\n').some((l) => !/^\s*\/\//.test(l) && /[ạảãàáâăđêôơưếệộợữ]/i.test(l)));
 
   console.log('desktop server');
   const server = createServer();
@@ -156,7 +175,21 @@ function get(port, p, method) {
       await page.fill('#seek', '500');
       const mid = await page.evaluate(() => { const c = document.getElementById('preview'); const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] > 60) n++; return n / (d.length / 4); });
       check('UI: preview draws a frame (black at t=0 fade-in, picture mid-video)', lit < 0.05 && mid > 0.5, `${lit.toFixed(2)} / ${mid.toFixed(2)}`);
+      check('UI: starts in Vietnamese', (await page.innerText('nav [data-tab=export]')) === 'Xuất' && (await page.innerText('#export')) === 'Xuất video' && (await page.getAttribute('html', 'lang')) === 'vi');
+      await page.click('#lang [data-lang=en]');
+      check('UI: EN button switches every static label', (await page.innerText('nav [data-tab=export]')) === 'Export' && (await page.innerText('#export')) === 'Export video' && (await page.innerText('#play')) === '▶ Preview' && (await page.innerText('label[for=quality]')) === 'Quality' && (await page.getAttribute('html', 'lang')) === 'en');
+      const blank = await page.evaluate(() => [...document.querySelectorAll('[data-t]')].filter((e) => !e.textContent.trim() || e.textContent === e.dataset.t).map((e) => e.dataset.t));
+      check('UI: no label left blank or showing its key', blank.length === 0, blank.join());
+      await page.click('nav [data-tab=prompts]');
+      await page.click('#tools button:has-text("Canva")');
+      const enText = (await page.innerText('#tool-info')) + (await page.innerText('#warnings')) + (await page.innerText('#prompts h3 >> nth=0'));
+      check('UI: tool card, warnings and prompt labels are English', /Native audio: yes/.test(enText) && /does not support 9:16/.test(enText) && /Scene 1/.test(enText) && /Copy/.test(enText), enText.slice(0, 200));
+      await page.click('nav [data-tab=scenes]');
+      check('UI: scene editor is English, selects keep their values', (await page.innerText('#scenes .card h3 >> nth=0')).startsWith('Scene 1') && (await page.locator('#scenes select >> nth=0').inputValue()) === 'wide' && (await page.locator('#scenes select >> nth=0').locator('option:checked').innerText()) === 'Wide');
       await page.reload();
+      check('UI: language choice survives a reload', (await page.innerText('nav [data-tab=export]')) === 'Export' && (await page.inputValue('#style')) === 'cinematic' && (await page.locator('#style option:checked').innerText()) === 'Cinematic');
+      await page.click('#lang [data-lang=vi]');
+      check('UI: VI button switches back', (await page.innerText('nav [data-tab=export]')) === 'Xuất' && (await page.innerText('#scenes .card h3 >> nth=0')).startsWith('Cảnh 1'));
       check('UI: project survives a reload', (await page.locator('#scenes .card').count()) === 3);
 
       const dl = page.waitForEvent('download', { timeout: 60000 });

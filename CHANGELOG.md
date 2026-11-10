@@ -3,6 +3,7 @@
 ## Unreleased — PromptGate Video (preview)
 - New `video/`: an offline video studio. Brief → storyboard → prompts shaped for 11 AI video tools (Veo 3, Runway Gen-4, Kling, HeyGen, Synthesia, InVideo AI, CapCut AI, Canva AI, Sora, Pika, Luma) → attach the generated images/clips → export a captioned video with music, all on the device.
 - Desktop: `npm run video` (zero-dependency localhost server). Android: `npm run build:apk` builds a WebView APK with the plain SDK tools; the `video-apk` workflow builds it, runs it on an emulator and publishes it on the `video-latest` release. The APK requests no permissions.
+- Vietnamese and English UI with a VI | EN switch (labels, tool tips, warnings, error messages); the choice is remembered. Strings live in `video/src/i18n.js`.
 - Tests: `tests/video.js` (core logic, server, packaging, real render in headless Chromium when Playwright is present), wired into `node tests/run.js`.
 
 ## 1.3.1 — 2026-11-03 — doctor
