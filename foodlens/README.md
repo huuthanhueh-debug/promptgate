@@ -24,7 +24,7 @@ Cách đánh giá:
 
 ## Cài lên điện thoại
 
-1. Lấy `FoodLens.apk`: vào tab **Actions** của repo, mở lần chạy `foodlens-apk` mới nhất, tải artifact `FoodLens-apk` (file zip chứa APK).
+1. Trên điện thoại, mở mục **Releases** của repo, chọn bản `FoodLens x.y.z (Android)` mới nhất và tải file `FoodLens-x.y.z.apk` (tải thẳng file APK, không phải zip).
 2. Mở file APK trên điện thoại, cho phép "Cài ứng dụng không rõ nguồn" khi Samsung hỏi.
 3. Mở FoodLens, vào **Cài đặt**, dán Anthropic API key (tạo tại console.anthropic.com), bấm Lưu.
 4. Tab **Chụp**: chụp món ăn, bấm **Phân tích khẩu phần**.

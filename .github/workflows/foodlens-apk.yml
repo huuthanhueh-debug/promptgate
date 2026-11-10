@@ -7,7 +7,7 @@ on:
     paths: ['foodlens/**', 'tests/foodlens*.js', '.github/workflows/foodlens-apk.yml']
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write # the build publishes the APK as a release asset
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -43,3 +43,19 @@ jobs:
           name: FoodLens-apk
           path: dist/FoodLens.apk
           if-no-files-found: error
+      # A release asset downloads as a plain .apk; an Actions artifact always arrives as a zip.
+      # Skipped for pull requests from forks, whose token cannot write.
+      - name: Publish APK to Releases
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          V=$(node -p "require('./foodlens/version.json').name")
+          TAG="foodlens-v$V"
+          cp dist/FoodLens.apk "dist/FoodLens-$V.apk"
+          gh release view "$TAG" > /dev/null 2>&1 || gh release create "$TAG" --target "$SHA" --latest=false \
+            --title "FoodLens $V (Android)" \
+            --notes "Download FoodLens-$V.apk on the phone and open it to install. Android 10 or newer. See foodlens/README.md."
+          gh release upload "$TAG" "dist/FoodLens-$V.apk" --clobber
+          echo "https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/FoodLens-$V.apk"
