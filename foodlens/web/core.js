@@ -10,12 +10,12 @@
 
   var API_URL = 'https://api.anthropic.com/v1/messages';
   var MODELS = [
-    { id: 'claude-opus-5-5', label: 'Opus 5.5 · chính xác nhất' },
-    { id: 'claude-sonnet-5-5', label: 'Sonnet 5.5 · cân bằng' },
-    { id: 'claude-haiku-5-5', label: 'Haiku 5.5 · nhanh, rẻ' },
+    { id: 'claude-opus-5-5', label: 'Opus 5.5', vi: 'chính xác nhất', en: 'most accurate' },
+    { id: 'claude-sonnet-5-5', label: 'Sonnet 5.5', vi: 'cân bằng', en: 'balanced' },
+    { id: 'claude-haiku-5-5', label: 'Haiku 5.5', vi: 'nhanh, rẻ', en: 'fast, low cost' },
   ];
   var DEFAULT_MODEL = MODELS[0].id;
-  var DEFAULT_PROFILE = { diabetes: true, carbTarget: 45 };
+  var DEFAULT_PROFILE = { diabetes: true, carbTarget: 45, lang: 'vi' };
 
   var NUM = { type: 'number' };
   var STR = { type: 'string' };
@@ -27,37 +27,104 @@
   var TOP_FIELDS = {
     is_food: { type: 'boolean' }, dish_name: STR, cuisine: STR, portion_note: STR,
     items: { type: 'array', items: { type: 'object', properties: ITEM_FIELDS, required: Object.keys(ITEM_FIELDS), additionalProperties: false } },
-    advice_vi: STR, swaps_vi: { type: 'array', items: STR },
+    advice: STR, swaps: { type: 'array', items: STR },
   };
   var SCHEMA = { type: 'object', properties: TOP_FIELDS, required: Object.keys(TOP_FIELDS), additionalProperties: false };
 
-  var SYSTEM = [
-    'You are FoodLens, a registered dietitian and professional chef who knows the cuisines and packaged foods of every region of the world.',
-    'You receive one photo (and sometimes a short note from the user). Identify every food and drink component that is visible and estimate what the pictured portion contains.',
-    '',
-    'How to estimate:',
-    '- List each distinct component as its own item (rice, grilled pork, dipping sauce, vegetables, drink...). A single fruit or a packaged product is one item.',
-    '- Estimate the edible weight in grams of the portion actually shown, using plates, bowls, cutlery, hands and packaging as scale. If the user note gives a quantity, trust the note over the photo.',
-    '- Give nutrients for that estimated portion, not per 100 g: calories (kcal), total carbohydrate, fiber, total sugar, added sugar (0 for intrinsic sugar in whole fruit, milk and vegetables), protein, fat, saturated fat (grams) and sodium (mg). Include oil, sauces and sugar a cook would normally use for the dish.',
-    '- gi: the typical glycemic index (0-100) of that component from published GI tables; use 0 when it has almost no carbohydrate (meat, eggs, oil, leafy vegetables).',
-    '- nova: NOVA processing group, 1 unprocessed or minimally processed, 2 culinary ingredient, 3 processed, 4 ultra-processed.',
-    '- confidence: 0 to 1, how sure you are about identification and portion together.',
-    '- name_vi is the Vietnamese name, name_en the English name. dish_name is the Vietnamese name of the whole dish or meal. portion_note states in Vietnamese the portion assumption you made.',
-    '',
-    'advice_vi: two or three short Vietnamese sentences for an adult with type 2 diabetes who also follows clean-eating and low-carb habits: what this food does to blood glucose and how to eat it well (portion, order of eating, pairing). Never give medication or insulin dosing. swaps_vi: up to three concrete lower-carb or less processed swaps in Vietnamese, empty if the food is already a good choice.',
-    '',
-    'If the photo shows no food or drink, set is_food to false, items to an empty list and explain in advice_vi what you see instead. Do not judge the meal as good or bad with scores; the app computes those from your numbers.',
-    'Reply with the JSON object only.',
-  ].join('\n');
+  var LANGS = ['vi', 'en'];
+  var LANG_NAME = { vi: 'Vietnamese', en: 'English' };
+  function langOf(l) { return l === 'en' ? 'en' : 'vi'; }
+
+  function systemPrompt(lang) {
+    var L = LANG_NAME[langOf(lang)];
+    return [
+      'You are FoodLens, a registered dietitian and professional chef who knows the cuisines and packaged foods of every region of the world.',
+      'You receive one photo (and sometimes a short note from the user). Identify every food and drink component that is visible and estimate what the pictured portion contains.',
+      '',
+      'How to estimate:',
+      '- List each distinct component as its own item (rice, grilled pork, dipping sauce, vegetables, drink...). A single fruit or a packaged product is one item.',
+      '- Estimate the edible weight in grams of the portion actually shown, using plates, bowls, cutlery, hands and packaging as scale. If the user note gives a quantity, trust the note over the photo.',
+      '- Give nutrients for that estimated portion, not per 100 g: calories (kcal), total carbohydrate, fiber, total sugar, added sugar (0 for intrinsic sugar in whole fruit, milk and vegetables), protein, fat, saturated fat (grams) and sodium (mg). Include oil, sauces and sugar a cook would normally use for the dish.',
+      '- gi: the typical glycemic index (0-100) of that component from published GI tables; use 0 when it has almost no carbohydrate (meat, eggs, oil, leafy vegetables).',
+      '- nova: NOVA processing group, 1 unprocessed or minimally processed, 2 culinary ingredient, 3 processed, 4 ultra-processed.',
+      '- confidence: 0 to 1, how sure you are about identification and portion together.',
+      '- name_vi is always the Vietnamese name and name_en always the English name of the component.',
+      '',
+      'The user reads ' + L + '. Write dish_name (the name of the whole dish or meal), cuisine, portion_note (the portion assumption you made), advice and swaps in ' + L + '.',
+      'advice: two or three short sentences for an adult with type 2 diabetes who also follows clean-eating and low-carb habits: what this food does to blood glucose and how to eat it well (portion, order of eating, pairing). Never give medication or insulin dosing. swaps: up to three concrete lower-carb or less processed swaps, empty if the food is already a good choice.',
+      '',
+      'If the photo shows no food or drink, set is_food to false, items to an empty list and explain in advice what you see instead. Do not judge the meal as good or bad with scores; the app computes those from your numbers.',
+      'Reply with the JSON object only.',
+    ].join('\n');
+  }
+
+  // Every user-facing sentence the core produces, in both languages. {0}, {1}... are filled by tr().
+  var TEXT = {
+    vi: {
+      ask: 'Phân tích món ăn trong ảnh.', note: 'Ghi chú của người dùng: ',
+      e_auth: 'API key không hợp lệ hoặc chưa được cấp quyền. Kiểm tra lại trong Cài đặt.',
+      e_rate: 'Đang bị giới hạn tốc độ hoặc hết hạn mức. Thử lại sau ít phút.',
+      e_large: 'Ảnh quá lớn. Hãy chụp lại hoặc chọn ảnh nhỏ hơn.', e_400: 'Yêu cầu bị từ chối (400). {0}',
+      e_net: 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.', e_server: 'Máy chủ lỗi ({0}). Thử lại sau. {1}',
+      e_format: 'Phản hồi không đúng định dạng.', e_refusal: 'Mô hình từ chối phân tích ảnh này. Hãy thử ảnh khác.',
+      e_cut: 'Phản hồi bị cắt giữa chừng. Thử lại.', e_empty: 'Phản hồi rỗng.', e_parse: 'Không đọc được kết quả phân tích. Thử lại.',
+      unnamed: 'Món chưa rõ tên', low: 'thấp', medium: 'trung bình', high: 'cao',
+      r_gl: 'Tải đường huyết (GL) {0} · {1}', r_carb: 'Carb thực {0} g so với mục tiêu {1} g/bữa', r_sugar: 'Đường bổ sung {0} g',
+      r_fiber: 'Chất xơ {0} g giúp hấp thu đường chậm hơn', r_protein: 'Đạm {0} g giúp no lâu, đường huyết ổn định hơn',
+      t_ok: 'Khẩu phần này phù hợp, có thể ăn nguyên lượng như trong ảnh.',
+      t_half: 'Giảm một nửa phần tinh bột, hoặc chia món này thành hai lần ăn.',
+      t_order: 'Ăn rau và đạm trước, tinh bột sau cùng để đường huyết lên chậm hơn.',
+      t_sugar: 'Bỏ bớt nước sốt ngọt, nước ngọt hoặc phần tráng miệng có đường.',
+      t_fiber: 'Thêm rau xanh hoặc salad để bù chất xơ.', t_protein: 'Ăn kèm trứng, cá, thịt nạc hoặc đậu hũ để cân bằng bữa.',
+      t_salt: 'Món khá mặn ({0} mg natri); hạn chế chan nước dùng, nước chấm.',
+      t_walk: 'Đi bộ 10 đến 15 phút sau ăn và đo đường huyết sau 2 giờ để biết cơ thể phản ứng thế nào.',
+      d_green: 'An toàn cho đường huyết', d_yellow: 'Ăn có kiểm soát', d_red: 'Dễ làm tăng đường huyết',
+      lc_green: 'Low-carb chặt (keto)', lc_yellow: 'Low-carb vừa', lc_red: 'Không low-carb', lc_detail: 'Carb thực {0} g/khẩu phần',
+      c_green: 'Clean', c_yellow: 'Tạm ổn', c_red: 'Chế biến nhiều',
+      c_nova: 'NOVA trung bình {0}', c_sugar: ' · đường bổ sung {0} g', c_sodium: ' · natri {0} mg',
+      db_note: '{0} g · số liệu trung bình từ bảng thành phần thực phẩm',
+    },
+    en: {
+      ask: 'Analyze the food in this photo.', note: 'User note: ',
+      e_auth: 'The API key is invalid or not authorized. Check it in Settings.',
+      e_rate: 'Rate limited or out of quota. Try again in a few minutes.',
+      e_large: 'The photo is too large. Retake it or pick a smaller one.', e_400: 'The request was rejected (400). {0}',
+      e_net: 'Could not reach the server. Check your connection and try again.', e_server: 'Server error ({0}). Try again later. {1}',
+      e_format: 'The response was not in the expected format.', e_refusal: 'The model declined to analyze this photo. Try another one.',
+      e_cut: 'The response was cut off. Try again.', e_empty: 'The response was empty.', e_parse: 'Could not read the analysis. Try again.',
+      unnamed: 'Unnamed food', low: 'low', medium: 'medium', high: 'high',
+      r_gl: 'Glycemic load (GL) {0} · {1}', r_carb: 'Net carbs {0} g against a target of {1} g per meal', r_sugar: 'Added sugar {0} g',
+      r_fiber: 'Fiber {0} g slows sugar absorption', r_protein: 'Protein {0} g keeps you full and steadies blood glucose',
+      t_ok: 'This portion fits. You can eat the amount shown.',
+      t_half: 'Halve the starch, or split this dish into two sittings.',
+      t_order: 'Eat vegetables and protein first and starch last, so blood glucose rises more slowly.',
+      t_sugar: 'Cut back on sweet sauces, soft drinks or sugary dessert.',
+      t_fiber: 'Add green vegetables or a salad for fiber.', t_protein: 'Pair it with eggs, fish, lean meat or tofu to balance the meal.',
+      t_salt: 'Quite salty ({0} mg sodium); go easy on broth and dipping sauce.',
+      t_walk: 'Walk 10 to 15 minutes after eating and check your glucose at 2 hours to see how your body responds.',
+      d_green: 'Safe for blood glucose', d_yellow: 'Eat with care', d_red: 'Likely to spike blood glucose',
+      lc_green: 'Strict low-carb (keto)', lc_yellow: 'Moderate low-carb', lc_red: 'Not low-carb', lc_detail: 'Net carbs {0} g per portion',
+      c_green: 'Clean', c_yellow: 'Fair', c_red: 'Heavily processed',
+      c_nova: 'Average NOVA {0}', c_sugar: ' · added sugar {0} g', c_sodium: ' · sodium {0} mg',
+      db_note: '{0} g · average figures from food composition tables',
+    },
+  };
+  function tr(lang, key) {
+    var args = arguments, s = TEXT[langOf(lang)][key];
+    return s.replace(/\{(\d)\}/g, function (_, i) { var v = args[Number(i) + 2]; return v == null ? '' : String(v); }).trim();
+  }
+  // Numbers inside sentences follow the language: 20,7 in Vietnamese, 20.7 in English.
+  function nf(lang, n) { return langOf(lang) === 'vi' ? String(n).replace('.', ',') : String(n); }
 
   function buildRequest(opts) {
     var o = opts || {};
-    var text = 'Phân tích món ăn trong ảnh.';
-    if (o.note && String(o.note).trim()) text += '\nGhi chú của người dùng: ' + String(o.note).trim().slice(0, 500);
+    var lang = langOf(o.lang);
+    var text = tr(lang, 'ask');
+    if (o.note && String(o.note).trim()) text += '\n' + TEXT[lang].note + String(o.note).trim().slice(0, 500);
     var body = {
       model: o.model || DEFAULT_MODEL,
       max_tokens: 16000,
-      system: SYSTEM,
+      system: systemPrompt(lang),
       messages: [{ role: 'user', content: [
         { type: 'image', source: { type: 'base64', media_type: o.mediaType || 'image/jpeg', data: o.imageBase64 || '' } },
         { type: 'text', text: text },
@@ -84,23 +151,23 @@
 
   function fail(code, message) { var e = new Error(message); e.code = code; return e; }
 
-  // HTTP status + raw body text -> the model's text, or a thrown Error with a Vietnamese message.
-  function extractText(status, raw) {
+  // HTTP status + raw body text -> the model's text, or a thrown Error with a message in the user's language.
+  function extractText(status, raw, lang) {
     var j = null;
     try { j = JSON.parse(raw); } catch (_) {}
     if (status < 200 || status >= 300) {
       var detail = j && j.error && j.error.message ? String(j.error.message).slice(0, 200) : '';
-      if (status === 401 || status === 403) throw fail('auth', 'API key không hợp lệ hoặc chưa được cấp quyền. Kiểm tra lại trong Cài đặt.');
-      if (status === 429) throw fail('rate', 'Đang bị giới hạn tốc độ hoặc hết hạn mức. Thử lại sau ít phút.');
-      if (status === 413) throw fail('too_large', 'Ảnh quá lớn. Hãy chụp lại hoặc chọn ảnh nhỏ hơn.');
-      if (status === 400) throw fail('bad_request', 'Yêu cầu bị từ chối (400). ' + detail);
-      if (status === 0) throw fail('network', 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.');
-      throw fail('server', 'Máy chủ lỗi (' + status + '). Thử lại sau. ' + detail);
+      if (status === 401 || status === 403) throw fail('auth', tr(lang, 'e_auth'));
+      if (status === 429) throw fail('rate', tr(lang, 'e_rate'));
+      if (status === 413) throw fail('too_large', tr(lang, 'e_large'));
+      if (status === 400) throw fail('bad_request', tr(lang, 'e_400', detail));
+      if (status === 0) throw fail('network', tr(lang, 'e_net'));
+      throw fail('server', tr(lang, 'e_server', status, detail));
     }
-    if (!j || !Array.isArray(j.content)) throw fail('parse', 'Phản hồi không đúng định dạng.');
-    if (j.stop_reason === 'refusal') throw fail('refusal', 'Mô hình từ chối phân tích ảnh này. Hãy thử ảnh khác.');
+    if (!j || !Array.isArray(j.content)) throw fail('parse', tr(lang, 'e_format'));
+    if (j.stop_reason === 'refusal') throw fail('refusal', tr(lang, 'e_refusal'));
     var text = j.content.filter(function (c) { return c && c.type === 'text'; }).map(function (c) { return c.text; }).join('').trim();
-    if (!text) throw fail('parse', j.stop_reason === 'max_tokens' ? 'Phản hồi bị cắt giữa chừng. Thử lại.' : 'Phản hồi rỗng.');
+    if (!text) throw fail('parse', tr(lang, j.stop_reason === 'max_tokens' ? 'e_cut' : 'e_empty'));
     return text;
   }
 
@@ -120,8 +187,8 @@
     var fat = num(it.fat_g, 1000);
     var nova = Math.round(num(it.nova, 4));
     return {
-      name_vi: str(it.name_vi, 80) || str(it.name_en, 80) || 'Món chưa rõ tên',
-      name_en: str(it.name_en, 80),
+      name_vi: str(it.name_vi, 80) || str(it.name_en, 80),
+      name_en: str(it.name_en, 80) || str(it.name_vi, 80),
       grams: num(it.grams, 5000), calories: num(it.calories, 10000),
       carbs_g: carbs, fiber_g: fiber, sugar_g: sugar, added_sugar_g: Math.min(num(it.added_sugar_g, 2000), sugar),
       protein_g: num(it.protein_g, 1000), fat_g: fat, sat_fat_g: Math.min(num(it.sat_fat_g, 1000), fat),
@@ -131,23 +198,27 @@
     };
   }
 
+  function itemName(it, lang) { return (langOf(lang) === 'en' ? it.name_en : it.name_vi) || tr(lang, 'unnamed'); }
+
   // Model text -> sanitized analysis. Tolerates code fences and prose around the JSON object.
-  function parseAnalysis(text) {
+  // `advice_vi` / `swaps_vi` are the field names of diary entries saved by version 1.0.
+  function parseAnalysis(text, lang) {
     var s = String(text || '');
     var a = s.indexOf('{'), b = s.lastIndexOf('}');
-    if (a < 0 || b <= a) throw fail('parse', 'Không đọc được kết quả phân tích. Thử lại.');
+    if (a < 0 || b <= a) throw fail('parse', tr(lang, 'e_parse'));
     var j;
-    try { j = JSON.parse(s.slice(a, b + 1)); } catch (_) { throw fail('parse', 'Không đọc được kết quả phân tích. Thử lại.'); }
-    if (!j || typeof j !== 'object' || Array.isArray(j)) throw fail('parse', 'Không đọc được kết quả phân tích. Thử lại.');
+    try { j = JSON.parse(s.slice(a, b + 1)); } catch (_) { throw fail('parse', tr(lang, 'e_parse')); }
+    if (!j || typeof j !== 'object' || Array.isArray(j)) throw fail('parse', tr(lang, 'e_parse'));
     var items = (Array.isArray(j.items) ? j.items : []).slice(0, 30).map(cleanItem);
     var isFood = j.is_food !== false && items.length > 0;
+    var swaps = Array.isArray(j.swaps) ? j.swaps : Array.isArray(j.swaps_vi) ? j.swaps_vi : [];
     return {
       is_food: isFood,
-      dish_name: str(j.dish_name, 100) || (items[0] ? items[0].name_vi : ''),
+      dish_name: str(j.dish_name, 100) || (items[0] ? itemName(items[0], lang) : ''),
       cuisine: str(j.cuisine, 60), portion_note: str(j.portion_note, 300),
       items: isFood ? items : [],
-      advice_vi: str(j.advice_vi, 800),
-      swaps_vi: (Array.isArray(j.swaps_vi) ? j.swaps_vi : []).slice(0, 3).map(function (x) { return str(x, 160); }).filter(Boolean),
+      advice: str(j.advice != null ? j.advice : j.advice_vi, 800),
+      swaps: swaps.slice(0, 3).map(function (x) { return str(x, 160); }).filter(Boolean),
     };
   }
 
@@ -179,6 +250,8 @@
     var target = num(p.carbTarget, 300) || DEFAULT_PROFILE.carbTarget;
     var items = (analysis && analysis.items) || [];
     var t = totalsOf(items);
+    var lang = langOf(p.lang);
+    var T = function (key, x, y) { return tr(lang, key, x, y); }, N = function (n) { return nf(lang, n); };
     var reasons = [], tips = [];
 
     var glLevel = t.gl >= 20 ? 'red' : t.gl >= 10 ? 'yellow' : 'green';
@@ -186,34 +259,33 @@
     var sugarLevel = t.addedSugar > 25 ? 'red' : t.addedSugar > 10 ? 'yellow' : 'green';
     var level = worst(worst(glLevel, carbLevel), sugarLevel);
 
-    reasons.push('Tải đường huyết (GL) ' + t.gl + ' · ' + (glLevel === 'green' ? 'thấp' : glLevel === 'yellow' ? 'trung bình' : 'cao'));
-    reasons.push('Carb thực ' + t.netCarbs + ' g so với mục tiêu ' + target + ' g/bữa');
-    if (t.addedSugar > 0.5) reasons.push('Đường bổ sung ' + t.addedSugar + ' g');
-    if (t.fiber >= 5) reasons.push('Chất xơ ' + t.fiber + ' g giúp hấp thu đường chậm hơn');
-    if (t.protein >= 15) reasons.push('Đạm ' + t.protein + ' g giúp no lâu, đường huyết ổn định hơn');
+    reasons.push(T('r_gl', N(t.gl), T({ green: 'low', yellow: 'medium', red: 'high' }[glLevel])));
+    reasons.push(T('r_carb', N(t.netCarbs), target));
+    if (t.addedSugar > 0.5) reasons.push(T('r_sugar', N(t.addedSugar)));
+    if (t.fiber >= 5) reasons.push(T('r_fiber', N(t.fiber)));
+    if (t.protein >= 15) reasons.push(T('r_protein', N(t.protein)));
 
-    if (glLevel === 'red') tips.push('Giảm một nửa phần tinh bột, hoặc chia món này thành hai lần ăn.');
-    if (carbLevel !== 'green') tips.push('Ăn rau và đạm trước, tinh bột sau cùng để đường huyết lên chậm hơn.');
-    if (sugarLevel !== 'green') tips.push('Bỏ bớt nước sốt ngọt, nước ngọt hoặc phần tráng miệng có đường.');
-    if (t.netCarbs > 15 && t.fiber < 3) tips.push('Thêm rau xanh hoặc salad để bù chất xơ.');
-    if (t.netCarbs > 15 && t.protein < 10) tips.push('Ăn kèm trứng, cá, thịt nạc hoặc đậu hũ để cân bằng bữa.');
-    if (t.sodium > 1500) tips.push('Món khá mặn (' + Math.round(t.sodium) + ' mg natri); hạn chế chan nước dùng, nước chấm.');
-    if (level !== 'green' && p.diabetes) tips.push('Đi bộ 10 đến 15 phút sau ăn và đo đường huyết sau 2 giờ để biết cơ thể phản ứng thế nào.');
-    if (level === 'green') tips.unshift('Khẩu phần này phù hợp, có thể ăn nguyên lượng như trong ảnh.');
+    if (glLevel === 'red') tips.push(T('t_half'));
+    if (carbLevel !== 'green') tips.push(T('t_order'));
+    if (sugarLevel !== 'green') tips.push(T('t_sugar'));
+    if (t.netCarbs > 15 && t.fiber < 3) tips.push(T('t_fiber'));
+    if (t.netCarbs > 15 && t.protein < 10) tips.push(T('t_protein'));
+    if (t.sodium > 1500) tips.push(T('t_salt', Math.round(t.sodium)));
+    if (level !== 'green' && p.diabetes) tips.push(T('t_walk'));
+    if (level === 'green') tips.unshift(T('t_ok'));
 
-    var dLabel = { green: 'An toàn cho đường huyết', yellow: 'Ăn có kiểm soát', red: 'Dễ làm tăng đường huyết' }[level];
+    var dLabel = T('d_' + level);
 
-    var lc = t.netCarbs <= 20 ? { level: 'green', label: 'Low-carb chặt (keto)' }
-      : t.netCarbs <= 45 ? { level: 'yellow', label: 'Low-carb vừa' }
-        : { level: 'red', label: 'Không low-carb' };
-    lc.detail = 'Carb thực ' + t.netCarbs + ' g/khẩu phần';
+    var lc = { level: t.netCarbs <= 20 ? 'green' : t.netCarbs <= 45 ? 'yellow' : 'red' };
+    lc.label = T('lc_' + lc.level);
+    lc.detail = T('lc_detail', N(t.netCarbs));
 
     var novaPenalty = t.nova <= 1 ? 0 : t.nova <= 2 ? (t.nova - 1) * 10 : t.nova <= 3 ? 10 + (t.nova - 2) * 20 : 30 + (t.nova - 3) * 30;
     var score = 100 - novaPenalty - Math.min(20, t.addedSugar * 2) - (t.sodium > 1500 ? 20 : t.sodium > 800 ? 10 : 0) - (t.satFat > 10 ? 10 : 0);
     score = Math.max(0, Math.min(100, Math.round(score)));
     var clean = { score: score, level: score >= 80 ? 'green' : score >= 50 ? 'yellow' : 'red' };
-    clean.label = { green: 'Clean', yellow: 'Tạm ổn', red: 'Chế biến nhiều' }[clean.level];
-    clean.detail = 'NOVA trung bình ' + t.nova + (t.addedSugar > 0.5 ? ' · đường bổ sung ' + t.addedSugar + ' g' : '') + (t.sodium > 800 ? ' · natri ' + Math.round(t.sodium) + ' mg' : '');
+    clean.label = T('c_' + clean.level);
+    clean.detail = T('c_nova', N(t.nova)) + (t.addedSugar > 0.5 ? TEXT[lang].c_sugar.replace('{0}', N(t.addedSugar)) : '') + (t.sodium > 800 ? TEXT[lang].c_sodium.replace('{0}', Math.round(t.sodium)) : '');
 
     var kc = t.carbs * 4, kp = t.protein * 4, kf = t.fat * 9, sum = kc + kp + kf;
     var macroPct = sum > 0
@@ -229,17 +301,17 @@
   }
 
   // Offline lookup: a database row (per 100 g) scaled to a portion, in the same shape the model returns.
-  function fromDb(food, grams) {
+  function fromDb(food, grams, lang) {
     var g = num(grams, 5000) || food.serving_g || 100;
     var k = g / 100;
     return {
-      is_food: true, dish_name: food.vi, cuisine: '', portion_note: g + ' g · số liệu trung bình từ bảng thành phần thực phẩm',
+      is_food: true, dish_name: langOf(lang) === 'en' ? food.en : food.vi, cuisine: '', portion_note: tr(lang, 'db_note', g),
       items: [cleanItem({
         name_vi: food.vi, name_en: food.en, grams: g, calories: food.kcal * k, carbs_g: food.carbs * k, fiber_g: food.fiber * k,
         sugar_g: food.sugar * k, added_sugar_g: (food.added || 0) * k, protein_g: food.protein * k, fat_g: food.fat * k,
         sat_fat_g: (food.sat || 0) * k, sodium_mg: (food.sodium || 0) * k, gi: food.gi, nova: food.nova, confidence: 0.9,
       })],
-      advice_vi: '', swaps_vi: [],
+      advice: '', swaps: [],
     };
   }
 
@@ -269,7 +341,7 @@
   }
 
   return {
-    API_URL: API_URL, MODELS: MODELS, DEFAULT_MODEL: DEFAULT_MODEL, DEFAULT_PROFILE: DEFAULT_PROFILE, SCHEMA: SCHEMA, SYSTEM: SYSTEM,
+    API_URL: API_URL, MODELS: MODELS, DEFAULT_MODEL: DEFAULT_MODEL, DEFAULT_PROFILE: DEFAULT_PROFILE, SCHEMA: SCHEMA, LANGS: LANGS, systemPrompt: systemPrompt, itemName: itemName, langOf: langOf,
     buildRequest: buildRequest, extractText: extractText, parseAnalysis: parseAnalysis, assess: assess,
     fromDb: fromDb, searchFoods: searchFoods, dayTotals: dayTotals, dayKey: dayKey, fold: fold,
   };

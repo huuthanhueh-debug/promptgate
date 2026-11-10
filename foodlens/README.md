@@ -2,6 +2,8 @@
 
 App Android (APK, chạy trên Samsung và mọi máy Android 10 trở lên): chụp một món ăn, app trả về khẩu phần ước lượng (gram, calo, carb, đường, đạm, béo, chất xơ, natri) và đánh giá ảnh hưởng tới đường huyết của người tiểu đường type 2, mức low-carb và clean eating.
 
+Giao diện có hai ngôn ngữ, **Tiếng Việt và English**: bấm nút `VI | EN` ở góc trên bên phải để đổi. Toàn bộ màn hình, kết luận, lời khuyên và câu trả lời của AI theo ngôn ngữ đã chọn; app nhớ lựa chọn cho lần mở sau.
+
 Nằm trong repo PromptGate nhưng độc lập: không dùng chung mã với plugin, cùng stack (JavaScript thuần, không thư viện, test bằng Node).
 
 ## Cách hoạt động

@@ -31,8 +31,8 @@ function png(w, h, rgb) {
 const APPLE = {
   is_food: true, dish_name: 'Táo đỏ', cuisine: 'Trái cây tươi', portion_note: '1 trái cỡ vừa, khoảng 180 g, ăn cả vỏ',
   items: [{ name_vi: 'Táo đỏ <img src=x onerror="window.__xss=1">', name_en: 'Red apple', grams: 180, calories: 94, carbs_g: 25, fiber_g: 4.3, sugar_g: 19, added_sugar_g: 0, protein_g: 0.5, fat_g: 0.3, sat_fat_g: 0.1, sodium_mg: 2, gi: 36, nova: 1, confidence: 0.93 }],
-  advice_vi: 'Táo có chỉ số đường huyết thấp và nhiều chất xơ hòa tan nên đường huyết lên chậm. Ăn cả vỏ, một trái mỗi lần.',
-  swaps_vi: [],
+  advice: 'Táo có chỉ số đường huyết thấp và nhiều chất xơ hòa tan nên đường huyết lên chậm. Ăn cả vỏ, một trái mỗi lần.',
+  swaps: [],
 };
 const BROKEN_RICE = {
   is_food: true, dish_name: 'Cơm tấm sườn bì chả', cuisine: 'Việt Nam', portion_note: '1 dĩa đầy, cơm khoảng 250 g',
@@ -42,8 +42,8 @@ const BROKEN_RICE = {
     { name_vi: 'Chả trứng', name_en: 'Steamed egg meatloaf', grams: 50, calories: 95, carbs_g: 3, fiber_g: 0.2, sugar_g: 0.5, added_sugar_g: 0, protein_g: 6, fat_g: 6.5, sat_fat_g: 2, sodium_mg: 260, gi: 40, nova: 3, confidence: 0.7 },
     { name_vi: 'Nước mắm pha', name_en: 'Sweet fish sauce', grams: 30, calories: 28, carbs_g: 6.5, fiber_g: 0, sugar_g: 6, added_sugar_g: 6, protein_g: 0.8, fat_g: 0, sat_fat_g: 0, sodium_mg: 900, gi: 65, nova: 3, confidence: 0.6 },
   ],
-  advice_vi: 'Phần cơm lớn làm đường huyết tăng nhanh. Ăn nửa phần cơm, ăn rau và sườn trước.',
-  swaps_vi: ['Nửa phần cơm tấm, thêm dưa leo và cà chua', 'Chan ít nước mắm pha'],
+  advice: 'Phần cơm lớn làm đường huyết tăng nhanh. Ăn nửa phần cơm, ăn rau và sườn trước.',
+  swaps: ['Nửa phần cơm tấm, thêm dưa leo và cà chua', 'Chan ít nước mắm pha'],
 };
 const reply = (obj) => ({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ content: [{ type: 'text', text: JSON.stringify(obj) }], stop_reason: 'end_turn' }) });
 
@@ -88,6 +88,22 @@ const reply = (obj) => ({ status: 200, contentType: 'application/json', headers:
   check('changing grams recalculates', kcal180 === '93,6' && await page.textContent('#lookup-detail .t-kcal b') === '187', kcal180);
   await shot('2-lookup-apple');
 
+  console.log('language switch');
+  await page.click('#lang-en');
+  check('EN: tabs, buttons and placeholders switch', await page.textContent('[data-tab="lookup"] span') === 'Lookup' && await page.getAttribute('#q', 'placeholder') === 'Search foods: apple, pho, rice, yogurt…' && await page.evaluate(() => document.documentElement.lang) === 'en');
+  check('EN: the open lookup result is redrawn in English, grams kept', await page.textContent('#lookup-detail .res-head h2') === 'Apple' && (await page.textContent('#lookup-detail .verdict b')) === 'Eat with care' &&
+    await page.textContent('#lookup-detail .t-kcal b') === '187' && await page.inputValue('#grams') === '360');
+  check('EN: decimals use a point, food list uses English names', (await page.textContent('#lookup-detail .t-carb b')) === '41 g' && (await page.textContent('#lookup-detail .reasons')).includes('Glycemic load (GL) 14.8') && (await page.textContent('#food-list .food b')) === 'Apple', await page.textContent('#lookup-detail .reasons'));
+  const enPage = await page.evaluate(() => document.body.innerText.replace(/Táo|VI\b/g, ''));
+  check('EN: no Vietnamese text left on the lookup screen', !/[àáảãạăâđèéẻẽẹêìíỉĩịòóỏõọôơùúủũụưỳýỷỹỵ]/i.test(enPage), (enPage.match(/[^\n]*[àáảãạăâđèéẻẽẹêìíỉĩịòóỏõọôơùúủũụưỳýỷỹỵ][^\n]*/i) || [''])[0]);
+  await shot('2b-lookup-apple-en');
+  await page.reload();
+  check('EN: the choice survives a restart', await page.textContent('#analyze') === 'Analyze portion' && await page.evaluate(() => document.querySelector('#lang-en').classList.contains('on')));
+  await page.click('#lang-vi');
+  check('VI: switching back restores Vietnamese', await page.textContent('#analyze') === 'Phân tích khẩu phần' && await page.textContent('[data-tab="diary"] span') === 'Nhật ký');
+  await upload([200, 40, 40]);
+  await page.waitForSelector('#preview img');
+
   console.log('settings');
   await page.click('[data-tab="settings"]');
   await page.fill('#set-key', '  sk-ant-test-123  ');
@@ -127,13 +143,30 @@ const reply = (obj) => ({ status: 200, contentType: 'application/json', headers:
   check('four components listed', (await page.locator('#scan-result .items tr').count()) === 4);
   await page.evaluate(() => window.scrollTo(0, 0));
   await shot('5-result-com-tam');
+  await page.click('#lang-en');
+  check('EN: the scan result is redrawn in English without a new API call', calls.length === 3 && (await page.textContent('#scan-result .verdict b')) === 'Likely to spike blood glucose' &&
+    (await page.textContent('#scan-result .items b')) === 'Broken rice' && (await page.textContent('#scan-result .tips')).includes('Halve the starch'));
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await shot('5b-result-com-tam-en');
+  await upload([200, 40, 40]);
+  await page.waitForSelector('#preview img');
+  next = [reply(APPLE)];
+  await page.click('#analyze');
+  await page.waitForSelector('#scan-result .res-head');
+  check('EN: the next request asks the model for English', /in English\./.test(calls[3].body.system) && /^Analyze the food/.test(calls[3].body.messages[0].content[1].text));
+  next = [{ status: 401, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '{}' }];
+  await page.click('#analyze');
+  await page.waitForFunction(() => /The API key is invalid/.test(document.getElementById('scan-error').textContent));
+  check('EN: errors are in English', true);
+  await page.click('#lang-vi');
+  await page.evaluate(() => { const d = JSON.parse(localStorage.getItem('fl.diary')); d.shift(); localStorage.setItem('fl.diary', JSON.stringify(d)); });
 
   console.log('errors');
   next = [{ status: 401, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '{"error":{"message":"invalid x-api-key"}}' }];
   await page.click('#analyze');
   await page.waitForSelector('#scan-error:not([hidden])');
   check('401 shows the key message and clears the old result', /API key không hợp lệ/.test(await page.textContent('#scan-error')) && (await page.innerHTML('#scan-result')) === '');
-  next = [reply({ is_food: false, dish_name: '', cuisine: '', portion_note: '', items: [], advice_vi: 'Ảnh chụp một bàn phím.', swaps_vi: [] })];
+  next = [reply({ is_food: false, dish_name: '', cuisine: '', portion_note: '', items: [], advice: 'Ảnh chụp một bàn phím.', swaps: [] })];
   await page.click('#analyze');
   await page.waitForFunction(() => /Không thấy món ăn/.test(document.getElementById('scan-error').textContent));
   check('non-food photo is reported, nothing saved', (await page.textContent('#scan-error')).includes('bàn phím') && await page.evaluate(() => JSON.parse(localStorage.getItem('fl.diary')).length) === 2);

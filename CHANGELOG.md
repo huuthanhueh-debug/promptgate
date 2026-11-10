@@ -1,5 +1,10 @@
 # Changelog
 
+## FoodLens 1.1.0 — 2026-11-10 — Vietnamese and English
+- VI | EN switch in the app header. It translates every screen, the verdicts, reasons, tips and error messages, uses the matching decimal separator, shows food names in the chosen language and asks the model to answer in it. The choice is remembered.
+- An open result is redrawn in the new language without a new API call; advice the AI already wrote stays in the language it was written in.
+- Model output fields renamed `advice` / `swaps`; diary entries saved by 1.0 still open.
+
 ## FoodLens 1.0.0 — 2026-11-10 — new Android app in `foodlens/`
 - Photo of any food → portion estimate (grams, kcal, carbs, sugar, protein, fat, fiber, sodium) through the Claude API, then app-computed verdicts for type 2 diabetes (glycemic load, net carbs vs. a per-meal target, added sugar), low-carb fit and a clean-eating score. Vietnamese UI.
 - Offline lookup table (64 foods), diary with daily totals, settings (API key, model, carb target).

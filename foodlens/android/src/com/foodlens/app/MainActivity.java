@@ -98,14 +98,14 @@ public class MainActivity extends Activity {
         if (cameraOnly && cameraUri != null) {
             launch = camera;
         } else {
-            launch = Intent.createChooser(gallery, "Chọn ảnh món ăn");
+            launch = Intent.createChooser(gallery, "FoodLens");
             if (cameraUri != null) launch.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[] { camera });
         }
         try {
             startActivityForResult(launch, PICK_IMAGE);
         } catch (RuntimeException noCameraApp) {
             try {
-                startActivityForResult(Intent.createChooser(gallery, "Chọn ảnh món ăn"), PICK_IMAGE);
+                startActivityForResult(Intent.createChooser(gallery, "FoodLens"), PICK_IMAGE);
             } catch (RuntimeException e) {
                 finishPick(null);
             }

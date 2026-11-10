@@ -19,7 +19,7 @@ function check(name, cond, extra) {
 }
 function throwsCode(fn) { try { fn(); return null; } catch (e) { return e.code || 'error'; } }
 const item = (o) => Object.assign({ name_vi: 'X', name_en: 'X', grams: 100, calories: 100, carbs_g: 0, fiber_g: 0, sugar_g: 0, added_sugar_g: 0, protein_g: 0, fat_g: 0, sat_fat_g: 0, sodium_mg: 0, gi: 0, nova: 1, confidence: 0.8 }, o);
-const meal = (items) => C.parseAnalysis(JSON.stringify({ is_food: true, dish_name: 'Test', cuisine: '', portion_note: '', items, advice_vi: '', swaps_vi: [] }));
+const meal = (items) => C.parseAnalysis(JSON.stringify({ is_food: true, dish_name: 'Test', cuisine: '', portion_note: '', items, advice: '', swaps: [] }));
 const food = (vi) => FOODS.find((f) => f.vi === vi);
 
 console.log('request');
@@ -65,7 +65,7 @@ check('non-JSON 200 body → parse', throwsCode(() => C.extractText(200, '<html>
 console.log('parse');
 const fenced = C.parseAnalysis('Đây là kết quả:\n```json\n' + JSON.stringify({ is_food: true, dish_name: 'Táo', items: [item({ name_vi: 'Táo', carbs_g: 25, fiber_g: 4.4 })] }) + '\n```');
 check('JSON inside a code fence is read', fenced.is_food && fenced.items.length === 1 && fenced.dish_name === 'Táo');
-check('missing optional fields get safe defaults', fenced.advice_vi === '' && Array.isArray(fenced.swaps_vi) && fenced.portion_note === '');
+check('missing optional fields get safe defaults', fenced.advice === '' && Array.isArray(fenced.swaps) && fenced.portion_note === '');
 check('garbage → parse error', throwsCode(() => C.parseAnalysis('không có gì')) === 'parse' && throwsCode(() => C.parseAnalysis('{oops}')) === 'parse' && throwsCode(() => C.parseAnalysis('')) === 'parse');
 const dirty = C.parseAnalysis(JSON.stringify({ is_food: true, items: [{ name_vi: '', name_en: 'Rice', grams: -5, calories: 'abc', carbs_g: '12,5', fiber_g: 99, sugar_g: 50, added_sugar_g: 70, fat_g: 2, sat_fat_g: 9, gi: 250, nova: 9, confidence: 7 }] })).items[0];
 check('negative and non-numeric values become 0', dirty.grams === 0 && dirty.calories === 0);
@@ -73,11 +73,13 @@ check('comma decimals are read', dirty.carbs_g === 12.5);
 check('fiber, sugar, added sugar, sat fat clamped to their parents', dirty.fiber_g === 12.5 && dirty.sugar_g === 12.5 && dirty.added_sugar_g === 12.5 && dirty.sat_fat_g === 2);
 check('gi, nova, confidence clamped to range', dirty.gi === 100 && dirty.nova === 4 && dirty.confidence === 1);
 check('name falls back to the English name', dirty.name_vi === 'Rice');
-const notFood = C.parseAnalysis(JSON.stringify({ is_food: false, items: [item({})], advice_vi: 'Ảnh chụp bàn phím.' }));
-check('is_food false clears items and keeps the explanation', notFood.is_food === false && notFood.items.length === 0 && notFood.advice_vi === 'Ảnh chụp bàn phím.');
+const notFood = C.parseAnalysis(JSON.stringify({ is_food: false, items: [item({})], advice: 'Ảnh chụp bàn phím.' }));
+check('is_food false clears items and keeps the explanation', notFood.is_food === false && notFood.items.length === 0 && notFood.advice === 'Ảnh chụp bàn phím.');
 check('no items means not food', C.parseAnalysis('{"is_food":true,"items":[]}').is_food === false);
 check('item list capped at 30', C.parseAnalysis(JSON.stringify({ items: Array.from({ length: 80 }, () => item({})) })).items.length === 30);
-check('swaps capped at 3', C.parseAnalysis(JSON.stringify({ items: [item({})], swaps_vi: ['a', 'b', 'c', 'd', ''] })).swaps_vi.length === 3);
+check('swaps capped at 3', C.parseAnalysis(JSON.stringify({ items: [item({})], swaps: ['a', 'b', 'c', 'd', ''] })).swaps.length === 3);
+const legacy = C.parseAnalysis(JSON.stringify({ items: [item({})], advice_vi: 'cũ', swaps_vi: ['x'] }));
+check('diary entries saved by 1.0 (advice_vi / swaps_vi) still open', legacy.advice === 'cũ' && legacy.swaps[0] === 'x');
 
 console.log('diabetes / low-carb / clean rules');
 const apple = C.assess(C.fromDb(food('Táo'), 182));
@@ -109,6 +111,24 @@ check('ultra-processed, salty, fatty food scores low on clean eating', upf.clean
 check('salty food gets a sodium tip', upf.tips.some((t) => /natri/.test(t)));
 check('walking tip only shown in diabetes mode', !C.assess(C.fromDb(food('Cơm trắng'), 300), { diabetes: false }).tips.some((t) => /đo đường huyết/.test(t)));
 check('every verdict carries a Vietnamese label', [apple, rice, soda].every((v) => v.diabetes.label && v.lowCarb.label && v.clean.label));
+
+console.log('two languages');
+const reqEn = C.buildRequest({ lang: 'en', note: 'half' }), reqVi = C.buildRequest({ note: 'nửa' });
+check('prompt asks for English when the app is in English', /Write dish_name[^\n]*in English\./.test(reqEn.body.system) && /^Analyze the food[^\n]*\nUser note: half$/.test(reqEn.body.messages[0].content[1].text));
+check('prompt asks for Vietnamese by default', /Write dish_name[^\n]*in Vietnamese\./.test(reqVi.body.system) && /^Phân tích món ăn/.test(reqVi.body.messages[0].content[1].text));
+check('both item names are always requested', /name_vi is always the Vietnamese name and name_en always the English name/.test(reqEn.body.system));
+check('unknown language falls back to Vietnamese', C.langOf('fr') === 'vi' && C.langOf(undefined) === 'vi' && C.langOf('en') === 'en');
+const riceEn = C.assess(C.fromDb(food('Cơm trắng'), 300, 'en'), { lang: 'en' });
+const riceVi = C.assess(C.fromDb(food('Cơm trắng'), 300, 'vi'), { lang: 'vi' });
+const viChars = /[àáảãạăâđèéẻẽẹêìíỉĩịòóỏõọôơùúủũụưỳýỷỹỵ]/i;
+const enText = JSON.stringify([riceEn.diabetes.label, riceEn.diabetes.reasons, riceEn.tips, riceEn.lowCarb, riceEn.clean, C.fromDb(food('Cơm trắng'), 300, 'en').portion_note]);
+check('English verdict, reasons, tips and badges contain no Vietnamese', !viChars.test(enText) && /Likely to spike blood glucose/.test(enText) && /Not low-carb/.test(enText), enText.slice(0, 200));
+check('numbers and levels are identical in both languages', JSON.stringify(riceEn.totals) === JSON.stringify(riceVi.totals) && riceEn.diabetes.level === riceVi.diabetes.level && riceEn.clean.score === riceVi.clean.score && riceEn.tips.length === riceVi.tips.length);
+check('decimal separator follows the language', /GL\) 60\.9 /.test(riceEn.diabetes.reasons[0]) && /GL\) 60,9 /.test(riceVi.diabetes.reasons[0]), riceEn.diabetes.reasons[0]);
+check('offline dish name follows the language', C.fromDb(food('Táo'), 180, 'en').dish_name === 'Apple' && C.fromDb(food('Táo'), 180).dish_name === 'Táo');
+check('item name follows the language, with fallbacks', C.itemName({ name_vi: 'Táo', name_en: 'Apple' }, 'en') === 'Apple' && C.itemName({ name_vi: 'Táo', name_en: 'Apple' }, 'vi') === 'Táo' && C.itemName({ name_vi: '', name_en: '' }, 'en') === 'Unnamed food');
+check('error messages follow the language', (() => { try { C.extractText(401, '{}', 'en'); } catch (e) { return /^The API key is invalid/.test(e.message); } })() && (() => { try { C.parseAnalysis('x', 'en'); } catch (e) { return /^Could not read/.test(e.message); } })());
+check('every model has a label in both languages', C.MODELS.every((m) => m.vi && m.en));
 
 console.log('offline food table');
 check('table has at least 60 foods', FOODS.length >= 60, String(FOODS.length));
@@ -148,6 +168,12 @@ fs.rmSync(sdkDir, { recursive: true, force: true });
 console.log('bundle wiring');
 const read = (p) => fs.readFileSync(path.join(FL, p), 'utf8');
 const html = read('web/index.html'), app = read('web/app.js'), css = read('web/style.css');
+const uiBlock = (l) => { const m = new RegExp('\\n    ' + l + ': \\{\\n([\\s\\S]*?)\\n    \\},').exec(app); return m ? (m[1].match(/(?:^|[ ,])(\w+): '/gm) || []).map((k) => k.replace(/[^\w]/g, '')) : []; };
+const uiVi = uiBlock('vi'), uiEn = uiBlock('en');
+check('UI strings: Vietnamese and English tables have the same keys', uiVi.length > 50 && JSON.stringify(uiVi.slice().sort()) === JSON.stringify(uiEn.slice().sort()), uiVi.filter((k) => !uiEn.includes(k)).concat(uiEn.filter((k) => !uiVi.includes(k))).join(', '));
+const usedKeys = [...new Set((html.match(/data-i18n(?:-ph)?="(\w+)"/g) || []).map((m) => m.replace(/^.*="|"$/g, '')).concat((app.match(/\bt\('(\w+)'/g) || []).map((m) => m.slice(3, -1)).filter((k) => !k.endsWith('_'))))];
+check('every UI key used in the page or the code is translated', usedKeys.length > 40 && usedKeys.every((k) => uiVi.includes(k)), usedKeys.filter((k) => !uiVi.includes(k)).join(', '));
+check('language switch buttons present', /id="lang-vi" data-lang="vi"/.test(html) && /id="lang-en" data-lang="en"/.test(html));
 const refs = (html.match(/(?:src|href)="([^"]+)"/g) || []).map((m) => m.replace(/^.*="|"$/g, ''));
 check('index.html only references local files that exist', refs.length >= 4 && refs.every((r) => !/^https?:/.test(r) && fs.existsSync(path.join(FL, 'web', r))), refs.join(', '));
 check('CSP allows only the Claude API and local scripts', /connect-src https:\/\/api\.anthropic\.com"/.test(html) && /script-src 'self'/.test(html) && /default-src 'none'/.test(html));
