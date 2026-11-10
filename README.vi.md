@@ -111,4 +111,8 @@ Nếu PromptGate giúp bạn tiết kiệm token, một ngôi sao trên GitHub h
 - **Pha 2 (xong, 1.2)**: công cụ chạy nền Windows có phím tắt toàn cục, cùng engine cho app Claude desktop và mọi cửa sổ khác. Bôi đen, nhấn Ctrl+Alt+P, chọn A/B/C. Xem [tray/README.vi.md](tray/README.vi.md); chạy `tray\PromptGate.cmd` hoặc `npm run tray`.
 - **Pha 3 (xong)**: Chrome extension cho claude.ai, [đã có trên Chrome Web Store](https://chromewebstore.google.com/detail/ohfifdheanlidimoffbkbkednifkpiae). Mã nguồn và cài thủ công trong [`extension/`](extension/README.vi.md).
 
+## Cùng repo: Vision 6D
+
+[`mobile/`](mobile/README.vi.md) là một ứng dụng Android riêng, dựng bằng three.js: chụp bất kỳ thứ gì để xem thành khối nổi 3D điều khiển theo 6 trục, hoặc chụp người để xem mô hình giải phẫu hologram. App dùng chung kiểu build không phụ thuộc của repo nhưng độc lập với PromptGate.
+
 MIT © The Quiet Concierge
