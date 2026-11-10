@@ -46,6 +46,7 @@ function personImage(w, h) {
   const S = await load('lib/sixdof.js');
   const A = await load('lib/anatomy.js');
   const SC = await load('lib/scene.js');
+  const I = await load('lib/i18n.js');
   const THREE = await load('vendor/three.module.min.js');
 
   console.log('depth');
@@ -146,6 +147,34 @@ function personImage(w, h) {
     check('explodeOffset: skeleton stays, organs and vessels step forward, input clamped', A.explodeOffset('skeleton', 1) === 0 && A.explodeOffset('organs', 1) > 0 && A.explodeOffset('vessels', 1) > A.explodeOffset('organs', 1) && A.explodeOffset('vessels', 9) === A.explodeOffset('vessels', 1) && A.explodeOffset('nope', 1) === 0 && A.explodeOffset('organs', NaN) === 0);
   }
 
+  console.log('languages (vi / en)');
+  {
+    const vi = Object.keys(I.STRINGS.vi).sort(), en = Object.keys(I.STRINGS.en).sort();
+    check('Vietnamese and English tables have the same keys', vi.join() === en.join() && vi.length > 40, vi.filter((k) => !en.includes(k)).concat(en.filter((k) => !vi.includes(k))).join());
+    check('no string is empty', I.LANGS.every((l) => Object.values(I.STRINGS[l]).every((v) => typeof v === 'string' && v.trim())));
+    const VI_CHARS = /[\u00c0-\u1ef9]/;
+    const leaked = Object.entries(I.STRINGS.en).filter(([k, v]) => k !== 'lang.switchLabel' && VI_CHARS.test(v.replace(/[→←₂]/g, '')));
+    check('English strings contain no Vietnamese text', leaked.length === 0, leaked.map(([k]) => k).join());
+    const same = vi.filter((k) => I.STRINGS.vi[k] === I.STRINGS.en[k] && !['mode.relief', 'style.holo'].includes(k));
+    check('every string is actually translated', same.length === 0, same.join());
+    check('the toggle shows the language you would switch to', I.t('vi', 'lang.switch') === 'EN' && I.t('en', 'lang.switch') === 'VI' && I.otherLang('vi') === 'en' && I.otherLang('en') === 'vi' && I.otherLang('xx') === 'en');
+    check('pickLang: stored choice, then device language, then Vietnamese', I.pickLang('en', 'vi-VN') === 'en' && I.pickLang(null, 'en-US') === 'en' && I.pickLang(null, 'vi-VN') === 'vi' && I.pickLang('zz', 'fr-FR') === 'vi' && I.pickLang(undefined, undefined) === 'vi');
+    check('t() fills placeholders and falls back safely', I.t('en', 'toast.savedTo', { where: 'Pictures' }) === 'Saved to: Pictures' && I.t('vi', 'toast.savedTo', { where: 'X' }) === 'Đã lưu vào: X' && I.t('fr', 'home.pick') === 'Thư viện' && I.t('en', 'no.such.key') === 'no.such.key');
+    const html = fs.readFileSync(path.join(MOBILE, 'src', 'index.html'), 'utf8');
+    const keys = [...html.matchAll(/data-i18n(?:-aria)?="([^"]+)"/g)].map((m) => m[1]);
+    check('every data-i18n key in the page exists in both tables', keys.length > 25 && keys.every((k) => k in I.STRINGS.vi && k in I.STRINGS.en), keys.filter((k) => !(k in I.STRINGS.vi)).join());
+    const body = html.slice(html.indexOf('<body>'));
+    check('the page hard-codes no Vietnamese text (all of it comes from the tables)', !VI_CHARS.test(body));
+    check('both screens carry a language button', (html.match(/data-lang-toggle/g) || []).length === 2);
+    const app = fs.readFileSync(path.join(MOBILE, 'src', 'app.js'), 'utf8');
+    const usedKeys = [...app.matchAll(/(?:tr|notice)\('([a-zA-Z]+\.[a-zA-Z.]+)'/g)].map((m) => m[1]).concat([...app.matchAll(/'((?:toast|notice)\.[a-zA-Z]+)'/g)].map((m) => m[1]));
+    check('every string key the script uses exists', usedKeys.length > 12 && usedKeys.every((k) => k in I.STRINGS.en), usedKeys.filter((k) => !(k in I.STRINGS.en)).join());
+    check('the script itself holds no Vietnamese literals', !app.split('\n').some((l) => !l.trim().startsWith('//') && VI_CHARS.test(l)));
+    check('axes are named in both languages', S.AXES.every((a) => a.vi && a.en && a.vi !== a.en));
+    check('body systems are named in both languages', A.SYSTEMS.every((x) => x.vi && x.en));
+    check('every anatomy label has an English description', A.LABELS.every((l) => l.infoEn && l.infoEn !== l.info && !VI_CHARS.test(l.infoEn.replace('₂', ''))));
+  }
+
   console.log('three.js scene');
   {
     check('vendored three.js is r170', THREE.REVISION === '170', THREE.REVISION);
@@ -211,14 +240,14 @@ function personImage(w, h) {
     const zip = require(path.join(MOBILE, 'android', 'zip.js'));
     const icon = require(path.join(MOBILE, 'android', 'icon.js'));
     const www = B.buildWeb({ quiet: true });
-    for (const f of ['index.html', 'app.js', 'lib/depth.js', 'lib/sixdof.js', 'lib/anatomy.js', 'lib/scene.js', 'vendor/three.module.min.js', 'vendor/THREE-LICENSE']) {
+    for (const f of ['index.html', 'app.js', 'lib/depth.js', 'lib/sixdof.js', 'lib/anatomy.js', 'lib/scene.js', 'lib/i18n.js', 'vendor/three.module.min.js', 'vendor/THREE-LICENSE']) {
       check(`dist/www/${f} exists`, fs.existsSync(path.join(www, f)));
     }
     check('the Node-only package.json is not shipped', !fs.existsSync(path.join(www, 'package.json')));
     const html = fs.readFileSync(path.join(www, 'index.html'), 'utf8');
     const csp = (/Content-Security-Policy" content="([^"]+)"/.exec(html) || [])[1] || '';
     check('page has a CSP that allows no remote origin', csp.includes("default-src 'self'") && !/https?:|\*/.test(csp), csp);
-    const own = ['index.html', 'app.js', 'lib/depth.js', 'lib/sixdof.js', 'lib/anatomy.js', 'lib/scene.js'].map((f) => fs.readFileSync(path.join(www, f), 'utf8')).join('\n');
+    const own = ['index.html', 'app.js', 'lib/depth.js', 'lib/sixdof.js', 'lib/anatomy.js', 'lib/scene.js', 'lib/i18n.js'].map((f) => fs.readFileSync(path.join(www, f), 'utf8')).join('\n');
     const remote = (own.match(/https?:\/\/[^\s'"`)]+/g) || []).filter((u) => !u.startsWith('http://www.w3.org/'));
     check('our code references no remote URL (works offline)', remote.length === 0, remote.join());
     check('our code never calls fetch/XHR/WebSocket/sendBeacon', !/\bfetch\(|XMLHttpRequest|WebSocket|sendBeacon/.test(own));
@@ -236,6 +265,8 @@ function personImage(w, h) {
     check('shell declares the package from app.json', java.includes(`package ${B.APP.id};`));
     check('shell blocks file access, path traversal and foreign origins', java.includes('setAllowFileAccess(false)') && java.includes('path.contains("..")') && java.includes('!HOST.equals(request.getOrigin().getHost())'));
     check('shell exposes exactly one bridge method', (java.match(/@JavascriptInterface/g) || []).length === 1);
+    const bridgeReturns = [...java.slice(java.indexOf('class Bridge')).matchAll(/return ("[^"]*")/g)].map((m) => m[1]);
+    check('bridge answers with language-neutral codes the page translates', bridgeReturns.length >= 6 && bridgeReturns.every((r) => r === '"error"' || r.startsWith('"ok:')), bridgeReturns.join());
 
     const PNG_SIG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     const png = icon.png(48);

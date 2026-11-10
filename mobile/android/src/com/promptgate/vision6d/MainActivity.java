@@ -111,7 +111,7 @@ public class MainActivity extends Activity {
                 pick.addCategory(Intent.CATEGORY_OPENABLE);
                 pick.setType("image/*");
                 try {
-                    startActivityForResult(Intent.createChooser(pick, "Chọn ảnh"), REQ_FILE);
+                    startActivityForResult(Intent.createChooser(pick, "Chọn ảnh / Choose a photo"), REQ_FILE);
                 } catch (ActivityNotFoundException e) {
                     pendingFile = null;
                     return false;
@@ -217,14 +217,14 @@ public class MainActivity extends Activity {
         super.onDestroy();
     }
 
-    /** The only native call the page can make: save a rendered PNG. Returns a message to show. */
+    /** The only native call the page can make: save a rendered PNG. Returns "ok:<where>" or "error"; the page words the message. */
     private final class Bridge {
         @JavascriptInterface
         public String saveImage(String base64Png) {
             try {
                 byte[] png = Base64.decode(base64Png, Base64.DEFAULT);
                 if (png.length < 8 || png[0] != (byte) 0x89 || png[1] != 'P' || png[2] != 'N' || png[3] != 'G') {
-                    return "Không lưu được: dữ liệu ảnh không hợp lệ.";
+                    return "error";
                 }
                 String name = "vision6d-" + System.currentTimeMillis() + ".png";
                 if (Build.VERSION.SDK_INT >= 29) {
@@ -233,22 +233,22 @@ public class MainActivity extends Activity {
                     v.put(MediaStore.MediaColumns.MIME_TYPE, "image/png");
                     v.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Vision6D");
                     Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, v);
-                    if (uri == null) return "Không lưu được ảnh.";
+                    if (uri == null) return "error";
                     OutputStream out = getContentResolver().openOutputStream(uri);
-                    if (out == null) return "Không lưu được ảnh.";
+                    if (out == null) return "error";
                     try { out.write(png); } finally { out.close(); }
-                    return "Đã lưu vào Thư viện: Pictures/Vision6D";
+                    return "ok:Pictures/Vision6D";
                 }
                 // Before Android 10 a shared-gallery write needs a storage permission we do not
                 // ask for, so the file goes to the app's own pictures folder instead.
                 File dir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-                if (dir == null) return "Không lưu được: không có bộ nhớ ngoài.";
+                if (dir == null) return "error";
                 File f = new File(dir, name);
                 FileOutputStream out = new FileOutputStream(f);
                 try { out.write(png); } finally { out.close(); }
-                return "Đã lưu: " + f.getAbsolutePath();
+                return "ok:" + f.getAbsolutePath();
             } catch (Exception e) {
-                return "Không lưu được ảnh.";
+                return "error";
             }
         }
     }

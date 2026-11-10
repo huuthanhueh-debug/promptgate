@@ -40,7 +40,9 @@
   .label { position: absolute; left: 0; top: 0; pointer-events: auto; padding: 3px 8px; font-size: 11.5px; white-space: nowrap; background: rgba(5, 12, 20, .78); border: 1px solid var(--line); border-radius: 6px; color: var(--text); min-height: 0; }
   .label.sel { border-color: var(--pink); color: #fff; box-shadow: 0 0 10px rgba(255, 79, 216, .6); }
   #viewer .top { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 8px; padding: calc(8px + env(safe-area-inset-top)) 10px 8px; background: linear-gradient(#05080dd9, transparent); }
-  #viewer .top .brand { flex: 1; text-align: center; }
+  #viewer .top .grow { flex: 1; }
+  .bar { display: flex; align-items: center; justify-content: space-between; }
+  .lang { min-width: 46px; min-height: 36px; padding: 5px 10px; font-weight: 600; letter-spacing: .08em; color: var(--cyan); }
   .seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
   .seg button { border: 0; border-radius: 0; min-width: 62px; }
   #readout { position: absolute; left: 10px; top: calc(58px + env(safe-area-inset-top)); font: 10.5px/1.5 ui-monospace, Menlo, Consolas, monospace; color: var(--cyan); opacity: .85; white-space: pre; pointer-events: none; text-shadow: 0 0 6px #000; }
@@ -69,19 +71,19 @@
   <video id="preview" playsinline muted autoplay></video>
   <div class="frame"></div>
   <div class="top">
-    <div class="brand">VISION 6D</div>
-    <p>Chụp bất kỳ thứ gì để dựng ảnh nổi 6 trục. Chụp người để xem cấu trúc cơ thể.</p>
+    <div class="bar"><div class="brand">VISION 6D</div><button class="lang" data-lang-toggle></button></div>
+    <p data-i18n="home.tagline"></p>
   </div>
   <div id="notice"></div>
   <div class="bottom">
     <div class="shots">
-      <button id="pick" class="side">Thư viện</button>
-      <button id="shutter" aria-label="Chụp ảnh" disabled></button>
-      <button id="flip" class="side">Đổi camera</button>
+      <button id="pick" class="side" data-i18n="home.pick"></button>
+      <button id="shutter" data-i18n-aria="home.shutter" disabled></button>
+      <button id="flip" class="side" data-i18n="home.flip"></button>
     </div>
     <div class="demos">
-      <button id="demo-scene">Ảnh mẫu 6D</button>
-      <button id="demo-person">Ảnh mẫu cơ thể</button>
+      <button id="demo-scene" data-i18n="home.demoScene"></button>
+      <button id="demo-person" data-i18n="home.demoPerson"></button>
     </div>
     <input id="file" type="file" accept="image/*" hidden>
   </div>
@@ -92,53 +94,54 @@
   <svg id="lines"></svg>
   <div id="hud"></div>
   <div class="top">
-    <button id="back">← Chụp lại</button>
-    <div class="brand">VISION 6D</div>
-    <div class="seg" role="group" aria-label="Chế độ">
-      <button id="mode-relief" data-mode="relief">6D</button>
-      <button id="mode-body" data-mode="body">Cơ thể</button>
+    <button id="back" data-i18n="viewer.back"></button>
+    <span class="grow"></span>
+    <button class="lang" data-lang-toggle></button>
+    <div class="seg" role="group" data-i18n-aria="mode.label">
+      <button id="mode-relief" data-mode="relief" data-i18n="mode.relief"></button>
+      <button id="mode-body" data-mode="body" data-i18n="mode.body"></button>
     </div>
   </div>
   <div id="readout"></div>
   <div id="info"><b></b><i></i><p></p></div>
   <div id="sheet">
     <div class="tabs">
-      <button data-tab="view" class="on">Hiển thị</button>
-      <button data-tab="axes">6 trục</button>
-      <button data-tab="align" id="tab-align">Căn chỉnh</button>
+      <button data-tab="view" class="on" data-i18n="tab.view"></button>
+      <button data-tab="axes" data-i18n="tab.axes"></button>
+      <button data-tab="align" id="tab-align" data-i18n="tab.align"></button>
     </div>
     <div class="pane active" data-pane="view">
       <div id="relief-opts">
         <div class="chips" id="styles">
-          <button data-style="photo">Ảnh nổi</button>
-          <button data-style="mix">Kết hợp</button>
-          <button data-style="holo">Hologram</button>
+          <button data-style="photo" data-i18n="style.photo"></button>
+          <button data-style="mix" data-i18n="style.mix"></button>
+          <button data-style="holo" data-i18n="style.holo"></button>
         </div>
-        <div class="row"><label for="strength">Độ sâu</label><input id="strength" type="range" min="0" max="1.2" step="0.01" value="0.5"><output></output></div>
+        <div class="row"><label for="strength" data-i18n="ctl.strength"></label><input id="strength" type="range" min="0" max="1.2" step="0.01" value="0.5"><output></output></div>
       </div>
       <div id="body-opts">
         <div class="chips" id="systems">
-          <button data-system="skeleton">Xương</button>
-          <button data-system="organs">Cơ quan</button>
-          <button data-system="vessels">Mạch máu</button>
-          <button data-system="photo">Ảnh nền</button>
+          <button data-system="skeleton" data-i18n="sys.skeleton"></button>
+          <button data-system="organs" data-i18n="sys.organs"></button>
+          <button data-system="vessels" data-i18n="sys.vessels"></button>
+          <button data-system="photo" data-i18n="sys.photo"></button>
         </div>
       </div>
-      <div class="row"><label for="explode">Tách lớp</label><input id="explode" type="range" min="0" max="1" step="0.01" value="0"><output></output></div>
+      <div class="row"><label for="explode" data-i18n="ctl.explode"></label><input id="explode" type="range" min="0" max="1" step="0.01" value="0"><output></output></div>
       <div class="chips">
-        <button id="orbit">Tự xoay</button>
-        <button id="gyro">Con quay</button>
-        <button id="reset">Đặt lại</button>
-        <button id="save">Lưu ảnh</button>
+        <button id="orbit" data-i18n="btn.orbit"></button>
+        <button id="gyro" data-i18n="btn.gyro"></button>
+        <button id="reset" data-i18n="btn.reset"></button>
+        <button id="save" data-i18n="btn.save"></button>
       </div>
-      <p class="note" id="disclaimer">Mô hình giải phẫu chỉ mang tính minh họa, không dùng để chẩn đoán y khoa.</p>
+      <p class="note" id="disclaimer" data-i18n="disclaimer"></p>
     </div>
     <div class="pane" data-pane="axes" id="axes"></div>
     <div class="pane" data-pane="align">
-      <div class="row"><label for="fit-scale">Kích thước</label><input id="fit-scale" type="range" min="0.5" max="1.6" step="0.01" value="1"><output></output></div>
-      <div class="row"><label for="fit-x">Trái / phải</label><input id="fit-x" type="range" min="-0.6" max="0.6" step="0.005" value="0"><output></output></div>
-      <div class="row"><label for="fit-y">Lên / xuống</label><input id="fit-y" type="range" min="-0.6" max="0.6" step="0.005" value="0"><output></output></div>
-      <p class="note">Kéo các thanh để khớp mô hình với người trong ảnh.</p>
+      <div class="row"><label for="fit-scale" data-i18n="fit.scale"></label><input id="fit-scale" type="range" min="0.5" max="1.6" step="0.01" value="1"><output></output></div>
+      <div class="row"><label for="fit-x" data-i18n="fit.x"></label><input id="fit-x" type="range" min="-0.6" max="0.6" step="0.005" value="0"><output></output></div>
+      <div class="row"><label for="fit-y" data-i18n="fit.y"></label><input id="fit-y" type="range" min="-0.6" max="0.6" step="0.005" value="0"><output></output></div>
+      <p class="note" data-i18n="fit.note"></p>
     </div>
   </div>
 </section>

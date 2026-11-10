@@ -5,9 +5,9 @@
 // the viewer. Pure data and math: no DOM, no three.js.
 
 export const SYSTEMS = Object.freeze([
-  { id: 'skeleton', vi: 'Xương', color: 0xbfefff, explode: 0 },
-  { id: 'organs', vi: 'Cơ quan', color: 0xff5fa8, explode: 0.16 },
-  { id: 'vessels', vi: 'Mạch máu', color: 0xff3b4e, explode: 0.32 },
+  { id: 'skeleton', vi: 'Xương', en: 'Bones', color: 0xbfefff, explode: 0 },
+  { id: 'organs', vi: 'Cơ quan', en: 'Organs', color: 0xff5fa8, explode: 0.16 },
+  { id: 'vessels', vi: 'Mạch máu', en: 'Vessels', color: 0xff3b4e, explode: 0.32 },
 ]);
 
 const J = {
@@ -124,22 +124,22 @@ export const PARTS = Object.freeze([...skeleton(), ...organs(), ...vessels()]);
 // HUD labels. `part` is the id (or group) highlighted when the label is tapped; `at` is where
 // the leader line points; `side` is which screen edge the label docks to.
 export const LABELS = Object.freeze([
-  { id: 'brain', part: 'brain', system: 'organs', side: 'right', at: [0.03, 0.955, 0.04], vi: 'Não', en: 'Brain', info: 'Trung tâm điều khiển của hệ thần kinh: xử lý cảm giác, vận động, trí nhớ và cảm xúc.' },
-  { id: 'skull', part: 'skull', system: 'skeleton', side: 'left', at: [-0.045, 0.95, 0.03], vi: 'Hộp sọ', en: 'Skull', info: 'Gồm 22 xương khớp chặt với nhau, bảo vệ não và nâng đỡ khuôn mặt.' },
-  { id: 'spine', part: 'spine', system: 'skeleton', side: 'left', at: [0, 0.69, -0.03], vi: 'Cột sống', en: 'Spine', info: '33 đốt sống (24 đốt di động) nâng đỡ cơ thể và bảo vệ tủy sống.' },
-  { id: 'ribs', part: 'ribs', system: 'skeleton', side: 'left', at: [-0.09, 0.76, 0.03], vi: 'Xương sườn', en: 'Ribs', info: '12 đôi xương sườn tạo thành lồng ngực che chắn tim và phổi.' },
-  { id: 'lungs', part: 'lungL', system: 'organs', side: 'right', at: [0.065, 0.775, 0.04], vi: 'Phổi', en: 'Lungs', info: 'Trao đổi khí: đưa oxy vào máu và thải CO₂ ra ngoài qua khoảng 300 triệu phế nang.' },
-  { id: 'heart', part: 'heart', system: 'organs', side: 'right', at: [0.02, 0.742, 0.055], vi: 'Tim', en: 'Heart', info: 'Khối cơ bốn buồng, bơm khoảng 5 lít máu mỗi phút đi khắp cơ thể.' },
-  { id: 'aorta', part: 'aorta', system: 'vessels', side: 'right', at: [0.006, 0.7, 0], vi: 'Động mạch chủ', en: 'Aorta', info: 'Động mạch lớn nhất, dẫn máu giàu oxy từ tim tới toàn bộ cơ thể.' },
-  { id: 'liver', part: 'liver', system: 'organs', side: 'left', at: [-0.055, 0.672, 0.05], vi: 'Gan', en: 'Liver', info: 'Chuyển hóa dưỡng chất, khử độc, dự trữ glycogen và sản xuất mật.' },
-  { id: 'stomach', part: 'stomach', system: 'organs', side: 'right', at: [0.05, 0.665, 0.05], vi: 'Dạ dày', en: 'Stomach', info: 'Co bóp và tiết acid, enzyme để nghiền và tiêu hóa thức ăn.' },
-  { id: 'kidneys', part: 'kidneyL', system: 'organs', side: 'right', at: [0.045, 0.628, -0.01], vi: 'Thận', en: 'Kidneys', info: 'Lọc máu, cân bằng nước, điện giải và tạo nước tiểu.' },
-  { id: 'intestines', part: 'intestines', system: 'organs', side: 'left', at: [-0.03, 0.585, 0.05], vi: 'Ruột', en: 'Intestines', info: 'Ruột non hấp thu dưỡng chất; ruột già hấp thu nước và tạo phân.' },
-  { id: 'pelvis', part: 'pelvis', system: 'skeleton', side: 'left', at: [-0.08, 0.535, 0.01], vi: 'Xương chậu', en: 'Pelvis', info: 'Truyền trọng lượng thân trên xuống hai chân và bảo vệ các cơ quan vùng chậu.' },
-  { id: 'humerus', part: 'humerusL', system: 'skeleton', side: 'right', at: [0.132, 0.73, 0], vi: 'Xương cánh tay', en: 'Humerus', info: 'Xương dài nối vai với khuỷu tay.' },
-  { id: 'femur', part: 'femurL', system: 'skeleton', side: 'right', at: [0.055, 0.4, 0.005], vi: 'Xương đùi', en: 'Femur', info: 'Xương dài và khỏe nhất cơ thể, nối hông với đầu gối.' },
-  { id: 'femoralArtery', part: 'femoralArteryR', system: 'vessels', side: 'left', at: [-0.066, 0.36, 0.02], vi: 'Động mạch đùi', en: 'Femoral artery', info: 'Nhánh chính cấp máu cho chi dưới.' },
-  { id: 'tibia', part: 'tibiaR', system: 'skeleton', side: 'left', at: [-0.058, 0.16, 0], vi: 'Xương chày', en: 'Tibia', info: 'Xương ống chân chịu lực chính, nối đầu gối với cổ chân.' },
+  { id: 'brain', part: 'brain', system: 'organs', side: 'right', at: [0.03, 0.955, 0.04], vi: 'Não', en: 'Brain', info: 'Trung tâm điều khiển của hệ thần kinh: xử lý cảm giác, vận động, trí nhớ và cảm xúc.', infoEn: 'Control centre of the nervous system: handles sensation, movement, memory and emotion.' },
+  { id: 'skull', part: 'skull', system: 'skeleton', side: 'left', at: [-0.045, 0.95, 0.03], vi: 'Hộp sọ', en: 'Skull', info: 'Gồm 22 xương khớp chặt với nhau, bảo vệ não và nâng đỡ khuôn mặt.', infoEn: '22 bones fused together that protect the brain and shape the face.' },
+  { id: 'spine', part: 'spine', system: 'skeleton', side: 'left', at: [0, 0.69, -0.03], vi: 'Cột sống', en: 'Spine', info: '33 đốt sống (24 đốt di động) nâng đỡ cơ thể và bảo vệ tủy sống.', infoEn: '33 vertebrae (24 of them movable) that hold the body up and protect the spinal cord.' },
+  { id: 'ribs', part: 'ribs', system: 'skeleton', side: 'left', at: [-0.09, 0.76, 0.03], vi: 'Xương sườn', en: 'Ribs', info: '12 đôi xương sườn tạo thành lồng ngực che chắn tim và phổi.', infoEn: '12 pairs of ribs form the cage that shields the heart and lungs.' },
+  { id: 'lungs', part: 'lungL', system: 'organs', side: 'right', at: [0.065, 0.775, 0.04], vi: 'Phổi', en: 'Lungs', info: 'Trao đổi khí: đưa oxy vào máu và thải CO₂ ra ngoài qua khoảng 300 triệu phế nang.', infoEn: 'Gas exchange: oxygen into the blood and CO₂ out, through about 300 million alveoli.' },
+  { id: 'heart', part: 'heart', system: 'organs', side: 'right', at: [0.02, 0.742, 0.055], vi: 'Tim', en: 'Heart', info: 'Khối cơ bốn buồng, bơm khoảng 5 lít máu mỗi phút đi khắp cơ thể.', infoEn: 'A four-chambered muscle that pumps about 5 litres of blood a minute around the body.' },
+  { id: 'aorta', part: 'aorta', system: 'vessels', side: 'right', at: [0.006, 0.7, 0], vi: 'Động mạch chủ', en: 'Aorta', info: 'Động mạch lớn nhất, dẫn máu giàu oxy từ tim tới toàn bộ cơ thể.', infoEn: 'The largest artery, carrying oxygen-rich blood from the heart to the whole body.' },
+  { id: 'liver', part: 'liver', system: 'organs', side: 'left', at: [-0.055, 0.672, 0.05], vi: 'Gan', en: 'Liver', info: 'Chuyển hóa dưỡng chất, khử độc, dự trữ glycogen và sản xuất mật.', infoEn: 'Processes nutrients, removes toxins, stores glycogen and makes bile.' },
+  { id: 'stomach', part: 'stomach', system: 'organs', side: 'right', at: [0.05, 0.665, 0.05], vi: 'Dạ dày', en: 'Stomach', info: 'Co bóp và tiết acid, enzyme để nghiền và tiêu hóa thức ăn.', infoEn: 'Churns food and releases acid and enzymes to break it down.' },
+  { id: 'kidneys', part: 'kidneyL', system: 'organs', side: 'right', at: [0.045, 0.628, -0.01], vi: 'Thận', en: 'Kidneys', info: 'Lọc máu, cân bằng nước, điện giải và tạo nước tiểu.', infoEn: 'Filter the blood, balance water and salts, and make urine.' },
+  { id: 'intestines', part: 'intestines', system: 'organs', side: 'left', at: [-0.03, 0.585, 0.05], vi: 'Ruột', en: 'Intestines', info: 'Ruột non hấp thu dưỡng chất; ruột già hấp thu nước và tạo phân.', infoEn: 'The small intestine absorbs nutrients; the large intestine absorbs water and forms stool.' },
+  { id: 'pelvis', part: 'pelvis', system: 'skeleton', side: 'left', at: [-0.08, 0.535, 0.01], vi: 'Xương chậu', en: 'Pelvis', info: 'Truyền trọng lượng thân trên xuống hai chân và bảo vệ các cơ quan vùng chậu.', infoEn: 'Passes the weight of the upper body to the legs and protects the pelvic organs.' },
+  { id: 'humerus', part: 'humerusL', system: 'skeleton', side: 'right', at: [0.132, 0.73, 0], vi: 'Xương cánh tay', en: 'Humerus', info: 'Xương dài nối vai với khuỷu tay.', infoEn: 'The long bone between shoulder and elbow.' },
+  { id: 'femur', part: 'femurL', system: 'skeleton', side: 'right', at: [0.055, 0.4, 0.005], vi: 'Xương đùi', en: 'Femur', info: 'Xương dài và khỏe nhất cơ thể, nối hông với đầu gối.', infoEn: 'The longest and strongest bone in the body, from hip to knee.' },
+  { id: 'femoralArtery', part: 'femoralArteryR', system: 'vessels', side: 'left', at: [-0.066, 0.36, 0.02], vi: 'Động mạch đùi', en: 'Femoral artery', info: 'Nhánh chính cấp máu cho chi dưới.', infoEn: 'The main artery supplying the leg.' },
+  { id: 'tibia', part: 'tibiaR', system: 'skeleton', side: 'left', at: [-0.058, 0.16, 0], vi: 'Xương chày', en: 'Tibia', info: 'Xương ống chân chịu lực chính, nối đầu gối với cổ chân.', infoEn: 'The weight-bearing shin bone, from knee to ankle.' },
 ]);
 
 export function partsOf(system) {

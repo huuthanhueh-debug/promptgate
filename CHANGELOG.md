@@ -2,6 +2,7 @@
 
 ## Unreleased — Vision 6D (Android, three.js)
 - New `mobile/`: **Vision 6D**, an Android app (WebView shell + three.js r170, vendored). Take or pick a photo, then either view it as a depth relief you move on six axes (J1–J6: yaw, pitch, roll, x, y, z; touch, sliders or gyroscope; photo / mixed / hologram styles; layer teardown), or, when the photo shows a person, overlay a holographic anatomy model (skeleton, organs, vessels, DNA helix, Vietnamese labels with info cards).
+- Bilingual interface: an `EN` / `VI` button on both screens switches every control, anatomy label and info card; first run follows the device language and the choice is remembered.
 - Fully offline: the APK asks for CAMERA only, no INTERNET permission. Depth and person detection are heuristics over pixels, no ML model.
 - `node mobile/build.js [--apk]` builds the web bundle and the APK straight from the Android SDK tools (aapt2, javac, d8, apksigner) with an in-repo aligned zip writer. No Gradle, no npm dependencies. Workflow `mobile-apk` builds, verifies and uploads the APK.
 - Tests: `tests/mobile.js` (heuristics, pose math, anatomy data, scene builders on real three.js, build, zip, APK contents where an SDK exists), wired into `node tests/run.js`; `tests/mobile-e2e.js` drives the page in Chromium (optional, needs Playwright).

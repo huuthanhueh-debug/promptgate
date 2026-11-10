@@ -7,6 +7,8 @@
 
 Điều khiển: 1 ngón kéo để xoay; 2 ngón chụm (tiến/lùi), xoắn (nghiêng), kéo (trượt). Thêm **Tự xoay**, **Con quay** (nghiêng điện thoại) và **Lưu ảnh**.
 
+Giao diện **song ngữ Việt / Anh**: nút `EN` / `VI` ở góc trên của cả hai màn hình đổi toàn bộ nút bấm, nhãn giải phẫu và mô tả. App tự chọn theo ngôn ngữ máy ở lần mở đầu và nhớ lựa chọn cho lần sau.
+
 App chạy hoàn toàn offline. APK không xin quyền Internet, chỉ xin quyền Camera; ảnh không rời khỏi máy.
 
 ## Cài lên điện thoại
@@ -36,6 +38,7 @@ Camera chỉ mở được trên `https://` hoặc `localhost`. Không có camer
 | `src/lib/sixdof.js` | Toán 6 trục: giới hạn, cử chỉ, con quay |
 | `src/lib/anatomy.js` | Dữ liệu giải phẫu (83 bộ phận, 16 nhãn) |
 | `src/lib/scene.js` | Dựng mesh three.js: ảnh nổi, cơ thể, DNA |
+| `src/lib/i18n.js` | Bảng chuỗi tiếng Việt và tiếng Anh |
 | `src/app.js`, `src/index.html` | Giao diện, camera, vòng lặp render |
 | `src/vendor/` | three.js r170 (MIT), kèm giấy phép |
 | `android/` | Vỏ WebView (Java), manifest, icon, trình ghi zip |

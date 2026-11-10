@@ -2,12 +2,12 @@
 // a six-axis robot arm: J1-J3 rotate, J4-J6 translate. Pure math, no DOM and no three.js.
 
 export const AXES = Object.freeze([
-  { id: 'J1', key: 'yaw', vi: 'Xoay ngang', unit: '°', min: -180, max: 180, step: 1, wrap: true },
-  { id: 'J2', key: 'pitch', vi: 'Ngửa / cúi', unit: '°', min: -85, max: 85, step: 1 },
-  { id: 'J3', key: 'roll', vi: 'Nghiêng', unit: '°', min: -180, max: 180, step: 1, wrap: true },
-  { id: 'J4', key: 'x', vi: 'Trượt ngang', unit: '', min: -1.5, max: 1.5, step: 0.01 },
-  { id: 'J5', key: 'y', vi: 'Trượt dọc', unit: '', min: -1.5, max: 1.5, step: 0.01 },
-  { id: 'J6', key: 'z', vi: 'Tiến / lùi', unit: '', min: -2.5, max: 1.2, step: 0.01 },
+  { id: 'J1', key: 'yaw', vi: 'Xoay ngang', en: 'Turn', unit: '°', min: -180, max: 180, step: 1, wrap: true },
+  { id: 'J2', key: 'pitch', vi: 'Ngửa / cúi', en: 'Tilt', unit: '°', min: -85, max: 85, step: 1 },
+  { id: 'J3', key: 'roll', vi: 'Nghiêng', en: 'Roll', unit: '°', min: -180, max: 180, step: 1, wrap: true },
+  { id: 'J4', key: 'x', vi: 'Trượt ngang', en: 'Slide X', unit: '', min: -1.5, max: 1.5, step: 0.01 },
+  { id: 'J5', key: 'y', vi: 'Trượt dọc', en: 'Slide Y', unit: '', min: -1.5, max: 1.5, step: 0.01 },
+  { id: 'J6', key: 'z', vi: 'Tiến / lùi', en: 'Push / pull', unit: '', min: -2.5, max: 1.2, step: 0.01 },
 ]);
 
 const BY_ID = Object.fromEntries(AXES.map((a) => [a.id, a]));

@@ -1,0 +1,125 @@
+// Vision 6D interface strings, Vietnamese and English. Pure data and lookups: no DOM.
+
+export const LANGS = Object.freeze(['vi', 'en']);
+
+export const STRINGS = Object.freeze({
+  vi: {
+    'lang.switch': 'EN',
+    'lang.switchLabel': 'Switch to English',
+    'home.tagline': 'Chụp bất kỳ thứ gì để dựng ảnh nổi 6 trục. Chụp người để xem cấu trúc cơ thể.',
+    'home.pick': 'Thư viện',
+    'home.flip': 'Đổi camera',
+    'home.shutter': 'Chụp ảnh',
+    'home.demoScene': 'Ảnh mẫu 6D',
+    'home.demoPerson': 'Ảnh mẫu cơ thể',
+    'viewer.back': '← Chụp lại',
+    'mode.label': 'Chế độ',
+    'mode.relief': '6D',
+    'mode.body': 'Cơ thể',
+    'tab.view': 'Hiển thị',
+    'tab.axes': '6 trục',
+    'tab.align': 'Căn chỉnh',
+    'style.photo': 'Ảnh nổi',
+    'style.mix': 'Kết hợp',
+    'style.holo': 'Hologram',
+    'ctl.strength': 'Độ sâu',
+    'ctl.explode': 'Tách lớp',
+    'sys.skeleton': 'Xương',
+    'sys.organs': 'Cơ quan',
+    'sys.vessels': 'Mạch máu',
+    'sys.photo': 'Ảnh nền',
+    'btn.orbit': 'Tự xoay',
+    'btn.gyro': 'Con quay',
+    'btn.reset': 'Đặt lại',
+    'btn.save': 'Lưu ảnh',
+    'disclaimer': 'Mô hình giải phẫu chỉ mang tính minh họa, không dùng để chẩn đoán y khoa.',
+    'fit.scale': 'Kích thước',
+    'fit.x': 'Trái / phải',
+    'fit.y': 'Lên / xuống',
+    'fit.note': 'Kéo các thanh để khớp mô hình với người trong ảnh.',
+    'notice.noCamera': 'Thiết bị không hỗ trợ camera trong ứng dụng. Hãy chọn ảnh từ Thư viện hoặc dùng ảnh mẫu.',
+    'notice.denied': 'Chưa có quyền dùng camera. Hãy cấp quyền trong Cài đặt, hoặc chọn ảnh từ Thư viện / ảnh mẫu.',
+    'notice.failed': 'Không mở được camera. Hãy chọn ảnh từ Thư viện hoặc dùng ảnh mẫu.',
+    'toast.cameraNotReady': 'Camera chưa sẵn sàng',
+    'toast.badFile': 'Không đọc được ảnh này. Hãy thử ảnh JPG hoặc PNG khác.',
+    'toast.badImage': 'Ảnh không hợp lệ',
+    'toast.noWebGL': 'Thiết bị không hỗ trợ WebGL nên không dựng được 3D.',
+    'toast.person': 'Phát hiện người trong ảnh → chế độ Cơ thể',
+    'toast.noPerson': 'Không thấy người trong ảnh → chế độ 6D',
+    'toast.noGyro': 'Thiết bị không có cảm biến con quay.',
+    'toast.gyroSilent': 'Không nhận được dữ liệu con quay trên thiết bị này.',
+    'toast.saved': 'Đã lưu ảnh',
+    'toast.savedTo': 'Đã lưu vào: {where}',
+    'toast.saveFailed': 'Không lưu được ảnh trên thiết bị này.',
+  },
+  en: {
+    'lang.switch': 'VI',
+    'lang.switchLabel': 'Chuyển sang tiếng Việt',
+    'home.tagline': 'Photograph anything to build a six-axis 3D relief. Photograph a person to see the body structure.',
+    'home.pick': 'Gallery',
+    'home.flip': 'Flip camera',
+    'home.shutter': 'Take photo',
+    'home.demoScene': '6D sample',
+    'home.demoPerson': 'Body sample',
+    'viewer.back': '← Retake',
+    'mode.label': 'Mode',
+    'mode.relief': '6D',
+    'mode.body': 'Body',
+    'tab.view': 'Display',
+    'tab.axes': '6 axes',
+    'tab.align': 'Align',
+    'style.photo': 'Relief',
+    'style.mix': 'Mixed',
+    'style.holo': 'Hologram',
+    'ctl.strength': 'Depth',
+    'ctl.explode': 'Teardown',
+    'sys.skeleton': 'Bones',
+    'sys.organs': 'Organs',
+    'sys.vessels': 'Vessels',
+    'sys.photo': 'Photo',
+    'btn.orbit': 'Auto-spin',
+    'btn.gyro': 'Gyro',
+    'btn.reset': 'Reset',
+    'btn.save': 'Save',
+    'disclaimer': 'The anatomy model is an illustration only, not for medical diagnosis.',
+    'fit.scale': 'Size',
+    'fit.x': 'Left / right',
+    'fit.y': 'Up / down',
+    'fit.note': 'Drag the sliders to line the model up with the person in the photo.',
+    'notice.noCamera': 'This device does not support the in-app camera. Pick a photo from the Gallery or use a sample.',
+    'notice.denied': 'Camera permission is off. Allow it in Settings, or pick a photo from the Gallery / use a sample.',
+    'notice.failed': 'Could not open the camera. Pick a photo from the Gallery or use a sample.',
+    'toast.cameraNotReady': 'Camera is not ready yet',
+    'toast.badFile': 'Could not read this image. Try another JPG or PNG.',
+    'toast.badImage': 'Invalid image',
+    'toast.noWebGL': 'This device does not support WebGL, so 3D cannot be rendered.',
+    'toast.person': 'Person detected → Body mode',
+    'toast.noPerson': 'No person found → 6D mode',
+    'toast.noGyro': 'This device has no gyroscope.',
+    'toast.gyroSilent': 'No gyroscope data on this device.',
+    'toast.saved': 'Image saved',
+    'toast.savedTo': 'Saved to: {where}',
+    'toast.saveFailed': 'Could not save the image on this device.',
+  },
+});
+
+export function normalizeLang(lang) {
+  const l = String(lang || '').toLowerCase().slice(0, 2);
+  return LANGS.includes(l) ? l : null;
+}
+
+// Stored choice wins, then the device language, then Vietnamese.
+export function pickLang(stored, deviceLang) {
+  return normalizeLang(stored) || normalizeLang(deviceLang) || 'vi';
+}
+
+export function otherLang(lang) {
+  return normalizeLang(lang) === 'en' ? 'vi' : 'en';
+}
+
+// Looks a string up, filling {placeholders}. Falls back to Vietnamese, then to the key itself.
+export function t(lang, key, vars) {
+  const table = STRINGS[normalizeLang(lang) || 'vi'];
+  const s = key in table ? table[key] : key in STRINGS.vi ? STRINGS.vi[key] : key;
+  return vars ? s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m)) : s;
+}

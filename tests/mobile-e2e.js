@@ -33,7 +33,7 @@ function check(name, cond, extra) {
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
   const url = `http://127.0.0.1:${server.address().port}/index.html`;
   const browser = await chromium.launch({ args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream', '--enable-unsafe-swiftshader'] });
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, permissions: ['camera'] });
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, permissions: ['camera'], locale: 'vi-VN' });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
@@ -48,6 +48,7 @@ function check(name, cond, extra) {
     await page.waitForFunction(() => !!window.__v6d);
     await page.waitForFunction(() => !document.getElementById('shutter').disabled, null, { timeout: 15000 }).catch(() => {});
     check('camera preview starts (fake device) and enables the shutter', await page.$eval('#shutter', (b) => !b.disabled));
+    check('starts in Vietnamese on a Vietnamese device', (await snap()).lang === 'vi' && (await page.textContent('#pick')) === 'Thư viện' && (await page.textContent('#home [data-lang-toggle]')) === 'EN');
     await shot('1-home');
 
     console.log('body mode');
@@ -63,7 +64,24 @@ function check(name, cond, extra) {
     s = await snap();
     check('tapping a label selects the part and opens its info card', s.selected === 'heart' && (await page.isVisible('#info')) && (await page.textContent('#info b')) === 'Tim');
     await shot('3-body-heart');
-    await page.click('.label[data-label="heart"]');
+    console.log('language switch');
+    await page.click('#viewer [data-lang-toggle]');
+    s = await snap();
+    check('one tap switches every control to English', s.lang === 'en' && (await page.textContent('#back')) === '← Retake' && (await page.textContent('#mode-body')) === 'Body' && (await page.textContent('[data-system="skeleton"]')) === 'Bones' && (await page.textContent('#save')) === 'Save');
+    check('anatomy labels and the open info card switch too', (await page.textContent('.label[data-label="heart"]')) === 'Heart' && (await page.textContent('#info b')) === 'Heart' && (await page.textContent('#info i')) === 'Tim' && /four-chambered/.test(await page.textContent('#info p')));
+    await page.click('[data-tab="axes"]');
+    check('axis names switch', /J1 · Turn/.test(await page.textContent('label[for="axis-J1"]')));
+    await page.waitForTimeout(150);
+    await shot('3b-body-english');
+    await page.click('[data-tab="view"]');
+    await page.reload();
+    await page.waitForFunction(() => !!window.__v6d);
+    check('the choice survives a restart', (await snap()).lang === 'en' && (await page.textContent('#pick')) === 'Gallery');
+    await page.click('#home [data-lang-toggle]');
+    check('and switches back to Vietnamese from the home screen', (await snap()).lang === 'vi' && (await page.textContent('#demo-person')) === 'Ảnh mẫu cơ thể');
+    await page.click('#demo-person');
+    await page.waitForFunction(() => window.__v6d.snapshot().rendering);
+    await page.waitForTimeout(300);
     await slide('explode', 1);
     await page.click('[data-system="organs"]');
     s = await snap();

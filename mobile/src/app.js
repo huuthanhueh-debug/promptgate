@@ -4,6 +4,7 @@ import * as THREE from './vendor/three.module.min.js';
 import { estimateDepth, detectPerson } from './lib/depth.js';
 import { AXES, defaultPose, setAxis, applyDrag, applyPinch, orbitPose, poseFromOrientation, poseToTransform } from './lib/sixdof.js';
 import { LABELS, SYSTEMS, fitToBBox, explodeOffset, labelForPart } from './lib/anatomy.js';
+import { t, pickLang, otherLang } from './lib/i18n.js';
 import { buildRelief, updateRelief, setReliefStyle, buildAnatomy, setExplode, setSystemVisible, highlightPart, animateAnatomy, buildDNA, disposeTree } from './lib/scene.js';
 
 const $ = (id) => document.getElementById(id);
@@ -25,7 +26,9 @@ const state = {
   selected: null,
   person: null,
   facing: 'environment',
+  lang: 'vi',
 };
+const tr = (key, vars) => t(state.lang, key, vars);
 
 // ---------- small UI helpers ----------
 let toastTimer = 0;
@@ -36,10 +39,12 @@ function toast(msg, ms) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), ms || 2600);
 }
-function notice(msg) {
+let noticeKey = '';
+function notice(key) {
+  noticeKey = key || '';
   const n = $('notice');
-  n.textContent = msg || '';
-  n.style.display = msg ? 'block' : 'none';
+  n.textContent = key ? tr(key) : '';
+  n.style.display = key ? 'block' : 'none';
 }
 function showScreen(name) {
   state.screen = name;
@@ -58,7 +63,7 @@ function stopCamera() {
 async function startCamera() {
   stopCamera();
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    notice('Thiết bị không hỗ trợ camera trong ứng dụng. Hãy chọn ảnh từ Thư viện hoặc dùng ảnh mẫu.');
+    notice('notice.noCamera');
     return;
   }
   try {
@@ -73,14 +78,12 @@ async function startCamera() {
     notice('');
   } catch (e) {
     const denied = e && (e.name === 'NotAllowedError' || e.name === 'SecurityError');
-    notice(denied
-      ? 'Chưa có quyền dùng camera. Hãy cấp quyền trong Cài đặt, hoặc chọn ảnh từ Thư viện / ảnh mẫu.'
-      : 'Không mở được camera. Hãy chọn ảnh từ Thư viện hoặc dùng ảnh mẫu.');
+    notice(denied ? 'notice.denied' : 'notice.failed');
   }
 }
 function capture() {
   const v = $('preview');
-  if (!v.videoWidth) { toast('Camera chưa sẵn sàng'); return; }
+  if (!v.videoWidth) { toast(tr('toast.cameraNotReady')); return; }
   const c = document.createElement('canvas');
   c.width = v.videoWidth; c.height = v.videoHeight;
   c.getContext('2d').drawImage(v, 0, 0);
@@ -99,7 +102,7 @@ async function pickFile(file) {
     loadSource(img, img.width, img.height);
     if (img.close) img.close();
   } catch (_) {
-    toast('Không đọc được ảnh này. Hãy thử ảnh JPG hoặc PNG khác.');
+    toast(tr('toast.badFile'));
   }
 }
 
@@ -287,7 +290,6 @@ function buildLabels() {
   for (const l of LABELS) {
     const b = document.createElement('button');
     b.className = 'label';
-    b.textContent = l.vi;
     b.dataset.label = l.id;
     b.addEventListener('click', () => select(state.selected && state.selected.id === l.id ? null : l));
     hud.appendChild(b);
@@ -349,9 +351,10 @@ function select(label) {
   const info = $('info');
   info.style.display = label ? 'block' : 'none';
   if (label) {
-    info.querySelector('b').textContent = label.vi;
-    info.querySelector('i').textContent = label.en;
-    info.querySelector('p').textContent = label.info;
+    const en = state.lang === 'en';
+    info.querySelector('b').textContent = en ? label.en : label.vi;
+    info.querySelector('i').textContent = en ? label.vi : label.en;
+    info.querySelector('p').textContent = en ? label.infoEn : label.info;
   }
 }
 function tapAt(x, y) {
@@ -428,7 +431,6 @@ function buildControls() {
     const row = document.createElement('div');
     row.className = 'row';
     const label = document.createElement('label');
-    label.textContent = `${a.id} · ${a.vi}`;
     label.htmlFor = 'axis-' + a.id;
     const input = document.createElement('input');
     Object.assign(input, { type: 'range', id: 'axis-' + a.id, min: a.min, max: a.max, step: a.step });
@@ -436,7 +438,7 @@ function buildControls() {
     input.addEventListener('input', () => { state.pose = setAxis(state.pose, a.id, Number(input.value)); syncAxes(); });
     row.append(label, input, out);
     axes.appendChild(row);
-    axisInputs[a.key] = { input, out, a };
+    axisInputs[a.key] = { input, out, a, label };
   }
   for (const b of document.querySelectorAll('.tabs button')) {
     b.addEventListener('click', () => {
@@ -494,6 +496,25 @@ function setMode(mode) {
   layout();
 }
 
+// ---------- language ----------
+function applyLang() {
+  document.documentElement.lang = state.lang;
+  for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = tr(el.dataset.i18n);
+  for (const el of document.querySelectorAll('[data-i18n-aria]')) el.setAttribute('aria-label', tr(el.dataset.i18nAria));
+  for (const b of document.querySelectorAll('[data-lang-toggle]')) { b.textContent = tr('lang.switch'); b.setAttribute('aria-label', tr('lang.switchLabel')); }
+  for (const l of LABELS) labelEls.get(l.id).b.textContent = state.lang === 'en' ? l.en : l.vi;
+  for (const key in axisInputs) { const { a, label } = axisInputs[key]; label.textContent = `${a.id} · ${state.lang === 'en' ? a.en : a.vi}`; }
+  labelWidths = null; // label text changed, so their widths did too
+  if (noticeKey) notice(noticeKey);
+  if (state.selected) select(state.selected);
+  if (renderer) layout();
+}
+function setLang(lang) {
+  state.lang = pickLang(lang, null);
+  try { localStorage.setItem('v6d.lang', state.lang); } catch (_) { /* private mode: keep it for this session only */ }
+  applyLang();
+}
+
 // ---------- gyroscope ----------
 function onOrientation(e) {
   if (!state.gyro || e.beta == null || e.gamma == null) return;
@@ -508,9 +529,9 @@ function setGyro(on) {
 }
 function toggleGyro() {
   if (state.gyro) return setGyro(false);
-  if (!('DeviceOrientationEvent' in window)) return toast('Thiết bị không có cảm biến con quay.');
+  if (!('DeviceOrientationEvent' in window)) return toast(tr('toast.noGyro'));
   setGyro(true);
-  setTimeout(() => { if (state.gyro && !Number.isFinite(state.gyro.beta)) { setGyro(false); toast('Không nhận được dữ liệu con quay trên thiết bị này.'); } }, 1500);
+  setTimeout(() => { if (state.gyro && !Number.isFinite(state.gyro.beta)) { setGyro(false); toast(tr('toast.gyroSilent')); } }, 1500);
 }
 
 // ---------- save ----------
@@ -519,23 +540,25 @@ function saveImage() {
   const url = $('stage').toDataURL('image/png');
   try {
     if (window.AndroidBridge && window.AndroidBridge.saveImage) {
-      toast(window.AndroidBridge.saveImage(url.slice(url.indexOf(',') + 1)));
+      // The shell answers "ok:<folder>" or "error".
+      const res = String(window.AndroidBridge.saveImage(url.slice(url.indexOf(',') + 1)));
+      toast(res.startsWith('ok:') ? tr('toast.savedTo', { where: res.slice(3) }) : tr('toast.saveFailed'));
       return;
     }
     const a = document.createElement('a');
     a.href = url;
     a.download = `vision6d-${Date.now()}.png`;
     a.click();
-    toast('Đã lưu ảnh');
+    toast(tr('toast.saved'));
   } catch (_) {
-    toast('Không lưu được ảnh trên thiết bị này.');
+    toast(tr('toast.saveFailed'));
   }
 }
 
 // ---------- pipeline ----------
 function loadSource(src, sw, sh, forceMode) {
-  if (!sw || !sh) { toast('Ảnh không hợp lệ'); return; }
-  if (!initThree()) { toast('Thiết bị không hỗ trợ WebGL nên không dựng được 3D.', 5000); return; }
+  if (!sw || !sh) { toast(tr('toast.badImage')); return; }
+  if (!initThree()) { toast(tr('toast.noWebGL'), 5000); return; }
   const k = Math.min(1, MAX_TEXTURE / Math.max(sw, sh));
   const tex = document.createElement('canvas');
   tex.width = Math.max(2, Math.round(sw * k)); tex.height = Math.max(2, Math.round(sh * k));
@@ -559,7 +582,7 @@ function loadSource(src, sw, sh, forceMode) {
   select(null);
   document.querySelector('[data-tab="view"]').click(); // also re-runs layout()
   startLoop();
-  if (!forceMode) toast(person.isPerson ? 'Phát hiện người trong ảnh → chế độ Cơ thể' : 'Không thấy người trong ảnh → chế độ 6D');
+  if (!forceMode) toast(tr(person.isPerson ? 'toast.person' : 'toast.noPerson'));
 }
 function goHome() {
   if (state.screen !== 'viewer') return false;
@@ -574,6 +597,11 @@ function goHome() {
 buildLabels();
 buildControls();
 bindGestures();
+let storedLang = null;
+try { storedLang = localStorage.getItem('v6d.lang'); } catch (_) { /* storage unavailable */ }
+state.lang = pickLang(storedLang, navigator.language);
+applyLang();
+for (const b of document.querySelectorAll('[data-lang-toggle]')) b.addEventListener('click', () => setLang(otherLang(state.lang)));
 $('shutter').addEventListener('click', capture);
 $('flip').addEventListener('click', () => { state.facing = state.facing === 'user' ? 'environment' : 'user'; startCamera(); });
 $('pick').addEventListener('click', () => $('file').click());
@@ -591,7 +619,7 @@ window.__v6dBack = goHome;
 // Read-only snapshot for the end-to-end test.
 window.__v6d = {
   snapshot: () => ({
-    screen: state.screen, mode: state.mode, pose: { ...state.pose }, explode: state.explode, style: state.style,
+    screen: state.screen, lang: state.lang, mode: state.mode, pose: { ...state.pose }, explode: state.explode, style: state.style,
     person: state.person && { isPerson: state.person.isPerson, score: state.person.score },
     selected: state.selected && state.selected.id,
     three: THREE.REVISION, rendering: !!raf,
