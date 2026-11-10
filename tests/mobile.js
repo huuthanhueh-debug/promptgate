@@ -293,7 +293,7 @@ function personImage(w, h) {
       console.log('  skip APK build (no Android SDK here; missing: ' + tools.missing.join(', ') + ')');
     } else {
       let apk = null, err = '';
-      try { apk = B.buildApk({ quiet: true }); } catch (e) { err = e.message; }
+      try { apk = B.buildApk({ quiet: true }); } catch (e) { err = e.message.replace(/\s*\r?\n\s*/g, ' ⏎ '); } // one line, so tests/run.js relays the whole tool error
       check('APK builds and its signature verifies', !!apk && fs.existsSync(apk), err);
       if (apk) {
         const files = zip.readZip(fs.readFileSync(apk));
