@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; connect-src https://api.anthropic.com">
+<meta name="theme-color" content="#16a36a">
+<title>FoodLens</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="26" r="17" fill="#fff"/><path d="M24 12c-2-6 3-9 7-8-1 5-3 7-7 8z" fill="#b7e34a"/><circle cx="24" cy="26" r="9" fill="none" stroke="#16a36a" stroke-width="3.5"/><circle cx="24" cy="26" r="3" fill="#ff8a3d"/></svg>
+    <div><h1>FoodLens</h1><p id="tagline">Chụp món ăn, hiểu ngay khẩu phần</p></div>
+  </div>
+</header>
+
+<main>
+  <section id="view-scan" class="view">
+    <div id="need-key" class="card notice" hidden>
+      <b>Cần API key để phân tích ảnh</b>
+      <p>Nhập Anthropic API key một lần trong Cài đặt. Tab Tra cứu dùng được ngay, không cần mạng.</p>
+      <button class="btn small" data-go="settings">Mở Cài đặt</button>
+    </div>
+    <div class="card pick">
+      <div id="preview" class="preview empty"><span>Ảnh món ăn sẽ hiện ở đây</span></div>
+      <div class="row">
+        <label class="btn primary"><input id="cam" type="file" accept="image/*" capture="environment" hidden><span>Chụp ảnh</span></label>
+        <label class="btn ghost"><input id="gal" type="file" accept="image/*" hidden><span>Chọn từ máy</span></label>
+      </div>
+      <input id="note" class="field" type="text" maxlength="200" placeholder="Ghi chú (không bắt buộc): 1 chén cơm, ăn nửa phần…">
+      <button id="analyze" class="btn accent wide" disabled>Phân tích khẩu phần</button>
+      <p id="scan-error" class="error" hidden></p>
+    </div>
+    <div id="loading" class="card loading" hidden>
+      <div class="dots"><i></i><i></i><i></i><i></i></div>
+      <p>Đang nhận diện món ăn và ước lượng khẩu phần…</p>
+    </div>
+    <div id="scan-result"></div>
+  </section>
+
+  <section id="view-lookup" class="view" hidden>
+    <div class="card">
+      <input id="q" class="field" type="search" placeholder="Tìm thực phẩm: táo, phở, cơm, sữa chua…" autocomplete="off">
+      <div id="food-list" class="food-list"></div>
+    </div>
+    <div id="lookup-result"></div>
+  </section>
+
+  <section id="view-diary" class="view" hidden>
+    <div id="diary-today" class="card today"></div>
+    <div id="diary-list"></div>
+    <button id="diary-clear" class="btn ghost wide" hidden>Xóa toàn bộ nhật ký</button>
+    <div id="diary-result"></div>
+  </section>
+
+  <section id="view-settings" class="view" hidden>
+    <div class="card form">
+      <label>Anthropic API key
+        <input id="set-key" class="field" type="password" placeholder="sk-ant-…" autocomplete="off" spellcheck="false">
+      </label>
+      <p class="hint">Key chỉ lưu trong bộ nhớ riêng của app trên máy này và chỉ gửi tới api.anthropic.com. Tạo key tại console.anthropic.com.</p>
+      <label>Mô hình phân tích
+        <select id="set-model" class="field"></select>
+      </label>
+      <label>Mục tiêu carb thực mỗi bữa (g)
+        <input id="set-carb" class="field" type="number" min="10" max="150" step="5" inputmode="numeric">
+      </label>
+      <label class="check"><input id="set-diabetes" type="checkbox"> Tôi theo dõi đường huyết (tiểu đường type 2)</label>
+      <button id="set-save" class="btn primary wide">Lưu cài đặt</button>
+      <p id="set-msg" class="ok" hidden>Đã lưu.</p>
+    </div>
+    <div class="card about">
+      <b>Cách FoodLens đánh giá</b>
+      <p>AI nhận diện món và ước lượng gram, calo, carb, đường, đạm, béo. Mức ảnh hưởng đường huyết, low-carb và clean eating được app tính từ các con số đó: tải đường huyết GL (dưới 10 thấp, từ 20 cao), carb thực so với mục tiêu bữa, đường bổ sung và mức độ chế biến NOVA.</p>
+      <p class="hint">Số liệu là ước tính từ hình ảnh, có thể lệch 20 đến 30%. Không thay thế tư vấn của bác sĩ; không dùng để chỉnh liều thuốc hay insulin.</p>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs">
+  <button data-tab="scan" class="on"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Chụp</span></button>
+  <button data-tab="lookup"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M16 16l4.5 4.5"/></svg><span>Tra cứu</span></button>
+  <button data-tab="diary"><svg viewBox="0 0 24 24"><path d="M6 4h12v16H6z"/><path d="M9 9h6M9 13h6M9 17h3"/></svg><span>Nhật ký</span></button>
+  <button data-tab="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg><span>Cài đặt</span></button>
+</nav>
+
+<script src="core.js"></script>
+<script src="foods.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

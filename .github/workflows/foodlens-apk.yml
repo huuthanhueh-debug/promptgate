@@ -1,0 +1,45 @@
+name: foodlens-apk
+on:
+  push:
+    branches: [main]
+    paths: ['foodlens/**', 'tests/foodlens*.js', '.github/workflows/foodlens-apk.yml']
+  pull_request:
+    paths: ['foodlens/**', 'tests/foodlens*.js', '.github/workflows/foodlens-apk.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: node tests/foodlens.js
+      # Optional: a fixed signing key so every build installs as an update of the previous one.
+      - name: Restore signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.FOODLENS_KEYSTORE_B64 }}
+        if: env.KEYSTORE_B64 != ''
+        run: echo "$KEYSTORE_B64" | base64 -d > foodlens/android/foodlens.keystore
+      - name: Build APK
+        env:
+          FOODLENS_KEYSTORE_PASS: ${{ secrets.FOODLENS_KEYSTORE_PASS || 'foodlens' }}
+        run: node foodlens/build-apk.js
+      - name: Check APK contents
+        run: |
+          unzip -l dist/FoodLens.apk
+          for f in AndroidManifest.xml classes.dex resources.arsc assets/web/index.html assets/web/app.js assets/web/core.js assets/web/foods.js assets/web/style.css; do
+            unzip -l dist/FoodLens.apk "$f" > /dev/null || { echo "missing $f"; exit 1; }
+          done
+          "$ANDROID_HOME"/build-tools/"$(ls "$ANDROID_HOME"/build-tools | sort -V | tail -1)"/apksigner verify --verbose --min-sdk-version 29 dist/FoodLens.apk | head -8
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FoodLens-apk
+          path: dist/FoodLens.apk
+          if-no-files-found: error

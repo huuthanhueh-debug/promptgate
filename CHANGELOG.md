@@ -1,5 +1,12 @@
 # Changelog
 
+## FoodLens 1.0.0 — 2026-11-10 — new Android app in `foodlens/`
+- Photo of any food → portion estimate (grams, kcal, carbs, sugar, protein, fat, fiber, sodium) through the Claude API, then app-computed verdicts for type 2 diabetes (glycemic load, net carbs vs. a per-meal target, added sugar), low-carb fit and a clean-eating score. Vietnamese UI.
+- Offline lookup table (64 foods), diary with daily totals, settings (API key, model, carb target).
+- Android shell (WebView, min Android 10) built by `node foodlens/build-apk.js` with the SDK tools; the `foodlens-apk` workflow builds and uploads the APK.
+- Tests: `tests/foodlens.js` (wired into `node tests/run.js`) and `tests/foodlens-e2e.js` (Chromium, API mocked).
+- PromptGate itself is unchanged.
+
 ## 1.3.1 — 2026-11-03 — doctor
 - New `/promptgate:doctor [--fix]` (`npm run doctor`): one command that checks every edition on this machine — plugin registration and a live hook run, Windows tray process, claude.ai bundle freshness, the optional virtual-office widget — and with `--fix` starts the tray and rebuilds the extension. `--json` for scripts; exit 1 only when the plugin or hook is broken.
 - Tests: `tests/doctor.js` (helpers with synthetic input + a real run in a temp config dir), wired into `node tests/run.js`.

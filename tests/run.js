@@ -155,6 +155,11 @@ const ext = spawnSync(process.execPath, [path.join(ROOT, 'tests/extension.js')],
 const extSummary = (ext.stdout || '').trim().split('\n').pop() || '';
 check(`tests/extension.js green (${extSummary})`, ext.status === 0, (ext.stdout || '').split('\n').filter((l) => /FAIL/.test(l)).join(' | ') || ext.stderr);
 
+console.log('foodlens (android food analyzer)');
+const fl = spawnSync(process.execPath, [path.join(ROOT, 'tests/foodlens.js')], { encoding: 'utf8', env: process.env, timeout: 120000 });
+const flSummary = (fl.stdout || '').trim().split('\n').pop() || '';
+check(`tests/foodlens.js green (${flSummary})`, fl.status === 0, (fl.stdout || '').split('\n').filter((l) => /FAIL/.test(l)).join(' | ') || fl.stderr);
+
 console.log('packaging');
 const scripts = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).scripts || {};
 const missingFiles = Object.entries(scripts).map(([n, c]) => { const m = /node\s+(\S+\.js)/.exec(c); return m && !fs.existsSync(path.join(ROOT, m[1])) ? n + ' -> ' + m[1] : null; }).filter(Boolean);
