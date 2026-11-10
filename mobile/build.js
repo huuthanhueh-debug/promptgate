@@ -17,7 +17,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { execFileSync } = require('child_process');
-const { writeZip } = require('./android/zip');
+const { writeZip, readZip } = require('./android/zip');
 const icon = require('./android/icon');
 
 const MOBILE = __dirname;
@@ -134,12 +134,13 @@ function buildApk(opts) {
     }
     const compiled = path.join(work, 'res.zip');
     run(tools.aapt2, ['compile', '--dir', res, '-o', compiled], quiet);
-    const linked = path.join(work, 'linked');
-    fs.mkdirSync(linked);
+    // Linked into an archive we then unpack ourselves: aapt2's --output-to-dir cannot create
+    // the res/ sub-folders on Windows.
+    const linked = path.join(work, 'linked.apk');
     run(tools.aapt2, ['link', '-I', tools.androidJar, '--manifest', path.join(ANDROID, 'AndroidManifest.xml'),
       '--min-sdk-version', String(APP.minSdk), '--target-sdk-version', String(APP.targetSdk),
       '--version-code', String(APP.versionCode), '--version-name', APP.version,
-      '--output-to-dir', '-o', linked, compiled], quiet);
+      '-o', linked, compiled], quiet);
 
     // 2. the WebView shell: javac -> d8
     const classes = path.join(work, 'classes');
@@ -153,7 +154,7 @@ function buildApk(opts) {
 
     // 3. assemble (aligned), then sign
     const entries = [];
-    for (const f of walk(linked, '')) entries.push({ name: f.rel, data: fs.readFileSync(f.full), store: STORED.test(f.rel) });
+    for (const e of readZip(fs.readFileSync(linked))) entries.push({ name: e.name, data: e.data, store: e.stored || STORED.test(e.name) });
     entries.push({ name: 'classes.dex', data: fs.readFileSync(path.join(dex, 'classes.dex')) });
     for (const f of walk(WWW, '')) entries.push({ name: 'assets/www/' + f.rel, data: fs.readFileSync(f.full), store: STORED.test(f.rel) });
     const unsigned = path.join(work, 'unsigned.apk');
