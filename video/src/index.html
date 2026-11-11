@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14110f">
+<title>PromptGate Video</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- Visible text is filled in by app.js from its VI/EN dictionary (data-t = text, data-ph = placeholder). -->
+<header>
+  <div class="top">
+    <h1>PromptGate <span>Video</span></h1>
+    <div class="hist"><button id="undo">↶</button><button id="redo">↷</button></div>
+    <div id="lang" class="lang" role="group" aria-label="Language">
+      <button data-lang="vi">VI</button><button data-lang="en">EN</button>
+    </div>
+  </div>
+  <p id="summary" class="muted"></p>
+</header>
+
+<main>
+  <section id="tab-brief" class="tab">
+    <label for="brief"><span data-t="brief.label"></span> <span class="muted" data-t="brief.hint"></span></label>
+    <textarea id="brief" rows="8" data-ph="brief.ph"></textarea>
+    <label for="consistency"><span data-t="keep.label"></span> <span class="muted" data-t="keep.hint"></span></label>
+    <input id="consistency" type="text" maxlength="300" data-ph="keep.ph">
+    <div class="row">
+      <div><label for="aspect" data-t="aspect"></label><select id="aspect"></select></div>
+      <div><label for="total" data-t="total"></label><input id="total" type="number" min="2" max="600" step="1" value="30"></div>
+      <div><label for="style" data-t="style"></label><select id="style"></select></div>
+    </div>
+    <button id="make" class="primary" data-t="make"></button>
+    <p class="muted small" data-t="brief.note"></p>
+  </section>
+
+  <section id="tab-scenes" class="tab" hidden>
+    <div id="scenes"></div>
+    <button id="add-scene" data-t="scene.add"></button>
+  </section>
+
+  <section id="tab-prompts" class="tab" hidden>
+    <div id="tools" class="chips"></div>
+    <div id="tool-info" class="card"></div>
+    <div id="warnings"></div>
+    <div id="prompts"></div>
+    <button id="copy-all" data-t="copy.all"></button>
+  </section>
+
+  <section id="tab-export" class="tab" hidden>
+    <div class="stage"><canvas id="preview"></canvas></div>
+    <div class="row tight">
+      <button id="play"></button>
+      <input id="seek" type="range" min="0" max="1000" value="0">
+      <span id="clock" class="muted">0:00</span>
+    </div>
+    <div id="timeline" class="timeline"><div id="playhead" class="playhead"></div></div>
+    <div class="row tight">
+      <button id="split" data-t="tl.split"></button>
+      <button id="dup" data-t="tl.dup"></button>
+      <button id="edit-scene" data-t="tl.edit"></button>
+      <label class="check"><input id="guides" type="checkbox"> <span data-t="guides"></span></label>
+    </div>
+
+    <details class="panel">
+      <summary data-t="panel.text"></summary>
+      <div class="row">
+        <div><label for="cap-pos" data-t="cap.pos"></label><select id="cap-pos"></select></div>
+        <div><label for="cap-size" data-t="cap.size"></label><select id="cap-size"></select></div>
+        <div><label for="cap-bg" data-t="cap.bg"></label><select id="cap-bg"></select></div>
+        <div><label for="cap-anim" data-t="cap.anim"></label><select id="cap-anim"></select></div>
+        <div><label for="cap-color" data-t="cap.color"></label><input id="cap-color" type="color" value="#ffffff"></div>
+      </div>
+      <label class="check"><input id="captions" type="checkbox" checked> <span data-t="captions"></span></label>
+    </details>
+
+    <details class="panel">
+      <summary data-t="panel.audio"></summary>
+      <label for="music" data-t="music"></label>
+      <input id="music" type="file" accept="audio/*">
+      <p id="music-name" class="media small"></p>
+      <div class="row">
+        <div><label for="volume" data-t="volume"></label><input id="volume" type="range" min="0" max="100" value="60"></div>
+        <div><label for="fade-in" data-t="music.fadeIn"></label><input id="fade-in" type="number" min="0" max="10" step="0.5"></div>
+        <div><label for="fade-out" data-t="music.fadeOut"></label><input id="fade-out" type="number" min="0" max="10" step="0.5"></div>
+      </div>
+      <label class="check"><input id="duck" type="checkbox"> <span data-t="music.duck"></span></label>
+      <label class="check"><input id="clip-audio" type="checkbox" checked> <span data-t="clipAudio"></span></label>
+      <button id="music-remove" data-t="music.remove"></button>
+    </details>
+
+    <details class="panel">
+      <summary data-t="panel.logo"></summary>
+      <label for="logo" data-t="logo.file"></label>
+      <input id="logo" type="file" accept="image/*">
+      <p id="logo-name" class="media small"></p>
+      <div class="row">
+        <div><label for="logo-pos" data-t="logo.pos"></label><select id="logo-pos"></select></div>
+        <div><label for="logo-size" data-t="logo.size"></label><input id="logo-size" type="range" min="6" max="40"></div>
+        <div><label for="logo-opacity" data-t="logo.opacity"></label><input id="logo-opacity" type="range" min="10" max="100"></div>
+      </div>
+      <button id="logo-remove" data-t="logo.remove"></button>
+    </details>
+
+    <details class="panel" open>
+      <summary data-t="panel.export"></summary>
+      <div class="row">
+        <div><label for="quality" data-t="quality"></label><select id="quality"></select></div>
+        <div><label for="fps" data-t="fps"></label><select id="fps"></select></div>
+        <div><label for="bitrate" data-t="bitrate"></label><select id="bitrate"></select></div>
+      </div>
+      <label class="check"><input id="end-fade" type="checkbox"> <span data-t="endFade"></span></label>
+    </details>
+
+    <button id="export" class="primary"></button>
+    <progress id="progress" max="1" value="0" hidden></progress>
+    <p id="export-status" class="muted" role="status"></p>
+    <div class="row tight">
+      <button id="save-srt" data-t="save.srt"></button>
+      <button id="save-json" data-t="save.json"></button>
+      <label class="filebtn"><span data-t="open.json"></span><input id="open-json" type="file" accept="application/json,.json" hidden></label>
+    </div>
+    <p class="muted small" data-t="export.note"></p>
+  </section>
+  <section id="tab-local" class="tab" hidden>
+    <div class="card">
+      <h3 data-t="local.title"></h3>
+      <p id="local-status" class="small"></p>
+      <p class="small muted" data-t="local.how"></p>
+      <pre id="local-cmd"></pre>
+    </div>
+    <div class="card">
+      <h3><span data-t="asst.title"></span><span id="asst-state" class="tag"></span></h3>
+      <p class="small muted" data-t="asst.hint"></p>
+      <div id="asst-log" class="chat" aria-live="polite"></div>
+      <div id="asst-ideas" class="chips"></div>
+      <textarea id="asst-input" rows="2" maxlength="2000" data-ph="asst.ph"></textarea>
+      <button id="asst-send" class="primary" data-t="asst.send"></button>
+    </div>
+  </section>
+</main>
+
+<nav id="nav">
+  <button data-tab="brief" class="on" data-t="tab.brief"></button>
+  <button data-tab="scenes" data-t="tab.scenes"></button>
+  <button data-tab="prompts" data-t="tab.prompts"></button>
+  <button data-tab="export" data-t="tab.export"></button>
+  <button data-tab="local" data-t="tab.local"></button>
+</nav>
+<div id="toast" role="status" hidden></div>
+
+<script src="core.js"></script>
+<script src="render.js"></script>
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
