@@ -2,33 +2,33 @@
 // PromptGate Video tests: core logic (storyboard, per-tool prompts, timeline, validation), the
 // localhost server, APK staging, and (when Playwright is installed) a real render in headless
 // Chromium that must produce a playable video file.
-// Run directly (node tests/video.js) or through tests/run.js.
+// Run directly: node tests/video.js (from the app folder).
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const http = require('http');
 
-const ROOT = path.resolve(__dirname, '..');
-const VID = path.join(ROOT, 'video');
+const VID = path.resolve(__dirname, '..'); // the app's own folder: nothing outside it is needed
 const V = require(path.join(VID, 'src', 'core.js'));
 const { createServer } = require(path.join(VID, 'server.js'));
 const apk = require(path.join(VID, 'android', 'build.js'));
 const I = require(path.join(VID, 'src', 'i18n.js'));
+const A = require(path.join(VID, 'assistant.js'));
 
 let pass = 0, fail = 0, skip = 0;
 function check(name, cond, extra) {
   if (cond) { pass++; console.log('  ok   ' + name); } else { fail++; console.log('  FAIL ' + name + (extra ? '  → ' + extra : '')); }
 }
 const sum = (a) => a.reduce((x, y) => x + y, 0);
-function get(port, p, method) {
+function get(port, p, method, headers, body) {
   return new Promise((resolve, reject) => {
-    const req = http.request({ host: '127.0.0.1', port, path: p, method: method || 'GET' }, (res) => {
+    const req = http.request({ host: '127.0.0.1', port, path: p, method: method || 'GET', headers: headers || {} }, (res) => {
       let body = '';
       res.on('data', (c) => { body += c; });
       res.on('end', () => resolve({ status: res.statusCode, type: res.headers['content-type'] || '', body }));
     });
     req.on('error', reject);
-    req.end();
+    req.end(body);
   });
 }
 
@@ -155,7 +155,7 @@ function get(port, p, method) {
   check('app.js holds no hard-coded Vietnamese outside comments', !fs.readFileSync(path.join(VID, 'src', 'app.js'), 'utf8').split('\n').some((l) => !/^\s*\/\//.test(l) && /[ạảãàáâăđêôơưếệộợữ]/i.test(l)));
 
   console.log('desktop server');
-  const server = createServer();
+  const server = createServer({ env: { PGV_NO_CLI: '1' } }); // no credentials: the assistant must stay off
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
   const port = server.address().port;
   const home = await get(port, '/');
@@ -164,13 +164,92 @@ function get(port, p, method) {
   check('path traversal and unknown files are 404', (await get(port, '/../server.js')).status === 404 && (await get(port, '/%2e%2e/%2e%2e/package.json')).status === 404 && (await get(port, '/nope.js')).status === 404);
   check('non-GET methods are refused', (await get(port, '/', 'POST')).status === 404);
 
+  console.log('assistant: edit operations');
+  const base = V.normalizeProject({ title: 'T', scenes: [{ id: 'a', text: 'one', duration: 4 }, { id: 'b', text: 'two', duration: 4 }, { id: 'c', text: 'three', duration: 4 }] });
+  const r1 = V.applyOps(base, [
+    { op: 'update_scene', scene: 2, set: { duration: 1.5, transition: 'wipe', look: 'film', id: 'hack', evil: 1 } },
+    { op: 'move_scene', scene: 3, to: 1 },
+    { op: 'update_project', set: { aspect: '16:9', caption: { pos: 'top', nope: 1 }, music: { volume: 0.2 }, scenes: [] } },
+    { op: 'add_scene', after: 0, set: { text: 'intro', duration: 2 } },
+  ]);
+  check('ops: update, move, project settings and add apply in order', r1.applied === 4 && r1.skipped.length === 0 && r1.project.scenes.map((x) => x.text).join() === 'intro,three,one,two' && r1.project.scenes[3].duration === 1.5 && r1.project.scenes[3].transition === 'wipe' && r1.project.aspect === '16:9' && r1.project.caption.pos === 'top' && r1.project.music.volume === 0.2);
+  check('ops: only whitelisted fields are copied (ids, unknown keys and the scene list are untouchable)', r1.project.scenes[3].id === 'b' && !('evil' in r1.project.scenes[3]) && !('nope' in r1.project.caption) && r1.project.scenes.length === 4);
+  check('ops: the input project is not modified', base.scenes.length === 3 && base.scenes[1].duration === 4);
+  const r2 = V.applyOps(base, [{ op: 'delete_scene', scene: 9 }, { op: 'rm -rf /' }, { op: 'update_scene', scene: 1, set: {} }, { op: 'split_scene', scene: 1, at: 0.1 }, null, 'x', { op: 'update_scene', scene: 1, set: { duration: 9999, look: 'constructor', speed: 'fast' } }]);
+  check('ops: bad scene numbers, unknown ops, empty and junk entries are skipped, not fatal', r2.applied === 1 && r2.skipped.map((x) => x.reason).join() === 'scene,unknown,nothing,split,unknown,unknown');
+  check('ops: out-of-range values are clamped by the project rules', r2.project.scenes[0].duration === V.LIMITS.sceneMax && r2.project.scenes[0].look === 'none' && r2.project.scenes[0].speed === 1);
+  const r3 = V.applyOps(base, [{ op: 'split_scene', scene: 1, at: 1.5 }, { op: 'duplicate_scene', scene: 3 }, { op: 'delete_scene', scene: 4 }], (id) => id === 'a');
+  check('ops: split and duplicate report media copies; a copy deleted later is dropped', r3.project.scenes.length === 4 && r3.copies.length === 1 && r3.copies[0].from === 'a' && r3.project.scenes[1].trimIn === 1.5);
+  const r4 = V.applyOps(base, [{ op: 'update_scene', scene: 1, set: { text: 'A brand new description' } }, { op: 'update_scene', scene: 2, set: { text: 'changed', caption: 'kept' } }]);
+  check('ops: a new description refreshes an untouched caption, an explicit caption wins', r4.project.scenes[0].caption === 'A brand new description' && r4.project.scenes[1].caption === 'kept');
+  const styled = V.applyOps({ ...base, caption: { pos: 'top', size: 'l' } }, [{ op: 'update_project', set: { captionStyle: { pos: 'middle', size: 'huge' }, style: 'nope', aspect: '4:3' } }, { op: 'update_scene', scene: 1, set: { look: 'sepia-ish', transition: 'wipe' } }, { op: 'update_scene', scene: 2, set: { fit: 'stretch' } }]);
+  check('ops: captionStyle sets the caption look; unknown names keep the current setting', styled.project.caption.pos === 'middle' && styled.project.caption.size === 'l' && styled.project.style === base.style && styled.project.aspect === base.aspect && styled.project.scenes[0].look === 'none' && styled.project.scenes[0].transition === 'wipe' && styled.skipped.length === 1 && styled.skipped[0].reason === 'nothing');
+  check('ops: at most MAX_OPS run; non-array input is a no-op', V.applyOps(base, Array.from({ length: 80 }, () => ({ op: 'update_scene', scene: 1, set: { duration: 2 } }))).applied === V.MAX_OPS && V.applyOps(base, 'nope').applied === 0 && V.applyOps(base, null).project.scenes.length === 3);
+  const pollute = V.applyOps(base, [JSON.parse('{"op":"update_project","set":{"__proto__":{"polluted":true},"caption":{"__proto__":{"polluted":true}}}}')]);
+  check('ops: prototype keys cannot pollute objects', ({}).polluted === undefined && pollute.project.polluted === undefined);
+
+  console.log('assistant: request and response');
+  const msgs = A.buildMessages([{ role: 'assistant', text: 'stray' }, { role: 'user', text: 'first' }, { role: 'assistant', text: 'done' }, { role: 'user', text: ' shorten scene 2 ' }], base, { b: { type: 'video', seconds: 7.26 } });
+  check('messages: start with the user, only the newest turn carries the project', msgs.length === 3 && msgs[0].content === 'first' && msgs[2].content.startsWith('Current project:') && msgs[2].content.endsWith('Request: shorten scene 2'));
+  const described = JSON.parse(msgs[2].content.slice('Current project:\n'.length, msgs[2].content.indexOf('\n\nRequest:')));
+  check('messages: scenes are numbered, ids hidden, clip fields only on video scenes', described.scenes[1].scene === 2 && described.scenes[1].media === 'video' && described.scenes[1].clipSeconds === 7.3 && described.scenes[0].media === 'none' && !('speed' in described.scenes[0]) && !JSON.stringify(described).includes('"id"'));
+  check('messages: nothing to send without a final user turn; history is capped', A.buildMessages([{ role: 'assistant', text: 'x' }], base) === null && A.buildMessages([], base) === null && A.buildMessages(Array.from({ length: 40 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', text: 't' + i })).concat([{ role: 'user', text: 'last' }]), base).length <= A.MAX_TURNS);
+  const body = A.buildBody(msgs, A.DEFAULT_MODEL);
+  check('request: default model, explicit effort, one tool, refusal fallback on', body.model === 'claude-opus-5-5' && body.output_config.effort === 'medium' && body.tools.length === 1 && body.tools[0].name === 'edit_project' && body.fallbacks === 'default' && body.max_tokens >= 4000);
+  check('request: no forced tool choice, no sampling or thinking overrides (rejected by current models)', !('tool_choice' in body) && !('temperature' in body) && !('top_p' in body) && !('thinking' in body));
+  check('request: fallback parameter only for models that accept it', !('fallbacks' in A.buildBody(msgs, 'claude-haiku-5-5')));
+  const opSchema = A.TOOL.input_schema.properties.ops.items.properties;
+  check('tool schema offers every editable field and only known enum values', V.SCENE_FIELDS.concat(V.PROJECT_FIELDS, ['captionStyle', 'music', 'logo']).every((k) => k in opSchema.set.properties) && opSchema.set.properties.caption.type === 'string' && opSchema.set.properties.captionStyle.properties.pos.enum.join() === 'bottom,middle,top' && opSchema.set.properties.transition.enum.join() === Object.keys(V.TRANSITIONS).join() && opSchema.op.enum.length === 7);
+  const good = A.readResponse({ stop_reason: 'tool_use', content: [{ type: 'thinking', thinking: '' }, { type: 'text', text: 'Đã rút cảnh 2.' }, { type: 'tool_use', name: 'edit_project', input: { ops: [{ op: 'update_scene', scene: 2, set: { duration: 3 } }] } }, { type: 'tool_use', name: 'other', input: { ops: [{ op: 'delete_scene', scene: 1 }] } }] });
+  check('response: text becomes the reply, only edit_project calls become ops', good.reply === 'Đã rút cảnh 2.' && good.ops.length === 1 && good.ops[0].set.duration === 3);
+  check('response: refusal, truncation and malformed bodies are errors', A.readResponse({ stop_reason: 'refusal', content: [] }).error === 'refused' && A.readResponse({ stop_reason: 'max_tokens', content: [{ type: 'text', text: 'x' }] }).error === 'tooLong' && A.readResponse(null).error === 'upstream' && A.readResponse({ content: 'x' }).error === 'upstream');
+  check('response: a plain answer has no ops', JSON.stringify(A.readResponse({ stop_reason: 'end_turn', content: [{ type: 'text', text: 'hi' }] })) === '{"reply":"hi","ops":[]}');
+  check('CLI reply: JSON object (even inside a code fence), plain text, empty', A.parseCliReply('```json\n{"reply":"ok","ops":[{"op":"delete_scene","scene":1}]}\n```').ops.length === 1 && A.parseCliReply('just words').reply === 'just words' && A.parseCliReply('just words').ops.length === 0 && A.parseCliReply('').error === 'upstream' && A.parseCliReply('{broken').reply === '{broken');
+
+  console.log('assistant: local server endpoints');
+  const seen = [];
+  let script = () => ({ status: 200, body: { stop_reason: 'tool_use', content: [{ type: 'text', text: 'Done.' }, { type: 'tool_use', name: 'edit_project', input: { ops: [{ op: 'update_scene', scene: 1, set: { duration: 2, look: 'warm' } }, { op: 'update_project', set: { captionStyle: { pos: 'top' } } }] } }] } });
+  const upstream = http.createServer((req, res) => {
+    let raw = '';
+    req.on('data', (c) => { raw += c; });
+    req.on('end', () => { seen.push({ headers: req.headers, body: JSON.parse(raw || '{}') }); const out = script(); res.writeHead(out.status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(out.body)); });
+  });
+  await new Promise((r) => upstream.listen(0, '127.0.0.1', r));
+  const ai = createServer({ env: { ANTHROPIC_API_KEY: 'test-key-123', PGV_ANTHROPIC_URL: `http://127.0.0.1:${upstream.address().port}/v1/messages`, PGV_NO_CLI: '1' } });
+  await new Promise((r) => ai.listen(0, '127.0.0.1', r));
+  const aiPort = ai.address().port;
+  const JSONH = { 'Content-Type': 'application/json' };
+  const askBody = JSON.stringify({ project: base, messages: [{ role: 'user', text: 'make scene 1 shorter and warmer' }] });
+  const off = await get(port, '/api/status');
+  check('status without credentials: local, assistant off', off.status === 200 && JSON.parse(off.body).local === true && JSON.parse(off.body).assistant === null);
+  check('assistant without credentials answers 503, never calls out', (await get(port, '/api/assistant', 'POST', JSONH, askBody)).status === 503 && seen.length === 0);
+  const on = JSON.parse((await get(aiPort, '/api/status')).body);
+  check('status with a key: API mode and model, the key itself is never returned', on.assistant === 'api' && on.model === 'claude-opus-5-5' && !JSON.stringify(on).includes('test-key'));
+  const ok = await get(aiPort, '/api/assistant', 'POST', JSONH, askBody);
+  const okBody = JSON.parse(ok.body);
+  check('assistant: reply and ops come back to the page', ok.status === 200 && okBody.reply === 'Done.' && okBody.ops.length === 2 && !ok.body.includes('test-key'));
+  const sent = seen[0] || { headers: {}, body: {} };
+  check('assistant: upstream call carries the key, API version and fallback beta in headers only', sent.headers['x-api-key'] === 'test-key-123' && sent.headers['anthropic-version'] === A.API_VERSION && sent.headers['anthropic-beta'] === 'server-side-fallback-2026-07-01' && !JSON.stringify(sent.body).includes('test-key'));
+  check('assistant: upstream body has the system prompt, tool and project', sent.body.system === A.SYSTEM && sent.body.tools[0].name === 'edit_project' && sent.body.messages[0].content.includes('"scene":1') && sent.body.messages[0].content.endsWith('make scene 1 shorter and warmer'));
+  const hdr = (h) => get(aiPort, '/api/assistant', 'POST', h, askBody).then((x) => x.status);
+  check('assistant: other sites are refused (foreign Origin, foreign Host, non-JSON body)', (await hdr({ ...JSONH, Origin: 'https://evil.example' })) === 403 && (await hdr({ ...JSONH, Host: 'evil.example' })) === 403 && (await hdr({ 'Content-Type': 'text/plain' })) === 415 && (await hdr({ ...JSONH, Origin: `http://127.0.0.1:${aiPort}` })) === 200);
+  check('assistant: status is refused for a foreign Host too (DNS rebinding)', (await get(aiPort, '/api/status', 'GET', { Host: 'evil.example:80' })).status === 403);
+  const before = seen.length;
+  check('assistant: bad JSON, oversized bodies and wrong methods never reach Claude', (await get(aiPort, '/api/assistant', 'POST', JSONH, '{nope')).status === 400 && (await get(aiPort, '/api/assistant', 'POST', JSONH, JSON.stringify({ messages: [] }))).status === 400
+    && (await get(aiPort, '/api/assistant', 'POST', JSONH, JSON.stringify({ pad: 'x'.repeat(600000) })).then((x) => x.status, () => 400)) === 400 && (await get(aiPort, '/api/assistant', 'GET')).status === 405 && (await get(aiPort, '/api/status', 'POST', JSONH, '{}')).status === 405 && seen.length === before);
+  const errCode = async (status, bodyOut) => { script = () => ({ status, body: bodyOut || {} }); const x = await get(aiPort, '/api/assistant', 'POST', JSONH, askBody); return x.status + ':' + JSON.parse(x.body).error; };
+  check('assistant: upstream failures map to short codes', (await errCode(401)) === '502:auth' && (await errCode(429)) === '502:rate' && (await errCode(529)) === '502:upstream' && (await errCode(400)) === '400:badRequest' && (await errCode(200, { stop_reason: 'refusal', content: [] })) === '502:refused');
+  check('every assistant error code has a message in both languages', ['noAssistant', 'auth', 'rate', 'refused', 'timeout', 'network', 'tooLong', 'cli', 'badRequest', 'upstream', 'forbidden', 'server'].every((c) => 'asst.err.' + c in I.STRINGS.vi && 'asst.err.' + c in I.STRINGS.en));
+  script = () => ({ status: 200, body: { stop_reason: 'tool_use', content: [{ type: 'text', text: 'Xong: cảnh 1 còn 2 giây, chữ lên trên.' }, { type: 'tool_use', name: 'edit_project', input: { ops: [{ op: 'update_scene', scene: 1, set: { duration: 2, look: 'warm' } }, { op: 'update_project', set: { captionStyle: { pos: 'top' } } }, { op: 'delete_scene', scene: 99 }] } }] } });
+
   console.log('app packaging');
   const html = fs.readFileSync(path.join(VID, 'src', 'index.html'), 'utf8');
   const refs = [...html.matchAll(/(?:src|href)="([^"]+)"/g)].map((m) => m[1]);
   check('index.html only loads local files that exist (works offline)', refs.length >= 4 && refs.every((r) => !/^(https?:)?\/\//.test(r) && fs.existsSync(path.join(VID, 'src', r))), refs.join(','));
   check('every loaded file is bundled into the APK', refs.every((r) => apk.WEB_FILES.includes(r)) && apk.WEB_FILES.includes('index.html'));
   const appJs = fs.readFileSync(path.join(VID, 'src', 'app.js'), 'utf8') + fs.readFileSync(path.join(VID, 'src', 'render.js'), 'utf8');
-  check('app never uses innerHTML or network calls', !/innerHTML|fetch\(|XMLHttpRequest|WebSocket/.test(appJs));
+  const fetches = appJs.match(/fetch\([^)]{0,40}/g) || [];
+  check('app never uses innerHTML; its only network call is to its own /api/', !/innerHTML|XMLHttpRequest|WebSocket|https?:\/\//.test(appJs.replace(/^\s*\/\/.*$/gm, '')) && fetches.length === 1 && fetches[0].startsWith("fetch('/api/' + path"), fetches.join(' | '));
   const manifest = fs.readFileSync(path.join(VID, 'android', 'AndroidManifest.xml'), 'utf8');
   check('Android manifest requests no permissions', !/uses-permission/.test(manifest) && manifest.includes(`package="${apk.APP_ID}"`));
   const java = fs.readFileSync(path.join(VID, 'android', 'src', 'com', 'promptgate', 'video', 'MainActivity.java'), 'utf8');
@@ -401,6 +480,48 @@ function get(port, p, method) {
       check('clip: music and attached clip come back after a reload, without leaving the chosen tab', restored && !(await page.locator('#tab-export').isHidden()));
       for (const f of [clipFile, wavFile]) fs.rmSync(f, { force: true });
 
+      // --- Local tab + Claude assistant (mock Claude behind the local server) ---------------
+      await page.click('nav [data-tab=local]');
+      await page.waitForFunction(() => document.getElementById('asst-state').textContent !== '' && !/kiểm tra|checking/.test(document.getElementById('asst-state').textContent));
+      check('local: without Claude the chat is disabled and says how to enable it', (await page.isDisabled('#asst-send')) && (await page.isDisabled('#asst-input')) && /ANTHROPIC_API_KEY/.test(await page.innerText('#asst-log')) && /127\.0\.0\.1/.test(await page.innerText('#local-status')) && /npm run video/.test(await page.innerText('#local-cmd')));
+      const page2 = await ctx.newPage();
+      page2.on('pageerror', (e) => errors.push(e.message));
+      page2.on('request', (r2) => { if (!/^(http:\/\/127\.0\.0\.1|blob:|data:)/.test(r2.url())) external.push(r2.url()); });
+      await page2.goto(`http://127.0.0.1:${aiPort}/`);
+      await page2.fill('#brief', 'Lobby at dawn. Guest walks to the pool. Sunset bar.');
+      await page2.fill('#total', '12');
+      await page2.click('#make');
+      await page2.click('nav [data-tab=local]');
+      await page2.waitForFunction(() => /claude-opus-5-5/.test(document.getElementById('asst-state').textContent));
+      check('local: with Claude the chat is enabled and shows the model', !(await page2.isDisabled('#asst-send')) && (await page2.locator('#asst-ideas button').count()) === 3);
+      const dur0 = await page2.evaluate(() => JSON.parse(localStorage.getItem('pgv.project')).scenes[0].duration);
+      const calls = seen.length;
+      await page2.fill('#asst-input', 'rút cảnh 1 còn 2 giây, tông ấm, chữ lên trên');
+      await page2.click('#asst-send');
+      await page2.waitForSelector('#asst-log .assistant');
+      const pj = await page2.evaluate(() => JSON.parse(localStorage.getItem('pgv.project')));
+      check('chat: Claude\'s edits land in the project', pj.scenes[0].duration === 2 && pj.scenes[0].look === 'warm' && pj.caption.pos === 'top' && pj.scenes.length === 3, JSON.stringify([pj.scenes[0].duration, pj.scenes[0].look, pj.caption.pos]));
+      const chatText = await page2.innerText('#asst-log');
+      check('chat: shows the request, the reply, what was applied and what was skipped', /rút cảnh 1/.test(chatText) && /Xong: cảnh 1 còn 2 giây/.test(chatText) && /2 thay đổi/.test(chatText) && /Bỏ qua 1/.test(chatText));
+      check('chat: one upstream call, carrying the live project and the request', seen.length === calls + 1 && /Lobby at dawn/.test(seen[seen.length - 1].body.messages[0].content) && /rút cảnh 1/.test(seen[seen.length - 1].body.messages[0].content));
+      check('chat: header summary reflects the new total', (await page2.innerText('#summary')).includes(V.fmtTime(pj.scenes.reduce((x, y) => x + y.duration, 0))) && pj.scenes.reduce((x, y) => x + y.duration, 0) < 12, await page2.innerText('#summary'));
+      await page2.click('#asst-log .assistant button');
+      const undone = await page2.evaluate(() => JSON.parse(localStorage.getItem('pgv.project')));
+      check('chat: Undo in the reply restores the project in one tap', undone.scenes[0].duration === dur0 && undone.scenes[0].look === 'none' && undone.caption.pos === 'bottom');
+      script = () => ({ status: 429, body: {} });
+      await page2.fill('#asst-input', 'again');
+      await page2.click('#asst-send');
+      await page2.waitForFunction(() => document.querySelectorAll('#asst-log .assistant').length === 2);
+      check('chat: an upstream error is shown in the user\'s language and changes nothing', /giới hạn tốc độ/.test(await page2.locator('#asst-log .assistant').nth(1).innerText()) && (await page2.evaluate(() => JSON.parse(localStorage.getItem('pgv.project')).scenes[0].duration)) === dur0);
+      script = () => ({ status: 200, body: { stop_reason: 'end_turn', content: [{ type: 'text', text: '<img src=x onerror=window.__xss=1> ok' }] } });
+      await page2.fill('#asst-input', 'hello');
+      await page2.click('#asst-send');
+      await page2.waitForFunction(() => document.querySelectorAll('#asst-log .assistant').length === 3);
+      check('chat: reply text is shown as text, never as HTML; failed turns are not resent', (await page2.evaluate(() => window.__xss)) === undefined && (await page2.locator('#asst-log img').count()) === 0 && seen[seen.length - 1].body.messages.every((m) => !/giới hạn/.test(m.content)) && seen[seen.length - 1].body.messages.filter((m) => m.role === 'user').length === 3);
+      await page2.click('#lang [data-lang=en]');
+      check('local: tab switches language', (await page2.innerText('#asst-send')) === 'Send to Claude' && /Run locally/.test(await page2.innerText('#tab-local')));
+      await page2.close();
+
       check('no page errors, no request leaves localhost', errors.length === 0 && external.length === 0, errors.concat(external).join(' | '));
     } catch (e) {
       check('browser run completed', false, e.message.split('\n')[0]);
@@ -409,7 +530,7 @@ function get(port, p, method) {
     }
   }
 
-  server.close();
+  server.close(); ai.close(); upstream.close();
   console.log(`\n${pass} passed, ${fail} failed${skip ? `, ${skip} skipped` : ''}`);
   process.exit(fail ? 1 : 0);
 })().catch((e) => { console.error(e); process.exit(1); });

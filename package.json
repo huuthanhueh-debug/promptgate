@@ -13,7 +13,7 @@
     "doctor": "node scripts/doctor.js",
     "build:ext": "node extension/build.js",
     "video": "node video/server.js",
-    "test:video": "node tests/video.js",
+    "test:video": "node video/tests/video.js",
     "build:apk": "node video/android/build.js"
   },
   "engines": { "node": ">=18" },

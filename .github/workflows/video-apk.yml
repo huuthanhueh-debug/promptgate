@@ -2,9 +2,9 @@ name: video-apk
 on:
   push:
     branches: [main]
-    paths: ['video/**', 'extension/src/icons.js', '.github/workflows/video-apk.yml']
+    paths: ['video/**', '.github/workflows/video-apk.yml']
   pull_request:
-    paths: ['video/**', 'extension/src/icons.js', '.github/workflows/video-apk.yml']
+    paths: ['video/**', '.github/workflows/video-apk.yml']
   workflow_dispatch:
 permissions:
   contents: read
