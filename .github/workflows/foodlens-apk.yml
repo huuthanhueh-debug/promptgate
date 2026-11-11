@@ -2,15 +2,19 @@ name: foodlens-apk
 on:
   push:
     branches: [main]
-    paths: ['foodlens/**', 'tests/foodlens*.js', '.github/workflows/foodlens-apk.yml']
+    paths: ['foodlens/**', '.github/workflows/foodlens-apk.yml']
   pull_request:
-    paths: ['foodlens/**', 'tests/foodlens*.js', '.github/workflows/foodlens-apk.yml']
+    paths: ['foodlens/**', '.github/workflows/foodlens-apk.yml']
   workflow_dispatch:
 permissions:
   contents: write # the build publishes the APK as a release asset
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: foodlens
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,42 +24,60 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - run: node tests/foodlens.js
+      - run: node tests/unit.js
       # Optional: a fixed signing key so every build installs as an update of the previous one.
       - name: Restore signing key
         env:
           KEYSTORE_B64: ${{ secrets.FOODLENS_KEYSTORE_B64 }}
         if: env.KEYSTORE_B64 != ''
-        run: echo "$KEYSTORE_B64" | base64 -d > foodlens/android/foodlens.keystore
+        run: echo "$KEYSTORE_B64" | base64 -d > android/foodlens.keystore
       - name: Build APK
         env:
           FOODLENS_KEYSTORE_PASS: ${{ secrets.FOODLENS_KEYSTORE_PASS || 'foodlens' }}
-        run: node foodlens/build-apk.js
+        run: node build-apk.js
       - name: Check APK contents
         run: |
-          unzip -l dist/FoodLens.apk
+          unzip -v dist/FoodLens.apk
           for f in AndroidManifest.xml classes.dex resources.arsc assets/web/index.html assets/web/app.js assets/web/core.js assets/web/foods.js assets/web/style.css; do
             unzip -l dist/FoodLens.apk "$f" > /dev/null || { echo "missing $f"; exit 1; }
           done
           "$ANDROID_HOME"/build-tools/"$(ls "$ANDROID_HOME"/build-tools | sort -V | tail -1)"/apksigner verify --verbose --min-sdk-version 29 dist/FoodLens.apk | head -8
+      # Real run: install and launch on an Android 14 emulator, see tests/device.sh.
+      - name: Enable KVM for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install and run on an Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          working-directory: foodlens
+          script: bash tests/device.sh dist/FoodLens.apk dist/device-test.png
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: FoodLens-apk
-          path: dist/FoodLens.apk
+          path: |
+            foodlens/dist/FoodLens.apk
+            foodlens/dist/device-test.png
           if-no-files-found: error
       # A release asset downloads as a plain .apk; an Actions artifact always arrives as a zip.
-      # Skipped for pull requests from forks, whose token cannot write.
+      # Only an APK that passed the emulator run is published. Skipped for pull requests from forks.
       - name: Publish APK to Releases
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          V=$(node -p "require('./foodlens/version.json').name")
+          V=$(node -p "require('./version.json').name")
           TAG="foodlens-v$V"
           cp dist/FoodLens.apk "dist/FoodLens-$V.apk"
           gh release view "$TAG" > /dev/null 2>&1 || gh release create "$TAG" --target "$SHA" --latest=false \
             --title "FoodLens $V (Android)" \
-            --notes "Download FoodLens-$V.apk on the phone and open it to install. Android 10 or newer. See foodlens/README.md."
-          gh release upload "$TAG" "dist/FoodLens-$V.apk" --clobber
+            --notes "Download FoodLens-$V.apk on the phone and open it to install. Android 10 or newer. This build was installed and launched on an Android 14 emulator before publishing (device-test.png)."
+          gh release upload "$TAG" "dist/FoodLens-$V.apk" dist/device-test.png --clobber
           echo "https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/FoodLens-$V.apk"

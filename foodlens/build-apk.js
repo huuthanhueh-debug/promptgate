@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 'use strict';
-// Builds dist/FoodLens.apk from foodlens/web + foodlens/android with the Android SDK command
+// Builds dist/FoodLens.apk from web/ + android/ with the Android SDK command
 // line tools (aapt2, d8, zipalign, apksigner) and a JDK. No Gradle, no dependencies.
 // Needs ANDROID_HOME (or ANDROID_SDK_ROOT) with one build-tools version and one platform
-// (android-34 or newer) installed. Usage: node foodlens/build-apk.js
+// (android-34 or newer) installed. Usage: node build-apk.js
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
@@ -11,7 +11,7 @@ const { spawnSync } = require('child_process');
 const ROOT = __dirname;
 const WEB = path.join(ROOT, 'web');
 const ANDROID = path.join(ROOT, 'android');
-const OUT = path.join(ROOT, '..', 'dist');
+const OUT = path.join(ROOT, 'dist');
 const WORK = path.join(OUT, 'foodlens-build');
 const APK = path.join(OUT, 'FoodLens.apk');
 const KEYSTORE = process.env.FOODLENS_KEYSTORE || path.join(ANDROID, 'foodlens.keystore');

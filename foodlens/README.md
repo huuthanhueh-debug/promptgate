@@ -4,7 +4,7 @@ App Android (APK, chạy trên Samsung và mọi máy Android 10 trở lên): ch
 
 Giao diện có hai ngôn ngữ, **Tiếng Việt và English**: bấm nút `VI | EN` ở góc trên bên phải để đổi. Toàn bộ màn hình, kết luận, lời khuyên và câu trả lời của AI theo ngôn ngữ đã chọn; app nhớ lựa chọn cho lần mở sau.
 
-Nằm trong repo PromptGate nhưng độc lập: không dùng chung mã với plugin, cùng stack (JavaScript thuần, không thư viện, test bằng Node).
+Dự án độc lập: thư mục này tự chứa đủ mã, test và script build (JavaScript thuần, không thư viện). Mọi lệnh bên dưới chạy từ trong thư mục này.
 
 ## Cách hoạt động
 
@@ -34,14 +34,15 @@ Tab Tra cứu và Nhật ký dùng được không cần key. Phân tích ảnh 
 ## Chạy và build
 
 ```bash
-node tests/foodlens.js          # test luật dinh dưỡng, request/response, bảng thực phẩm
-node tests/foodlens-e2e.js      # test giao diện thật trong Chromium (cần Playwright; không có thì tự bỏ qua)
-node foodlens/build-apk.js      # ra dist/FoodLens.apk; cần JDK 11+ và ANDROID_HOME
+node tests/unit.js                        # luật dinh dưỡng, request/response, bảng thực phẩm
+node tests/e2e.js                         # giao diện thật trong Chromium (cần Playwright; không có thì tự bỏ qua)
+node build-apk.js                         # ra dist/FoodLens.apk; cần JDK 11+ và ANDROID_HOME
+bash tests/device.sh dist/FoodLens.apk    # cài và chạy thử trên máy hoặc emulator đang nối adb
 ```
 
-Xem thử giao diện trên máy tính: mở `foodlens/web/index.html` bằng Chrome.
+Xem thử giao diện trên máy tính: mở `web/index.html` bằng Chrome.
 
-Build cần Android SDK có một bản `build-tools` và `platforms;android-34` trở lên. Lần build đầu tạo khóa ký `foodlens/android/foodlens.keystore` (không commit). Giữ file này: điện thoại chỉ nhận bản cập nhật ký cùng khóa. Bản build trên GitHub Actions dùng khóa mới mỗi lần, trừ khi repo có secret `FOODLENS_KEYSTORE_B64` (keystore mã hóa base64) và `FOODLENS_KEYSTORE_PASS`; khi khóa đổi, phải gỡ app cũ trước khi cài bản mới.
+Build cần Android SDK có một bản `build-tools` và `platforms;android-34` trở lên. Lần build đầu tạo khóa ký `android/foodlens.keystore` (không commit). Giữ file này: điện thoại chỉ nhận bản cập nhật ký cùng khóa. Bản build trên GitHub Actions dùng khóa mới mỗi lần, trừ khi repo có secret `FOODLENS_KEYSTORE_B64` (keystore mã hóa base64) và `FOODLENS_KEYSTORE_PASS`; khi khóa đổi, phải gỡ app cũ trước khi cài bản mới.
 
 Tăng `version.json` (`code` tăng 1) trước mỗi bản phát hành.
 

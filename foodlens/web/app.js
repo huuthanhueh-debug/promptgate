@@ -375,8 +375,17 @@
   }
   document.querySelector('.lang').addEventListener('click', function (ev) { var b = ev.target.closest('button'); if (b && b.dataset.lang !== lang) setLang(b.dataset.lang); });
 
+  // Inside the Android app: tell the shell the page is alive, and answer its launch self-test
+  // (adb ... --ez selftest true) with one keyless call that must come back as HTTP 401.
+  function nativeLog(msg) { if (window.FoodLensNative && typeof window.FoodLensNative.log === 'function') window.FoodLensNative.log(String(msg)); }
+  window.__flSelfTest = function () {
+    var req = Core.buildRequest({ apiKey: 'selftest', imageBase64: 'AAAA', plain: true });
+    return httpPost(req.url, req.headers, JSON.stringify(req.body)).then(function (r) { nativeLog('selftest http ' + r.status); });
+  };
+
   lang = settings().lang;
   applyLang();
   renderFoods();
   go('scan');
+  nativeLog('ready lang=' + lang + ' foods=' + FOODS.length + ' tabs=' + document.querySelectorAll('.tabs button').length);
 })();

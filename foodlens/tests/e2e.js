@@ -3,7 +3,7 @@
 // FoodLens browser test: loads foodlens/web/index.html from file:// (the way the Android
 // WebView does) in Chromium and drives the real UI with the Claude API mocked at the network
 // layer. Needs Playwright with a Chromium build; skipped (exit 0) when that is not installed.
-// Usage: node tests/foodlens-e2e.js [screenshot-dir]
+// Usage: node tests/e2e.js [screenshot-dir]
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
@@ -11,7 +11,7 @@ const zlib = require('zlib');
 let chromium;
 try { ({ chromium } = require('playwright')); } catch (_) { console.log('playwright not installed, skipping'); process.exit(0); }
 
-const PAGE = 'file://' + path.resolve(__dirname, '../foodlens/web/index.html');
+const PAGE = 'file://' + path.resolve(__dirname, '../web/index.html');
 const SHOTS = process.argv[2] ? path.resolve(process.argv[2]) : null;
 let pass = 0, fail = 0;
 function check(name, cond, extra) {
@@ -203,6 +203,8 @@ const reply = (obj) => ({ status: 200, contentType: 'application/json', headers:
   await page.waitForSelector('#scan-result .res-head');
   check('inside the Android app the call goes through the bridge, not fetch', calls.length === before && await page.evaluate(() => window.__bridge.url === 'https://api.anthropic.com/v1/messages' && window.__bridge.headers['x-api-key'] === 'sk-ant-test-123'));
 
+  await page.evaluate(() => { window.__logs = []; window.FoodLensNative.log = (m) => window.__logs.push(m); return window.__flSelfTest(); });
+  check('device self-test reports the HTTP status through the native log', await page.evaluate(() => window.__logs.join('|')) === 'selftest http 200');
   check('no console errors or CSP violations', consoleErrors.length === 0, consoleErrors.slice(0, 3).join(' | '));
   await browser.close();
   console.log(`\n${pass} passed, ${fail} failed`);

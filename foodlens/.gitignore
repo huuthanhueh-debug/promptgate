@@ -1,0 +1,3 @@
+dist/
+*.keystore
+node_modules/

@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -53,7 +54,14 @@ public class MainActivity extends Activity {
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         s.setTextZoom(100);
 
+        // Launch self-test for device checks: adb shell am start -n com.foodlens.app/.MainActivity --ez selftest true
+        final boolean selfTest = getIntent() != null && getIntent().getBooleanExtra("selftest", false);
         web.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                if (selfTest) view.evaluateJavascript("window.__flSelfTest && window.__flSelfTest()", null);
+            }
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 // The app is one bundled page; anything else is not loaded inside it.
@@ -161,6 +169,12 @@ public class MainActivity extends Activity {
 
     /** JS-callable HTTPS POST, limited to the Claude API host. The page gets the answer through window.__flNative. */
     private final class Bridge {
+        @JavascriptInterface
+        public void log(String message) {
+            String text = message == null ? "" : message;
+            Log.i("FoodLens", text.length() > 200 ? text.substring(0, 200) : text);
+        }
+
         @JavascriptInterface
         public void post(final String id, final String url, final String headersJson, final String body) {
             new Thread(new Runnable() {

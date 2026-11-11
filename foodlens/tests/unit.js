@@ -2,13 +2,12 @@
 'use strict';
 // FoodLens tests: the nutrition rules, the Claude request/response handling, the offline food
 // table, the APK build helpers and the static wiring of the web bundle and Android shell.
-// No network and no Android SDK needed. Run directly or through tests/run.js.
+// No network and no Android SDK needed. Run: node tests/unit.js
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const ROOT = path.resolve(__dirname, '..');
-const FL = path.join(ROOT, 'foodlens');
+const FL = path.resolve(__dirname, '..');
 const C = require(path.join(FL, 'web/core.js'));
 const FOODS = require(path.join(FL, 'web/foods.js'));
 const B = require(path.join(FL, 'build-apk.js'));
@@ -187,6 +186,7 @@ const manifest = read('android/AndroidManifest.xml'), java = read('android/src/c
 check('manifest: INTERNET only, no CAMERA permission, cleartext off', /android\.permission\.INTERNET/.test(manifest) && (manifest.match(/uses-permission/g) || []).length === 1 && /usesCleartextTraffic="false"/.test(manifest));
 check('manifest: launcher activity exported', /android:exported="true"/.test(manifest) && /category\.LAUNCHER/.test(manifest));
 check('native bridge only talks to api.anthropic.com', /API_PREFIX = "https:\/\/api\.anthropic\.com\/"/.test(java) && /startsWith\(API_PREFIX\)/.test(java));
+check('device self-test hooks match on both sides', /getBooleanExtra\("selftest"/.test(java) && /__flSelfTest/.test(java) && /window\.__flSelfTest = /.test(app) && /public void log\(/.test(java) && /FoodLensNative\.log\(/.test(app));
 check('bridge name and callback match app.js', /"FoodLensNative"/.test(java) && /window\.__flNative\(/.test(java) && /window\.FoodLensNative\.post\(/.test(app) && /window\.__flNative = /.test(app));
 check('back button hook matches', /__flBack/.test(java) && /window\.__flBack = /.test(app));
 check('launcher icon is a PNG', fs.readFileSync(path.join(FL, 'android/res/mipmap-xxxhdpi/ic_launcher.png')).slice(1, 4).toString() === 'PNG');
