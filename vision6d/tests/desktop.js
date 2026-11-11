@@ -327,6 +327,99 @@ const near = (a, b, eps) => Math.abs(a - b) <= (eps || 1e-5);
     await Promise.all(two.map((a) => a.close()));
   }
 
+  console.log('standalone page (Vision6D.html)');
+  {
+    const B = require(path.join(ROOT, 'tools', 'bundle.js'));
+    const BUILD = require(path.join(ROOT, 'tools', 'build.js'));
+    const Z = await load('desktop/lib/zip.js');
+    const SK = await load('desktop/lib/sink.js');
+    const zipLib = require(path.join(ROOT, 'android', 'zip.js'));
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'v6d-bundle-'));
+    const w = (f, c) => { fs.mkdirSync(path.dirname(path.join(tmp, f)), { recursive: true }); fs.writeFileSync(path.join(tmp, f), c); };
+
+    // --- the bundler, on a tiny project covering every supported form
+    w('core/a.js', "export function add(x, y) { return x + y; }\nexport const K = 7;\nexport let counter = 1;\nexport class Box { get v() { return K; } }\nexport async function later() { return 'ok'; }\n");
+    w('core/b.js', "import { add, K as kay } from './a.js';\nimport * as A from './a.js';\nconst hidden = 3;\nexport function run() { return add(kay, A.K) + hidden; }\nexport { hidden as exposed };\n");
+    w('app/main.js', "import { run, exposed } from '../core/b.js';\nimport { Box, later } from '../core/a.js';\nglobalThis.__out = { run: run(), exposed, box: new Box().v, later: typeof later };\n");
+    const code = B.bundle(path.join(tmp, 'app', 'main.js'), tmp);
+    const vm = require('vm');
+    const ctx = { globalThis: null }; ctx.globalThis = ctx; vm.createContext(ctx);
+    vm.runInContext(code, ctx);
+    check('bundle runs: named, aliased and namespace imports, function/const/let/class exports, trailing export { x as y }', JSON.stringify(ctx.__out) === '{"run":17,"exposed":3,"box":7,"later":"function"}', JSON.stringify(ctx.__out));
+    check('every module runs once, dependencies first, ids relative to the project', code.indexOf('__m["core/a.js"]') < code.indexOf('__m["core/b.js"]') && code.indexOf('__m["core/b.js"]') < code.indexOf('__m["app/main.js"]') && (code.match(/__m\["core\/a\.js"\] =/g) || []).length === 1);
+    check('the bundle has no import or export statements left', !/^(import|export)\b/m.test(code));
+    const bad = (src) => { w('core/bad.js', src); w('app/bad-main.js', "import './x.js';\n"); try { B.transform(src, path.join(tmp, 'core', 'bad.js'), tmp); return false; } catch (e) { return /bad\.js/.test(e.message); } };
+    check('unsupported syntax fails loudly, naming the file', ['export default 1;\n', "import x from './a.js';\n", "import './a.js';\n", "export * from './a.js';\n", "const m = import('./a.js');\n", 'const u = import.meta.url;\n', "import { a } from '../../outside.js';\n"].every(bad));
+    w('core/evil.js', "export const s = '</script><script>alert(1)</script><!-- x';\n");
+    const evil = B.bundle(path.join(tmp, 'core', 'evil.js'), tmp);
+    check('the bundle is safe to inline in HTML: no </script or <!-- sequences', !/<\/script/i.test(evil) && !evil.includes('<!--'));
+    const ctx2 = { globalThis: null }; ctx2.globalThis = ctx2; vm.createContext(ctx2);
+    check('...and those strings still evaluate to the original text', (() => { vm.runInContext(evil.replace('__r("core/evil.js");', 'globalThis.__v = __r("core/evil.js").s;'), ctx2); return ctx2.__v === '</script><script>alert(1)</script><!-- x'; })());
+    fs.rmSync(tmp, { recursive: true, force: true });
+
+    // --- the real page, built to a temp file
+    const out = path.join(os.tmpdir(), `v6d-standalone-${process.pid}.html`);
+    BUILD.buildStandalone({ out, quiet: true });
+    const html = fs.readFileSync(out, 'utf8');
+    const committed = path.join(ROOT, 'Vision6D.html');
+    check('the committed Vision6D.html is up to date with the sources (run: node tools/build.js --standalone)', fs.existsSync(committed) && fs.readFileSync(committed, 'utf8') === html);
+    fs.rmSync(out, { force: true });
+    const m = /<script>([\s\S]*)<\/script>/.exec(html);
+    const hash = require('crypto').createHash('sha256').update(m[1], 'utf8').digest('base64');
+    const csp = (/http-equiv="Content-Security-Policy" content="([^"]+)"/.exec(html) || [])[1] || '';
+    check('exactly one script, inline, and the CSP allows only that script by its hash', (html.match(/<script/g) || []).length === 1 && !/type="module"|src=/.test(html.slice(0, html.indexOf('<script>') + 8)) && csp.includes(`script-src 'sha256-${hash}'`) && !/'unsafe-inline'[^;]*;[^;]*script/.test(csp) && /^default-src 'none'/.test(csp), csp.slice(0, 120));
+    check('the CSP allows no connection to anywhere', !/connect-src|https?:|\*/.test(csp));
+    check('the page contains no remote URL', !(html.replace(/http:\/\/www\.w3\.org\/\d+\/\w+/g, '').match(/https?:\/\/[^\s'"`)<>]+/g) || []).length || (html.replace(/http:\/\/www\.w3\.org\/[^\s'"`)<>]+/g, '').match(/https?:\/\/[^\s'"`)<>]+/g) || []).every((u) => /threejs\.org|github\.com\/mrdoob|\.\.\.|example/.test(u)));
+    check('it carries the app, three.js and both languages in one file', html.includes('Bóc tách tất cả') && html.includes('Extract all') && html.includes('WebGLRenderer') && html.includes('model-6d.glb') && html.length > 500000);
+    check('the size stays reasonable for a download (< 1.5 MB)', html.length < 1.5e6, String(html.length));
+
+    // --- store-only zip
+    const files = [{ name: 'ảnh/a.glb', data: new Uint8Array([1, 2, 3, 250]) }, { name: 'layers/x.png', data: new Uint8Array(70000).map((_, i) => i % 251) }, { name: 'empty.txt', data: new Uint8Array(0) }];
+    const zbytes = Z.writeStoredZip(files);
+    const back = zipLib.readZip(Buffer.from(zbytes));
+    check('the zip written in the browser is read back by the project zip reader, CRCs verified', back.length === 3 && back.every((e, i) => e.name === files[i].name && e.stored && Buffer.compare(e.data, Buffer.from(files[i].data)) === 0));
+    check('zip: crc32 check value and rejection of bad names', Z.crc32(new TextEncoder().encode('123456789')) === 0xcbf43926 && throws(() => Z.writeStoredZip([{ name: '../x', data: new Uint8Array(1) }])) && throws(() => Z.writeStoredZip([{ name: '/x', data: new Uint8Array(1) }])) && throws(() => Z.writeStoredZip([files[2], files[2]])));
+    check('zip: the archive is a valid file by the system tool, if present', (() => { const f = path.join(os.tmpdir(), `v6d-zip-${process.pid}.zip`); fs.writeFileSync(f, zbytes); const r = require('child_process').spawnSync('unzip', ['-tq', f], { encoding: 'utf8' }); fs.rmSync(f, { force: true }); return r.error ? true : r.status === 0; })());
+
+    // --- the browser sink, on a stand-in window
+    const mkDir = (name) => { const d = { name, dirs: new Map(), files: new Map(), async getDirectoryHandle(n, o) { if (!d.dirs.has(n)) { if (!(o && o.create)) throw Object.assign(new Error('x'), { name: 'NotFoundError' }); d.dirs.set(n, mkDir(n)); } return d.dirs.get(n); }, async getFileHandle(n, o) { if (!d.files.has(n)) { if (!(o && o.create)) throw Object.assign(new Error('x'), { name: 'NotFoundError' }); d.files.set(n, { data: null }); } const f = d.files.get(n); return { async createWritable() { return { async write(b) { f.data = Buffer.from(await b.arrayBuffer()); }, async close() {} }; } }; } }; return d; };
+    const root = mkDir('Chosen');
+    let picked = 0;
+    const sink = SK.createBrowserSink({ showDirectoryPicker: async () => { picked++; return root; } });
+    check('browser sink with a picker: kind "folder", nothing picked until prepare()', sink.kind === 'folder' && picked === 0 && sink.folderName === '' && sink.canOpen === false);
+    await sink.prepare(); await sink.prepare();
+    check('the folder is picked once and its name is known', picked === 1 && sink.folderName === 'Chosen');
+    const d1 = await sink.begin('ảnh'), d2 = await sink.begin('ảnh');
+    await sink.put(d1.dir, 'model-3d.glb', new Blob([new Uint8Array([9, 8, 7])]));
+    await sink.put(d1.dir, 'layers/layer-1.png', new Blob([new Uint8Array([1])]));
+    check('begin() never reuses a folder; put() writes bytes, creating sub-folders', d1.dir === 'ảnh' && d2.dir === 'ảnh-2' && d1.path === 'Chosen/ảnh' && Buffer.compare(root.dirs.get('ảnh').files.get('model-3d.glb').data, Buffer.from([9, 8, 7])) === 0 && root.dirs.get('ảnh').dirs.get('layers').files.has('layer-1.png'));
+    check('a picker error other than "not found" is not swallowed', await (async () => { const bad = mkDir('Bad'); bad.getDirectoryHandle = async () => { throw Object.assign(new Error('denied'), { name: 'NotAllowedError' }); }; const sk = SK.createBrowserSink({ showDirectoryPicker: async () => bad }); await sk.prepare(); try { await sk.begin('x'); return false; } catch (e) { return e.name === 'NotAllowedError'; } })());
+    check('a cancelled picker surfaces as AbortError', await (async () => { const sk = SK.createBrowserSink({ showDirectoryPicker: async () => { throw Object.assign(new Error('c'), { name: 'AbortError' }); } }); try { await sk.prepare(); return false; } catch (e) { return e.name === 'AbortError'; } })());
+
+    const clicks = [], revoked = [];
+    const env = { URL: { createObjectURL: (b) => { clicks.push(b); return 'blob:x'; }, revokeObjectURL: (u) => revoked.push(u) }, setTimeout: (fn) => fn(), document: { body: { appendChild() {} }, createElement: () => ({ click() { clicks.push('click'); }, remove() {} }) } };
+    const zsink = SK.createBrowserSink(env);
+    await zsink.prepare();
+    const z1 = await zsink.begin('a'), z2 = await zsink.begin('a');
+    await zsink.put(z1.dir, 'one.png', new Blob([new Uint8Array([1, 2])]));
+    await zsink.put(z2.dir, 'layers/two.png', new Blob([new Uint8Array([3])]));
+    await zsink.finish();
+    const blob = clicks[0];
+    const zentries = zipLib.readZip(Buffer.from(await blob.arrayBuffer()));
+    check('browser sink without a picker: kind "zip", one download holding every folder', zsink.kind === 'zip' && z1.dir === 'a' && z2.dir === 'a-2' && clicks[1] === 'click' && zentries.map((e) => e.name).join() === 'a/one.png,a-2/layers/two.png' && revoked.length === 1);
+    await zsink.finish();
+    check('finishing twice does not download twice', clicks.length === 2);
+
+    // --- the server sink, against a fake fetch
+    const calls = [];
+    const ss = SK.createServerSink('tok', async (url, o) => { calls.push([o.method, url, o.headers['x-v6d-token']]); return url.includes('bad') ? { ok: false, status: 403, json: async () => ({}) } : { ok: true, json: async () => ({ dir: 'd', path: '/o/d', outDir: '/o' }) }; });
+    await ss.info(); await ss.begin('x y'); await ss.put('d', 'layers/a b.png', new Blob([new Uint8Array(1)])); await ss.open('d');
+    check('server sink sends the token and encodes paths', ss.kind === 'server' && ss.canOpen && calls.length === 4 && calls.every((c) => c[2] === 'tok') && calls[2][1] === '/api/file?dir=d&path=layers%2Fa%20b.png');
+    check('server sink errors carry a code the window can translate', await (async () => { const sk = SK.createServerSink('t', async () => { throw new Error('offline'); }); try { await sk.info(); return false; } catch (e) { return e.code === 'server'; } })() && await (async () => { const sk = SK.createServerSink('t', async () => ({ ok: false, status: 403, json: async () => ({}) })); try { await sk.info(); return false; } catch (e) { return e.code === 'server'; } })());
+    const appSrc = fs.readFileSync(path.join(ROOT, 'desktop', 'app.js'), 'utf8');
+    check('the window picks the server sink only when launched with a token', /const sink = TOKEN \? createServerSink\(TOKEN\) : createBrowserSink\(window\);/.test(appSrc) && /await sink\.prepare\(\)/.test(appSrc) && /await sink\.finish\(\)/.test(appSrc));
+  }
+
   console.log('launcher');
   {
     const D = require(path.join(ROOT, 'tools', 'desktop.js'));
@@ -341,7 +434,7 @@ const near = (a, b, eps) => Math.abs(a - b) <= (eps || 1e-5);
     check('macOS and Linux use their standard openers', D.openCommand(url, true, 'darwin').slice(0, 2).join() === 'open,' + url && D.openCommand(url, true, 'linux')[0] === 'xdg-open');
     check('the launch URL has nothing a Windows shell would split on', !/[&|<>^ "]/.test(url));
     check('double-click launchers exist for Windows and for macOS/Linux', /tools\\desktop\.js/.test(fs.readFileSync(path.join(ROOT, 'Vision6D.cmd'), 'utf8')) && /tools\/desktop\.js/.test(fs.readFileSync(path.join(ROOT, 'vision6d.sh'), 'utf8')));
-    check('end-to-end browser test is present', fs.existsSync(path.join(ROOT, 'tests', 'desktop-e2e.js')));
+    check('end-to-end browser tests are present', fs.existsSync(path.join(ROOT, 'tests', 'desktop-e2e.js')) && fs.existsSync(path.join(ROOT, 'tests', 'standalone-e2e.js')));
   }
 
   console.log(`\n${pass} passed, ${fail} failed`);

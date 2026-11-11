@@ -6,7 +6,9 @@ Take any image apart into **3D, 4D and 6D files** on your computer, and explore 
 
 ## Desktop app
 
-Needs [Node.js](https://nodejs.org) 18+. Double-click `Vision6D.cmd` on Windows, run `./vision6d.sh` on macOS/Linux, or `node tools/desktop.js` anywhere. Drop images in (JPG, PNG, WebP, GIF, BMP, AVIF), preview them in **3D / 4D / 6D / Points**, press **Extract all**. Each image gets its own folder under `~/Vision6D` (`--out <folder>` to change).
+**No install: open [`Vision6D.html`](Vision6D.html)** (double-click, in Edge or Chrome). It is one self-contained page: no Node.js, no script, nothing for Windows Smart App Control to block, and its CSP allows no network access. Pressing Extract asks for a folder to save into; browsers without a folder picker get one `Vision6D.zip` instead.
+
+Alternatively, with [Node.js](https://nodejs.org) 18+: `node tools/desktop.js` (a signed `node.exe` is not blocked), `./vision6d.sh` on macOS/Linux, or `Vision6D.cmd` on Windows (an unsigned script, which Smart App Control may block). Drop images in (JPG, PNG, WebP, GIF, BMP, AVIF), preview them in **3D / 4D / 6D / Points**, press **Extract all**. Each image gets its own folder under `~/Vision6D` with Node (`--out <folder>` to change), or in the folder you pick with `Vision6D.html`.
 
 | File | What it is |
 |---|---|
@@ -30,7 +32,7 @@ Take or pick a photo and move it on six axes by touch, sliders or gyroscope; pho
 - Depth is **estimated** from a single image (focus, position, brightness). It is not measured and no ML model is used. Load your own depth map for accurate results.
 - Person detection is a skin-tone and posture heuristic.
 - The anatomy model is a generic illustration, not derived from the person in the photo and not for medical use.
-- The desktop app needs Node.js and a Chromium-based browser; there is no `.exe` installer yet.
+- `Vision6D.html` needs Edge or Chrome to save into a folder (other browsers get a `.zip`); the Node route also needs Node.js. There is no `.exe` installer (an unsigned one would be blocked by Smart App Control too).
 
 ## Develop
 
@@ -38,6 +40,8 @@ Take or pick a photo and move it on six axes by touch, sliders or gyroscope; pho
 node tests/run.js           # every Node-only suite
 node tests/desktop-e2e.js   # drives the desktop app in Chromium (needs Playwright)
 node tests/mobile-e2e.js    # drives the mobile app in Chromium (needs Playwright)
+node tests/standalone-e2e.js # drives Vision6D.html opened from disk (needs Playwright)
+node tools/build.js --standalone   # rebuild Vision6D.html after changing sources
 node tools/build.js --apk   # builds the APK (JDK 17+, Android SDK, ANDROID_HOME)
 ```
 

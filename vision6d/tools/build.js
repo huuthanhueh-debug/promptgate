@@ -3,6 +3,9 @@
 // Builds the Vision 6D mobile app.
 //   node tools/build.js          -> dist/www/   (core/ + mobile/; serve it and open mobile/index.html)
 //   node tools/build.js --apk    -> dist/vision6d-<version>.apk (signed, installable)
+//   node tools/build.js --standalone [--out <file>]
+//                                -> Vision6D.html: the desktop app as ONE file. Double-click it in Edge or
+//                                   Chrome: no Node, no script, no installer (works under Windows Smart App Control).
 //
 // No npm dependencies and no Gradle. The APK step drives the Android SDK command-line tools
 // directly: aapt2 (manifest + icon), javac + d8 (the WebView shell), our own zip writer
@@ -17,6 +20,8 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { execFileSync } = require('child_process');
+const crypto = require('crypto');
+const { bundle } = require('./bundle');
 const { writeZip, readZip } = require('../android/zip');
 const icon = require('../android/icon');
 
@@ -175,11 +180,35 @@ function buildApk(opts) {
   }
 }
 
-module.exports = { buildWeb, buildApk, findTools, APP, WWW };
+// The desktop window as a single self-contained page. The CSP allows only the one inline script
+// (by hash) and no network at all, so the page cannot send anything anywhere.
+function standaloneHtml() {
+  const html = fs.readFileSync(path.join(ROOT, 'desktop', 'index.html'), 'utf8').replace(/\r\n/g, '\n');
+  const tag = '<script type="module" src="./app.js"></script>';
+  if (!html.includes(tag)) throw new Error('desktop/index.html has no module script tag to replace');
+  const code = bundle(path.join(ROOT, 'desktop', 'app.js'), ROOT);
+  const hash = crypto.createHash('sha256').update(code, 'utf8').digest('base64');
+  const csp = `default-src 'none'; script-src 'sha256-${hash}'; style-src 'unsafe-inline'; img-src blob: data:; object-src 'none'; base-uri 'none'; form-action 'none'`;
+  const charset = '<meta charset="utf-8">';
+  if (!html.includes(charset)) throw new Error('desktop/index.html has no charset meta');
+  return html.replace(charset, `${charset}\n<meta http-equiv="Content-Security-Policy" content="${csp}">`).replace(tag, () => `<script>${code}</script>`);
+}
+function buildStandalone(opts) {
+  opts = opts || {};
+  const out = path.resolve(opts.out || path.join(ROOT, 'Vision6D.html'));
+  fs.mkdirSync(path.dirname(out), { recursive: true });
+  fs.writeFileSync(out, standaloneHtml());
+  if (!opts.quiet) console.log(`built ${path.relative(ROOT, out)} (${fs.statSync(out).size} bytes)`);
+  return out;
+}
+
+module.exports = { buildWeb, buildApk, buildStandalone, standaloneHtml, findTools, APP, WWW };
 
 if (require.main === module) {
   try {
-    if (process.argv.includes('--apk')) buildApk();
+    const outAt = process.argv.indexOf('--out');
+    if (process.argv.includes('--standalone')) buildStandalone({ out: outAt > 0 ? process.argv[outAt + 1] : undefined });
+    else if (process.argv.includes('--apk')) buildApk();
     else buildWeb();
   } catch (e) {
     console.error('\n' + e.message);

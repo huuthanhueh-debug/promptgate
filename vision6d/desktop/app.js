@@ -10,6 +10,7 @@ import { paintScene, paintPerson } from '../core/demo.js';
 import { t } from './strings.js';
 import * as X from './lib/extract.js';
 import { checkGlb } from './lib/glb.js';
+import { createServerSink, createBrowserSink } from './lib/sink.js';
 
 const $ = (id) => document.getElementById(id);
 const MAX_TEXTURE = 2048; // longest side of the exported photo / texture
@@ -39,15 +40,10 @@ function toast(msg, bad, ms) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), ms || 4200);
 }
-async function api(method, path, body) {
-  const headers = { 'x-v6d-token': TOKEN };
-  let payload = body;
-  if (body && !(body instanceof Blob)) { payload = JSON.stringify(body); headers['content-type'] = 'application/json'; }
-  let res;
-  try { res = await fetch(path, { method, headers, body: payload }); } catch (_) { throw new Error(tr('msg.noServer')); }
-  if (!res.ok) throw new Error(res.status === 403 ? tr('msg.noServer') : `${method} ${path}: ${res.status}`);
-  return res.json();
-}
+// With a token in the address the page was opened by the local server; without one it is the
+// standalone Vision6D.html and saves through the browser instead (folder picker or one .zip).
+const sink = TOKEN ? createServerSink(TOKEN) : createBrowserSink(window);
+const errText = (e) => (e && e.code === 'server' ? tr('msg.noServer') : String((e && e.message) || e));
 const toBlob = (canvas, type, quality) => new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('encode failed'))), type, quality));
 function canvasOf(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
 function rgbaCanvas(rgba, w, h) { const c = canvasOf(w, h); c.getContext('2d').putImageData(new ImageData(rgba, w, h), 0, 0); return c; }
@@ -158,11 +154,11 @@ async function extract(item) {
   try {
     const a = await analyze(item);
     const files = await buildFiles(item, a);
-    const begun = await api('POST', '/api/begin', { name: X.sanitizeName(item.name) });
-    for (const f of files) await api('PUT', `/api/file?dir=${encodeURIComponent(begun.dir)}&path=${encodeURIComponent(f.path)}`, f.blob);
+    const begun = await sink.begin(X.sanitizeName(item.name));
+    for (const f of files) await sink.put(begun.dir, f.path, f.blob);
     Object.assign(item, { status: 'done', dir: begun.dir, savedPath: begun.path, count: files.length });
   } catch (e) {
-    Object.assign(item, { status: 'error', error: String((e && e.message) || e) });
+    Object.assign(item, { status: 'error', error: errText(e) });
   }
   renderQueue();
   return item.status === 'done';
@@ -171,8 +167,15 @@ async function run(items) {
   if (state.busy || !items.length) return;
   state.busy = true;
   syncButtons();
+  try { await sink.prepare(); } catch (e) { // the folder picker must open straight from the click
+    state.busy = false; syncButtons();
+    toast(e && e.name === 'AbortError' ? tr('msg.cancelled') : errText(e), true);
+    return;
+  }
+  showTarget();
   let ok = 0, bad = 0, last = null;
   for (const item of items) { if (await extract(item)) { ok++; last = item; } else bad++; }
+  try { await sink.finish(); } catch (e) { bad++; ok = Math.max(0, ok - 1); toast(errText(e), true, 7000); }
   state.busy = false;
   syncButtons();
   if (items.length === 1) toast(ok ? tr('msg.saved', { count: last.count, dir: last.savedPath }) : items[0].error, !ok, 7000);
@@ -380,15 +383,22 @@ function bindControls() {
 
   $('run-one').addEventListener('click', () => { const item = selectedItem(); if (item) run([item]); });
   $('run-all').addEventListener('click', () => run(state.items.slice()));
-  $('open').addEventListener('click', () => { const item = selectedItem(); api('POST', '/api/open', { dir: item && item.dir }).catch((e) => toast(e.message, true)); });
+  $('open').addEventListener('click', () => { const item = selectedItem(); sink.open(item && item.dir).catch((e) => toast(errText(e), true)); });
 }
 
 // ---------- language ----------
+function showTarget() {
+  const el = $('outdir');
+  if (sink.kind === 'server') el.textContent = state.outDir || '…';
+  else if (sink.kind === 'folder') el.textContent = sink.folderName ? tr('out.folder', { name: sink.folderName }) : tr('out.chooseOnRun');
+  else el.textContent = tr('out.zip');
+}
 function applyLang() {
   document.documentElement.lang = state.lang;
   for (const el of document.querySelectorAll('[data-i18n]')) el.textContent = tr(el.dataset.i18n);
   for (const b of document.querySelectorAll('[data-lang-toggle]')) { b.textContent = tr('lang.switch'); b.setAttribute('aria-label', tr('lang.switchLabel')); }
   renderQueue();
+  showTarget();
   const item = selectedItem();
   if (item && item.analysis) { const a = item.analysis; $('person').textContent = a.person.isPerson ? tr('person.yes', { score: Math.round(a.person.score * 100) }) : tr('person.no'); showMaps(a); }
 }
@@ -406,13 +416,14 @@ $('lang').addEventListener('click', () => {
   applyLang();
 });
 window.addEventListener('resize', layout);
-window.addEventListener('pagehide', () => { if (navigator.sendBeacon) navigator.sendBeacon('/api/bye?t=' + encodeURIComponent(TOKEN)); });
-api('GET', '/api/info').then((info) => { state.outDir = info.outDir; $('outdir').textContent = info.outDir; }).catch((e) => { $('outdir').textContent = '—'; toast(e.message, true, 10000); });
+window.addEventListener('pagehide', () => sink.bye());
+$('open').hidden = !sink.canOpen;
+sink.info().then((info) => { state.outDir = info.outDir || ''; showTarget(); }).catch((e) => { $('outdir').textContent = '—'; toast(errText(e), true, 10000); });
 
 // Read-only snapshot for the end-to-end test.
 window.__v6dDesktop = {
   snapshot: () => ({
-    lang: state.lang, view: state.view, busy: state.busy, outDir: state.outDir, selected: state.selected, three: THREE.REVISION,
+    lang: state.lang, sink: sink.kind, view: state.view, busy: state.busy, outDir: state.outDir, selected: state.selected, three: THREE.REVISION,
     preview: !!relief, rendering: !!raf, maps: $('maps').children.length,
     items: state.items.map((i) => ({ name: i.name, status: i.status, dir: i.dir || null, count: i.count || 0, error: i.error || '', person: i.analysis ? i.analysis.person.isPerson : null })),
   }),

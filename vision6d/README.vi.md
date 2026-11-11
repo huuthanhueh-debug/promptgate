@@ -6,15 +6,23 @@ Bóc tách bất kỳ hình ảnh nào thành file **3D, 4D và 6D** trên máy 
 
 ## Ứng dụng máy tính
 
-**Mở app:** cần [Node.js](https://nodejs.org) 18 trở lên.
+### Cách 1 (khuyên dùng, không cài gì): mở `Vision6D.html`
+
+Tải riêng file [`Vision6D.html`](Vision6D.html) (hoặc cả repo), bấm đúp để mở bằng **Edge hoặc Chrome**. Không cần Node.js, không chạy script, không cài đặt, nên **Windows Smart App Control không chặn** (nó chỉ chặn chương trình và script không có chữ ký, không chặn trang web). Trang chạy hoàn toàn trong trình duyệt và không có quyền truy cập mạng.
+
+Khi bấm **Bóc tách**, Edge/Chrome hỏi chọn thư mục để lưu (chỉ hỏi một lần mỗi lần mở). Trình duyệt không hỗ trợ chọn thư mục (Firefox, Safari) sẽ nhận một file `Vision6D.zip` trong Tải xuống, bên trong có cùng cấu trúc thư mục.
+
+### Cách 2: chạy bằng Node.js (cần [Node.js](https://nodejs.org) 18 trở lên)
 
 | Hệ điều hành | Cách mở |
 |---|---|
-| Windows | Bấm đúp `Vision6D.cmd` |
+| Mọi máy (gõ trong terminal; `node.exe` có chữ ký nên không bị chặn) | `node tools/desktop.js` |
+| Windows | Bấm đúp `Vision6D.cmd` (có thể bị Smart App Control chặn, khi đó dùng cách 1 hoặc dòng lệnh trên) |
 | macOS, Linux | `./vision6d.sh` |
-| Mọi máy | `node tools/desktop.js` |
 
-Một cửa sổ riêng hiện ra. Kéo thả một hoặc nhiều ảnh vào (JPG, PNG, WebP, GIF, BMP, AVIF), xem trước ở bốn chế độ **3D / 4D / 6D / Điểm**, rồi bấm **Bóc tách tất cả**. Mỗi ảnh được ghi vào một thư mục riêng trong `Vision6D` ở thư mục người dùng (đổi bằng `--out <thư mục>`).
+Cách này mở cửa sổ riêng và ghi file thẳng vào thư mục `Vision6D` trong thư mục người dùng (đổi bằng `--out`).
+
+Cửa sổ app: Kéo thả một hoặc nhiều ảnh vào (JPG, PNG, WebP, GIF, BMP, AVIF), xem trước ở bốn chế độ **3D / 4D / 6D / Điểm**, rồi bấm **Bóc tách tất cả**. Mỗi ảnh được ghi vào một thư mục riêng trong `Vision6D` ở thư mục người dùng (đổi bằng `--out <thư mục>`).
 
 **Mỗi ảnh cho ra:**
 
@@ -48,7 +56,7 @@ Tải APK ở tab **Actions** của repo: mở lần chạy mới nhất, tải 
 - **Độ sâu là ước lượng** từ độ nét, vị trí và độ sáng của một ảnh đơn, không phải đo thật và không dùng mô hình AI. Ảnh có chủ thể rõ trên nền mờ cho kết quả tốt nhất; ảnh phẳng, ít chi tiết sẽ cho khối nổi mang tính trang trí. Muốn chính xác, hãy nạp depth map riêng.
 - **Nhận diện người là heuristic** theo màu da và dáng đứng; ảnh cận mặt hoặc người nằm có thể không nhận ra. Khi đó chọn "Luôn xuất" ở mục Mô hình giải phẫu.
 - **Mô hình giải phẫu là hình minh họa chuẩn** đặt khớp theo khung người. Nó không lấy từ cơ thể thật trong ảnh và không dùng để chẩn đoán y khoa.
-- App máy tính cần Node.js và một trình duyệt nhân Chromium (Edge có sẵn trên Windows). Chưa có bản cài đặt `.exe`.
+- Bản `Vision6D.html` cần Edge hoặc Chrome để chọn thư mục lưu (trình duyệt khác vẫn dùng được nhưng nhận file `.zip`). Cách 2 cần thêm Node.js. Chưa có bản cài đặt `.exe` (một `.exe` không ký cũng sẽ bị Smart App Control chặn).
 
 ## Dành cho người phát triển
 
@@ -56,6 +64,8 @@ Tải APK ở tab **Actions** của repo: mở lần chạy mới nhất, tải 
 node tests/run.js           # mọi test chỉ cần Node (có Android SDK thì build và kiểm tra luôn APK)
 node tests/desktop-e2e.js   # chạy thật app máy tính trên Chromium (cần Playwright)
 node tests/mobile-e2e.js    # chạy thật app điện thoại trên Chromium (cần Playwright)
+node tests/standalone-e2e.js # chạy thật Vision6D.html mở từ ổ đĩa (cần Playwright)
+node tools/build.js --standalone   # dựng lại Vision6D.html sau khi sửa mã nguồn
 node tools/build.js --apk   # dựng APK (cần JDK 17+ và Android SDK, đặt ANDROID_HOME)
 ```
 
@@ -65,7 +75,7 @@ node tools/build.js --apk   # dựng APK (cần JDK 17+ và Android SDK, đặt 
 | `desktop/` | Cửa sổ app máy tính; `lib/glb.js` ghi file glTF, `lib/extract.js` bóc tách |
 | `mobile/` | Giao diện app điện thoại |
 | `android/` | Vỏ WebView (Java), manifest, icon |
-| `tools/` | `desktop.js` mở app, `server.js` server cục bộ, `build.js` dựng APK |
+| `tools/` | `desktop.js` mở app, `server.js` server cục bộ, `bundle.js` gộp module thành một script, `build.js` dựng `Vision6D.html` và APK |
 | `tests/` | Test Node và test trên trình duyệt |
 
 Server cục bộ chỉ nghe ở `127.0.0.1`, yêu cầu mã bí mật tạo mới mỗi lần mở, và chỉ ghi file vào thư mục xuất.

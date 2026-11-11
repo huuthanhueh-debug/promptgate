@@ -7,7 +7,8 @@
     "start": "node tools/desktop.js",
     "desktop": "node tools/desktop.js",
     "test": "node tests/run.js",
-    "test:e2e": "node tests/mobile-e2e.js && node tests/desktop-e2e.js",
+    "test:e2e": "node tests/mobile-e2e.js && node tests/desktop-e2e.js && node tests/standalone-e2e.js",
+    "build:standalone": "node tools/build.js --standalone",
     "build:mobile": "node tools/build.js",
     "build:apk": "node tools/build.js --apk"
   },
