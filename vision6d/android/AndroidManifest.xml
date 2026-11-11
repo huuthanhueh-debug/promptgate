@@ -2,7 +2,7 @@
 <!-- Vision 6D shell. No INTERNET permission: the app is fully offline and photos never leave
      the device. CAMERA is requested at runtime, the first time the page opens the camera. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.promptgate.vision6d">
+    package="io.vision6d.app">
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />

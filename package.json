@@ -11,11 +11,7 @@
     "optimize": "node scripts/optimize.js",
     "history": "node scripts/history.js",
     "doctor": "node scripts/doctor.js",
-    "build:ext": "node extension/build.js",
-    "test:mobile": "node tests/mobile.js",
-    "test:mobile:e2e": "node tests/mobile-e2e.js",
-    "build:mobile": "node mobile/build.js",
-    "build:apk": "node mobile/build.js --apk"
+    "build:ext": "node extension/build.js"
   },
   "engines": { "node": ">=18" },
   "license": "MIT",

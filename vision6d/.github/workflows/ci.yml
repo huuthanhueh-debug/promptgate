@@ -1,16 +1,24 @@
-name: mobile-apk
-# Builds the Vision 6D Android app (mobile/) with the SDK preinstalled on the runner, runs its
-# tests against the real APK, and uploads the APK as a downloadable artifact.
+name: ci
 on:
   push:
     branches: [main]
-    paths: ['mobile/**', 'tests/mobile.js', '.github/workflows/mobile-apk.yml']
   pull_request:
-    paths: ['mobile/**', 'tests/mobile.js', '.github/workflows/mobile-apk.yml']
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [18, 22]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node tests/run.js
   apk:
     runs-on: ubuntu-latest
     steps:
@@ -26,14 +34,14 @@ jobs:
         run: node tests/mobile.js
       - name: Check the APK with the SDK's own tools
         run: |
-          apk=$(ls mobile/dist/vision6d-*.apk)
+          apk=$(ls dist/vision6d-*.apk)
           bt=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
           "$bt/zipalign" -c 4 "$apk"
           "$bt/apksigner" verify --verbose --min-sdk-version 24 "$apk"
           "$bt/aapt2" dump badging "$apk" | head -20
-          "$bt/aapt2" dump badging "$apk" | grep -q "launchable-activity: name='com.promptgate.vision6d.MainActivity'"
+          "$bt/aapt2" dump badging "$apk" | grep -q "launchable-activity: name='io.vision6d.app.MainActivity'"
       - uses: actions/upload-artifact@v4
         with:
           name: vision6d-apk
-          path: mobile/dist/vision6d-*.apk
+          path: dist/vision6d-*.apk
           if-no-files-found: error

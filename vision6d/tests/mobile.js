@@ -1,16 +1,15 @@
 'use strict';
-// Vision 6D (mobile/) tests: the image heuristics, the six-axis pose math, the anatomy data, the
+// Vision 6D mobile tests: the image heuristics, the six-axis pose math, the anatomy data, the
 // three.js scene builders (real three.js, no renderer), and the build (web bundle, zip writer,
 // icon, Android shell). The APK itself is built and inspected only where an Android SDK is
-// installed (the mobile-apk workflow); elsewhere that block reports "skipped".
+// installed (CI); elsewhere that block reports "skipped".
 // Run directly (node tests/mobile.js) or through tests/run.js (spawned as a child process).
 const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');
 
 const ROOT = path.resolve(__dirname, '..');
-const MOBILE = path.join(ROOT, 'mobile');
-const load = (rel) => import(pathToFileURL(path.join(MOBILE, 'src', rel)).href);
+const load = (rel) => import(pathToFileURL(path.join(ROOT, rel)).href);
 
 let pass = 0, fail = 0;
 function check(name, cond, extra) {
@@ -42,12 +41,14 @@ function personImage(w, h) {
 }
 
 (async () => {
-  const D = await load('lib/depth.js');
-  const S = await load('lib/sixdof.js');
-  const A = await load('lib/anatomy.js');
-  const SC = await load('lib/scene.js');
-  const I = await load('lib/i18n.js');
-  const THREE = await load('vendor/three.module.min.js');
+  const D = await load('core/depth.js');
+  const S = await load('core/sixdof.js');
+  const A = await load('core/anatomy.js');
+  const SC = await load('core/scene.js');
+  const L = await load('core/i18n.js');
+  const M = await load('mobile/strings.js');
+  const I = Object.assign({}, L, M);
+  const THREE = await load('core/vendor/three.module.min.js');
 
   console.log('depth');
   {
@@ -160,13 +161,13 @@ function personImage(w, h) {
     check('the toggle shows the language you would switch to', I.t('vi', 'lang.switch') === 'EN' && I.t('en', 'lang.switch') === 'VI' && I.otherLang('vi') === 'en' && I.otherLang('en') === 'vi' && I.otherLang('xx') === 'en');
     check('pickLang: stored choice, then device language, then Vietnamese', I.pickLang('en', 'vi-VN') === 'en' && I.pickLang(null, 'en-US') === 'en' && I.pickLang(null, 'vi-VN') === 'vi' && I.pickLang('zz', 'fr-FR') === 'vi' && I.pickLang(undefined, undefined) === 'vi');
     check('t() fills placeholders and falls back safely', I.t('en', 'toast.savedTo', { where: 'Pictures' }) === 'Saved to: Pictures' && I.t('vi', 'toast.savedTo', { where: 'X' }) === 'Đã lưu vào: X' && I.t('fr', 'home.pick') === 'Thư viện' && I.t('en', 'no.such.key') === 'no.such.key');
-    const html = fs.readFileSync(path.join(MOBILE, 'src', 'index.html'), 'utf8');
+    const html = fs.readFileSync(path.join(ROOT, 'mobile', 'index.html'), 'utf8');
     const keys = [...html.matchAll(/data-i18n(?:-aria)?="([^"]+)"/g)].map((m) => m[1]);
     check('every data-i18n key in the page exists in both tables', keys.length > 25 && keys.every((k) => k in I.STRINGS.vi && k in I.STRINGS.en), keys.filter((k) => !(k in I.STRINGS.vi)).join());
     const body = html.slice(html.indexOf('<body>'));
     check('the page hard-codes no Vietnamese text (all of it comes from the tables)', !VI_CHARS.test(body));
     check('both screens carry a language button', (html.match(/data-lang-toggle/g) || []).length === 2);
-    const app = fs.readFileSync(path.join(MOBILE, 'src', 'app.js'), 'utf8');
+    const app = fs.readFileSync(path.join(ROOT, 'mobile', 'app.js'), 'utf8');
     const usedKeys = [...app.matchAll(/(?:tr|notice)\('([a-zA-Z]+\.[a-zA-Z.]+)'/g)].map((m) => m[1]).concat([...app.matchAll(/'((?:toast|notice)\.[a-zA-Z]+)'/g)].map((m) => m[1]));
     check('every string key the script uses exists', usedKeys.length > 12 && usedKeys.every((k) => k in I.STRINGS.en), usedKeys.filter((k) => !(k in I.STRINGS.en)).join());
     check('the script itself holds no Vietnamese literals', !app.split('\n').some((l) => !l.trim().startsWith('//') && VI_CHARS.test(l)));
@@ -236,32 +237,33 @@ function personImage(w, h) {
 
   console.log('build');
   {
-    const B = require(path.join(MOBILE, 'build.js'));
-    const zip = require(path.join(MOBILE, 'android', 'zip.js'));
-    const icon = require(path.join(MOBILE, 'android', 'icon.js'));
+    const B = require(path.join(ROOT, 'tools', 'build.js'));
+    const zip = require(path.join(ROOT, 'android', 'zip.js'));
+    const icon = require(path.join(ROOT, 'android', 'icon.js'));
     const www = B.buildWeb({ quiet: true });
-    for (const f of ['index.html', 'app.js', 'lib/depth.js', 'lib/sixdof.js', 'lib/anatomy.js', 'lib/scene.js', 'lib/i18n.js', 'vendor/three.module.min.js', 'vendor/THREE-LICENSE']) {
+    for (const f of ['mobile/index.html', 'mobile/app.js', 'mobile/strings.js', 'core/depth.js', 'core/sixdof.js', 'core/anatomy.js', 'core/scene.js', 'core/i18n.js', 'core/vendor/three.module.min.js', 'core/vendor/THREE-LICENSE']) {
       check(`dist/www/${f} exists`, fs.existsSync(path.join(www, f)));
     }
-    check('the Node-only package.json is not shipped', !fs.existsSync(path.join(www, 'package.json')));
-    const html = fs.readFileSync(path.join(www, 'index.html'), 'utf8');
+    check('the Node-only package.json files are not shipped', !fs.existsSync(path.join(www, 'core', 'package.json')) && !fs.existsSync(path.join(www, 'mobile', 'package.json')));
+    check('desktop code is not shipped in the mobile bundle', !fs.existsSync(path.join(www, 'desktop')));
+    const html = fs.readFileSync(path.join(www, 'mobile', 'index.html'), 'utf8');
     const csp = (/Content-Security-Policy" content="([^"]+)"/.exec(html) || [])[1] || '';
     check('page has a CSP that allows no remote origin', csp.includes("default-src 'self'") && !/https?:|\*/.test(csp), csp);
-    const own = ['index.html', 'app.js', 'lib/depth.js', 'lib/sixdof.js', 'lib/anatomy.js', 'lib/scene.js', 'lib/i18n.js'].map((f) => fs.readFileSync(path.join(www, f), 'utf8')).join('\n');
+    const own = ['mobile/index.html', 'mobile/app.js', 'mobile/strings.js', 'core/depth.js', 'core/sixdof.js', 'core/anatomy.js', 'core/scene.js', 'core/i18n.js'].map((f) => fs.readFileSync(path.join(www, f), 'utf8')).join('\n');
     const remote = (own.match(/https?:\/\/[^\s'"`)]+/g) || []).filter((u) => !u.startsWith('http://www.w3.org/'));
     check('our code references no remote URL (works offline)', remote.length === 0, remote.join());
     check('our code never calls fetch/XHR/WebSocket/sendBeacon', !/\bfetch\(|XMLHttpRequest|WebSocket|sendBeacon/.test(own));
-    check('three.js is imported from the vendored file', /from '\.\/vendor\/three\.module\.min\.js'/.test(own));
-    check('three.js licence ships with the bundle', /MIT License/.test(fs.readFileSync(path.join(www, 'vendor', 'THREE-LICENSE'), 'utf8')));
+    check('three.js is imported from the vendored file', /from '\.\.\/core\/vendor\/three\.module\.min\.js'/.test(own));
+    check('three.js licence ships with the bundle', /MIT License/.test(fs.readFileSync(path.join(www, 'core', 'vendor', 'THREE-LICENSE'), 'utf8')));
     const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
     const used = [...new Set([...own.matchAll(/\$\('([^']+)'\)/g)].map((m) => m[1]))];
     check('every element id the script looks up exists in the page', used.length > 20 && used.every((i) => ids.includes(i)), used.filter((i) => !ids.includes(i)).join());
 
-    const manifest = fs.readFileSync(path.join(MOBILE, 'android', 'AndroidManifest.xml'), 'utf8');
+    const manifest = fs.readFileSync(path.join(ROOT, 'android', 'AndroidManifest.xml'), 'utf8');
     const perms = [...manifest.matchAll(/uses-permission android:name="([^"]+)"/g)].map((m) => m[1]);
     check('Android manifest asks for CAMERA only (no INTERNET, no storage)', perms.join() === 'android.permission.CAMERA', perms.join());
     check('manifest package matches app.json and backups are off', manifest.includes(`package="${B.APP.id}"`) && manifest.includes('android:allowBackup="false"') && manifest.includes('android:usesCleartextTraffic="false"'));
-    const java = fs.readFileSync(path.join(MOBILE, 'android', 'src', ...B.APP.id.split('.'), 'MainActivity.java'), 'utf8');
+    const java = fs.readFileSync(path.join(ROOT, 'android', 'src', ...B.APP.id.split('.'), 'MainActivity.java'), 'utf8');
     check('shell declares the package from app.json', java.includes(`package ${B.APP.id};`));
     check('shell blocks file access, path traversal and foreign origins', java.includes('setAllowFileAccess(false)') && java.includes('path.contains("..")') && java.includes('!HOST.equals(request.getOrigin().getHost())'));
     check('shell exposes exactly one bridge method', (java.match(/@JavascriptInterface/g) || []).length === 1);
@@ -285,7 +287,7 @@ function personImage(w, h) {
     check('readZip rejects non-zip data', throws(() => zip.readZip(Buffer.from('not a zip at all, sorry........'))));
     check('crc32 matches the standard check value', zip.crc32(Buffer.from('123456789')) === 0xcbf43926);
 
-    const none = B.findTools({ ANDROID_HOME: path.join(MOBILE, 'no-such-sdk') });
+    const none = B.findTools({ ANDROID_HOME: path.join(ROOT, 'no-such-sdk') });
     check('findTools reports what is missing when there is no SDK', !none.ok && ['aapt2', 'androidJar', 'r8Jar', 'apksignerJar'].every((k) => none.missing.includes(k)));
 
     const tools = B.findTools();
@@ -298,12 +300,12 @@ function personImage(w, h) {
       if (apk) {
         const files = zip.readZip(fs.readFileSync(apk));
         const names = files.map((f) => f.name);
-        check('APK holds manifest, dex, resources and the web app', ['AndroidManifest.xml', 'classes.dex', 'resources.arsc', 'assets/www/index.html', 'assets/www/app.js', 'assets/www/vendor/three.module.min.js'].every((n) => names.includes(n)), names.join());
+        check('APK holds manifest, dex, resources and the web app', ['AndroidManifest.xml', 'classes.dex', 'resources.arsc', 'assets/www/mobile/index.html', 'assets/www/mobile/app.js', 'assets/www/core/scene.js', 'assets/www/core/vendor/three.module.min.js'].every((n) => names.includes(n)), names.join());
         const arsc = files.find((f) => f.name === 'resources.arsc');
         check('resources.arsc is stored and 4-byte aligned after signing', arsc.stored && arsc.dataOffset % 4 === 0);
         check('launcher icons are packaged at five densities', names.filter((n) => /^res\/.*\.png$/.test(n)).length === 5, names.filter((n) => n.startsWith('res/')).join());
-        check('dex is a DEX file and names the activity', files.find((f) => f.name === 'classes.dex').data.subarray(0, 4).toString('latin1') === 'dex\n' && files.find((f) => f.name === 'classes.dex').data.includes(Buffer.from('Lcom/promptgate/vision6d/MainActivity;')));
-        check('the packaged web app matches the build', files.find((f) => f.name === 'assets/www/app.js').data.equals(fs.readFileSync(path.join(www, 'app.js'))));
+        check('dex is a DEX file and names the activity', files.find((f) => f.name === 'classes.dex').data.subarray(0, 4).toString('latin1') === 'dex\n' && files.find((f) => f.name === 'classes.dex').data.includes(Buffer.from('L' + B.APP.id.split('.').join('/') + '/MainActivity;')));
+        check('the packaged web app matches the build', files.find((f) => f.name === 'assets/www/mobile/app.js').data.equals(fs.readFileSync(path.join(www, 'mobile', 'app.js'))));
         check('APK carries a v2+ signing block', fs.readFileSync(apk).includes(Buffer.from('APK Sig Block 42')));
       }
     }

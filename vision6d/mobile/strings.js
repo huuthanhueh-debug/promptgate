@@ -1,6 +1,5 @@
-// Vision 6D interface strings, Vietnamese and English. Pure data and lookups: no DOM.
-
-export const LANGS = Object.freeze(['vi', 'en']);
+// Vision 6D mobile interface strings, Vietnamese and English. Pure data.
+import { translate } from '../core/i18n.js';
 
 export const STRINGS = Object.freeze({
   vi: {
@@ -103,23 +102,4 @@ export const STRINGS = Object.freeze({
   },
 });
 
-export function normalizeLang(lang) {
-  const l = String(lang || '').toLowerCase().slice(0, 2);
-  return LANGS.includes(l) ? l : null;
-}
-
-// Stored choice wins, then the device language, then Vietnamese.
-export function pickLang(stored, deviceLang) {
-  return normalizeLang(stored) || normalizeLang(deviceLang) || 'vi';
-}
-
-export function otherLang(lang) {
-  return normalizeLang(lang) === 'en' ? 'vi' : 'en';
-}
-
-// Looks a string up, filling {placeholders}. Falls back to Vietnamese, then to the key itself.
-export function t(lang, key, vars) {
-  const table = STRINGS[normalizeLang(lang) || 'vi'];
-  const s = key in table ? table[key] : key in STRINGS.vi ? STRINGS.vi[key] : key;
-  return vars ? s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m)) : s;
-}
+export const t = (lang, key, vars) => translate(STRINGS, lang, key, vars);

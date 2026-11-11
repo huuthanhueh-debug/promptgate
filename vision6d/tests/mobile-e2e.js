@@ -13,7 +13,7 @@ try { ({ chromium } = require('playwright')); } catch (_) {
   process.exit(0);
 }
 
-const SRC = path.resolve(__dirname, '..', 'mobile', 'src');
+const SRC = path.resolve(__dirname, '..'); // serves core/ and mobile/ side by side
 const SHOTS = process.env.V6D_SHOTS || '';
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json' };
 
@@ -24,14 +24,14 @@ function check(name, cond, extra) {
 
 (async () => {
   const server = http.createServer((req, res) => {
-    const rel = decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '') || 'index.html';
+    const rel = decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '');
     const file = path.join(SRC, rel);
-    if (!file.startsWith(SRC) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.writeHead(404); res.end(); return; }
+    if (!/^(core|mobile)\//.test(rel) || !file.startsWith(SRC) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.writeHead(404); res.end(); return; }
     res.writeHead(200, { 'content-type': MIME[path.extname(file)] || 'application/octet-stream' });
     fs.createReadStream(file).pipe(res);
   });
   await new Promise((r) => server.listen(0, '127.0.0.1', r));
-  const url = `http://127.0.0.1:${server.address().port}/index.html`;
+  const url = `http://127.0.0.1:${server.address().port}/mobile/index.html`;
   const browser = await chromium.launch({ args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream', '--enable-unsafe-swiftshader'] });
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, permissions: ['camera'], locale: 'vi-VN' });
   const page = await ctx.newPage();

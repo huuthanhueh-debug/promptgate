@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 'use strict';
-// Builds Vision 6D.
-//   node mobile/build.js          -> mobile/dist/www/   (the web app; open index.html over http)
-//   node mobile/build.js --apk    -> mobile/dist/vision6d-<version>.apk (signed, installable)
+// Builds the Vision 6D mobile app.
+//   node tools/build.js          -> dist/www/   (core/ + mobile/; serve it and open mobile/index.html)
+//   node tools/build.js --apk    -> dist/vision6d-<version>.apk (signed, installable)
 //
 // No npm dependencies and no Gradle. The APK step drives the Android SDK command-line tools
 // directly: aapt2 (manifest + icon), javac + d8 (the WebView shell), our own zip writer
@@ -11,22 +11,21 @@
 //   V6D_AAPT2=<aapt2 binary>  V6D_ANDROID_JAR=<android.jar>
 //   V6D_R8_JAR=<d8.jar or r8.jar>  V6D_APKSIGNER_JAR=<apksigner.jar>
 // Signing: set V6D_KEYSTORE, V6D_KEY_ALIAS, V6D_KEYSTORE_PASS to use your own key. Without
-// them a throwaway debug key is generated in mobile/dist/ (fine for sideloading; an update
+// them a throwaway debug key is generated in dist/ (fine for sideloading; an update
 // signed with a different key needs an uninstall first).
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { execFileSync } = require('child_process');
-const { writeZip, readZip } = require('./android/zip');
-const icon = require('./android/icon');
+const { writeZip, readZip } = require('../android/zip');
+const icon = require('../android/icon');
 
-const MOBILE = __dirname;
-const ROOT = path.resolve(MOBILE, '..');
-const SRC = path.join(MOBILE, 'src');
-const DIST = path.join(MOBILE, 'dist');
+const ROOT = path.resolve(__dirname, '..');
+const WEB_DIRS = ['core', 'mobile']; // copied side by side, so ../core imports keep working
+const DIST = path.join(ROOT, 'dist');
 const WWW = path.join(DIST, 'www');
-const ANDROID = path.join(MOBILE, 'android');
-const APP = JSON.parse(fs.readFileSync(path.join(MOBILE, 'app.json'), 'utf8'));
+const ANDROID = path.join(ROOT, 'android');
+const APP = JSON.parse(fs.readFileSync(path.join(ROOT, 'app.json'), 'utf8'));
 const WEB_SKIP = new Set(['package.json']); // only tells Node the sources are ES modules
 
 function walk(dir, base) {
@@ -42,7 +41,7 @@ function walk(dir, base) {
 
 function buildWeb(opts) {
   fs.rmSync(WWW, { recursive: true, force: true });
-  const files = walk(SRC, '').filter((f) => !WEB_SKIP.has(f.rel));
+  const files = WEB_DIRS.flatMap((d) => walk(path.join(ROOT, d), d)).filter((f) => !WEB_SKIP.has(path.basename(f.rel)));
   for (const f of files) {
     const to = path.join(WWW, f.rel);
     fs.mkdirSync(path.dirname(to), { recursive: true });
@@ -121,7 +120,7 @@ function buildApk(opts) {
   const tools = findTools();
   if (!tools.ok) {
     throw new Error('Android toolchain incomplete, missing: ' + tools.missing.join(', ')
-      + '.\nInstall a JDK and the Android SDK (build-tools + a platform), set ANDROID_HOME, or set the V6D_* variables listed at the top of mobile/build.js.');
+      + '.\nInstall a JDK and the Android SDK (build-tools + a platform), set ANDROID_HOME, or set the V6D_* variables listed at the top of tools/build.js.');
   }
   buildWeb({ quiet: true });
   const work = fs.mkdtempSync(path.join(os.tmpdir(), 'vision6d-apk-'));

@@ -1,0 +1,51 @@
+name: vision6d
+# Temporary bridge: Vision 6D is being moved to its own repository. Until then this runs the
+# project's own CI (vision6d/.github/workflows/ci.yml) from inside the vision6d/ folder.
+on:
+  pull_request:
+    paths: ['vision6d/**', '.github/workflows/vision6d.yml']
+  workflow_dispatch:
+defaults:
+  run:
+    working-directory: vision6d
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [18, 22]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: node tests/run.js
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Test and build the APK
+        run: node tests/mobile.js
+      - name: Check the APK with the SDK's own tools
+        run: |
+          apk=$(ls dist/vision6d-*.apk)
+          bt=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$bt/zipalign" -c 4 "$apk"
+          "$bt/apksigner" verify --verbose --min-sdk-version 24 "$apk"
+          "$bt/aapt2" dump badging "$apk" | head -20
+          "$bt/aapt2" dump badging "$apk" | grep -q "launchable-activity: name='io.vision6d.app.MainActivity'"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vision6d-apk
+          path: vision6d/dist/vision6d-*.apk
+          if-no-files-found: error

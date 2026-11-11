@@ -113,10 +113,6 @@ If PromptGate saves you tokens, a star on GitHub or a look at the hotel toolkits
 - **Phase 2 (done, 1.2)**: Windows tray with a global hotkey, same engine in the Claude desktop app and any other window. Select text, press Ctrl+Alt+P, pick A/B/C. See [tray/README.md](tray/README.md); run `tray\PromptGate.cmd` or `npm run tray`.
 - **Phase 3 (done)**: Chrome extension for claude.ai, [on the Chrome Web Store](https://chromewebstore.google.com/detail/ohfifdheanlidimoffbkbkednifkpiae). Source and manual install in [`extension/`](extension/README.md).
 
-## Also in this repo: Vision 6D
-
-[`mobile/`](mobile/README.vi.md) holds a separate Android app built with three.js: photograph anything and move it as a six-axis 3D relief, or photograph a person and see a holographic anatomy overlay. It shares the repo's no-dependency build style but is independent of the prompt gate.
-
 ## Troubleshooting
 
 - **Tier-2 (`brain llm`) fails with a certificate error** (common with Kaspersky or a corporate proxy on Windows): run Claude Code with `NODE_OPTIONS=--use-system-ca`, or set `NODE_EXTRA_CA_CERTS` to a PEM bundle that includes your interception root. Details in [docs/INTEGRATION.md](docs/INTEGRATION.md).

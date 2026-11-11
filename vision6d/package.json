@@ -1,0 +1,16 @@
+{
+  "name": "vision6d",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Turn any image into 3D, 4D and 6D files on your computer, or explore it on six axes on your phone. three.js, no dependencies.",
+  "scripts": {
+    "start": "node tools/desktop.js",
+    "desktop": "node tools/desktop.js",
+    "test": "node tests/run.js",
+    "test:e2e": "node tests/mobile-e2e.js && node tests/desktop-e2e.js",
+    "build:mobile": "node tools/build.js",
+    "build:apk": "node tools/build.js --apk"
+  },
+  "engines": { "node": ">=18" },
+  "license": "MIT"
+}

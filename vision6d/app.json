@@ -1,0 +1,8 @@
+{
+  "name": "Vision 6D",
+  "id": "io.vision6d.app",
+  "version": "0.2.0",
+  "versionCode": 2,
+  "minSdk": 24,
+  "targetSdk": 34
+}

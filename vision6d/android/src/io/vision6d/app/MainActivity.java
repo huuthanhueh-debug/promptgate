@@ -1,4 +1,4 @@
-package com.promptgate.vision6d;
+package io.vision6d.app;
 
 import android.Manifest;
 import android.app.Activity;
@@ -41,7 +41,7 @@ import java.util.Map;
  */
 public class MainActivity extends Activity {
     private static final String HOST = "appassets.androidplatform.net";
-    private static final String START = "https://" + HOST + "/index.html";
+    private static final String START = "https://" + HOST + "/mobile/index.html";
     private static final int REQ_CAMERA = 1;
     private static final int REQ_FILE = 2;
 
@@ -129,7 +129,7 @@ public class MainActivity extends Activity {
     }
 
     private WebResourceResponse asset(String path) {
-        if (path == null || path.isEmpty() || "/".equals(path)) path = "/index.html";
+        if (path == null || path.isEmpty() || "/".equals(path)) path = "/mobile/index.html";
         if (path.contains("..") || path.contains("\\")) return notFound();
         int dot = path.lastIndexOf('.');
         String mime = dot < 0 ? null : MIME.get(path.substring(dot + 1).toLowerCase());
