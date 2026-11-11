@@ -4,7 +4,9 @@
 - New `video/`: an offline video studio. Brief → storyboard → prompts shaped for 11 AI video tools (Veo 3, Runway Gen-4, Kling, HeyGen, Synthesia, InVideo AI, CapCut AI, Canva AI, Sora, Pika, Luma) → attach the generated images/clips → export a captioned video with music, all on the device.
 - Desktop: `npm run video` (zero-dependency localhost server). Android: `npm run build:apk` builds a WebView APK with the plain SDK tools; the `video-apk` workflow builds it, runs it on an emulator and publishes it on the `video-latest` release. The APK requests no permissions.
 - Vietnamese and English UI with a VI | EN switch (labels, tool tips, warnings, error messages); the choice is remembered. Strings live in `video/src/i18n.js`.
-- Tests: `tests/video.js` (core logic, server, packaging, real render in headless Chromium when Playwright is present), wired into `node tests/run.js`.
+- Editing tools (0.2.0): timeline with playhead, split at playhead, duplicate, undo/redo; per-clip trim, speed and volume; seven real transitions between two scenes; colour looks and sliders, fill or fit-with-blur framing; caption position, size, colour, background and animation; music fade in/out with auto-ducking; logo overlay; safe-area guide; export fps and bitrate. Projects saved by 0.1 still open.
+- Fixed: a second export with music or clip sound came out silent (media elements can be wired to Web Audio only once; preview and export now share one audio graph). Editing two fields of one scene in a row no longer drops the second edit.
+- Tests: `tests/video.js` (core logic, clip-editing maths, server, packaging, and in headless Chromium when Playwright is present: pixel checks of every transition, the editor UI, real exports with sound), wired into `node tests/run.js`.
 
 ## 1.3.1 — 2026-11-03 — doctor
 - New `/promptgate:doctor [--fix]` (`npm run doctor`): one command that checks every edition on this machine — plugin registration and a live hook run, Windows tray process, claude.ai bundle freshness, the optional virtual-office widget — and with `--fix` starts the tray and rebuilds the extension. `--json` for scripts; exit 1 only when the plugin or hook is broken.

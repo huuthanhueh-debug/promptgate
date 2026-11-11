@@ -84,14 +84,52 @@ function get(port, p, method) {
   check('empty project gives no prompts and does not throw', want.every((id) => V.buildPack(id, {}).items.length === 0));
   const enPack = V.buildPack('canva', tall, 'en');
   check('English packs: labels and warnings in English, prompt text unchanged', /^Scene 1 · /.test(enPack.items[0].label) && enPack.warnings.some((w) => /does not support 9:16/.test(w)) && !/[ạảãàáâăđêôơư]/i.test(enPack.warnings.join('') + enPack.items.map((it) => it.label).join('')) && enPack.items[0].text === V.buildPack('canva', tall).items[0].text);
-  check('every style, shot, move and transition has a label in both languages', [V.STYLES, V.SHOTS, V.MOTIONS, V.TRANSITIONS].every((m) => Object.values(m).every((e) => V.label(e, 'vi') && V.label(e, 'en') && V.label(e, 'en') !== V.label(e, 'vi'))));
+  check('every style, shot, move and transition has a label in both languages', [V.STYLES, V.SHOTS, V.MOTIONS, V.TRANSITIONS, V.LOOKS, V.FITS, V.CAP_POS, V.CAP_SIZE, V.CAP_BG, V.CAP_ANIM, V.LOGO_POS].every((m) => Object.values(m).every((e) => V.label(e, 'vi') && V.label(e, 'en') && V.label(e, 'en') !== V.label(e, 'vi'))));
   let threw = false; try { V.buildPack('nope', p); } catch (_) { threw = true; }
   check('unknown tool id throws', threw);
 
   console.log('timeline + renderer maths');
   const tp = V.normalizeProject({ scenes: [{ text: 'a', duration: 2 }, { text: 'b', duration: 3, transition: 'cut' }] });
   check('sceneAt picks the right scene at boundaries', V.sceneAt(tp, 0).index === 0 && V.sceneAt(tp, 1.99).index === 0 && V.sceneAt(tp, 2).index === 1 && V.sceneAt(tp, 99).index === 1 && V.sceneAt(tp, -5).index === 0);
-  check('fade: transparent at the edges, opaque mid-scene; cut: always opaque', V.sceneAt(tp, 0).alpha === 0 && V.sceneAt(tp, 1).alpha === 1 && V.sceneAt(tp, 2).alpha === 1 && V.sceneAt(tp, 4.99).alpha === 1);
+  check('first scene enters from black, then is fully on; a cut has no transition', V.sceneAt(tp, 0).trans.type === 'fade' && V.sceneAt(tp, 0).trans.p === 0 && V.sceneAt(tp, 1).trans === null && V.sceneAt(tp, 2).trans === null);
+  check('closing fade: visible until the last half second, black at the end; off when disabled', V.sceneAt(tp, 4).out === 1 && V.sceneAt(tp, 4.75).out === 0.5 && V.sceneAt(tp, 5).out === 0 && V.sceneAt({ ...tp, endFade: false }, 5).out === 1);
+
+  console.log('editing');
+  const ed = V.normalizeProject({ scenes: [{ text: 'a', duration: 4 }, { text: 'b', duration: 1, transition: 'slide-left', transDur: 2 }, { text: 'c', duration: 3, transition: 'wipe', transDur: 1 }] });
+  const mid = V.sceneAt(ed, 4.25);
+  check('transition names the outgoing scene and is capped at half the scene', mid.trans.type === 'slide-left' && mid.trans.prev === 0 && mid.trans.p === 0.5 && V.sceneAt(ed, 4.6).trans === null);
+  check('transition progress is eased 0 → 1', V.ease(0) === 0 && V.ease(0.5) === 0.5 && V.ease(1) === 1 && V.ease(0.25) < 0.25 && V.sceneAt(ed, 5.5).trans.p === 0.5);
+  const old = V.normalizeProject({ version: 1, title: 'old', scenes: [{ id: 'a1', text: 'x', duration: 3.5, transition: 'fade', shot: 'wide', motion: 'static' }] });
+  check('projects saved by the first version open with safe defaults', old.scenes[0].transition === 'fade' && old.scenes[0].speed === 1 && old.scenes[0].volume === 1 && old.scenes[0].trimOut === 0 && old.scenes[0].look === 'none' && old.caption.pos === 'bottom' && old.music.duck === true && old.endFade === true);
+  const wild = V.normalizeProject({ caption: { pos: 'x', color: 'red', size: 7 }, music: { volume: 9, fadeIn: -3 }, logo: { size: 900, opacity: 0 }, scenes: [{ speed: 99, volume: -1, trimIn: 5, trimOut: 2, brightness: 999, look: 'constructor', fit: 'toString', transDur: 50 }] });
+  check('bad editing values are clamped (incl. prototype keys as names)', wild.caption.pos === 'bottom' && wild.caption.color === '#ffffff' && wild.caption.size === 'm' && wild.music.volume === 1 && wild.music.fadeIn === 0 && wild.logo.size === 40 && wild.logo.opacity === 0.1
+    && wild.scenes[0].speed === 4 && wild.scenes[0].volume === 0 && wild.scenes[0].trimOut === 0 && wild.scenes[0].brightness === 150 && wild.scenes[0].look === 'none' && wild.scenes[0].fit === 'cover' && wild.scenes[0].transDur === 2);
+  const clip = (o) => ({ trimIn: 0, trimOut: 0, speed: 1, ...o });
+  check('clipTime: trim start, speed, loop inside the trim', V.clipTime(clip({ trimIn: 1, trimOut: 3, speed: 2 }), 0.5, 10) === 2 && V.clipTime(clip({ trimIn: 1, trimOut: 3 }), 2.5, 10) === 1.5 && V.clipTime(clip({}), 5, 4) === 1);
+  check('clipTime: the exact end holds the last frame instead of wrapping', Math.abs(V.clipTime(clip({ trimIn: 1, trimOut: 3 }), 2, 10) - 2.96) < 1e-9);
+  check('clipTime: trim beyond the clip, unknown length and zero span are safe', V.clipTime(clip({ trimIn: 50, trimOut: 60 }), 1, 4) <= 4 && V.clipTime(clip({ trimIn: 2 }), 1, NaN) === 3 && Number.isFinite(V.clipTime(clip({}), 3, 0)));
+  check('clipLength plays the trimmed clip once at its speed', V.clipLength(clip({ trimIn: 1, trimOut: 5, speed: 2 }), 10) === 2 && V.clipLength(clip({}), 0.1) === V.LIMITS.sceneMin && V.clipLength(clip({}), 9999) === V.LIMITS.sceneMax);
+  const sp = V.splitScene(ed, 0, 1.5, true);
+  check('split: two scenes, durations add up, clip continues where it was cut', sp.project.scenes.length === 4 && sp.project.scenes[0].duration === 1.5 && sp.project.scenes[1].duration === 2.5 && sp.project.scenes[0].trimOut === 1.5 && sp.project.scenes[1].trimIn === 1.5 && sp.project.scenes[1].transition === 'cut' && sp.project.scenes[1].id === sp.id && sp.id !== sp.project.scenes[0].id);
+  check('split: total time unchanged, original project untouched', V.totalDuration(sp.project) === V.totalDuration(ed) && ed.scenes.length === 3);
+  check('split: refuses a cut too close to an edge or out of range', V.splitScene(ed, 0, 0.2, true) === null && V.splitScene(ed, 0, 3.8, true) === null && V.splitScene(ed, 9, 1, true) === null);
+  const spFast = V.splitScene(V.normalizeProject({ scenes: [{ duration: 4, speed: 2, trimIn: 1 }] }), 0, 1, true);
+  check('split: honours speed and existing trim; images get no trim', spFast.project.scenes[1].trimIn === 3 && V.splitScene(ed, 0, 2, false).project.scenes[1].trimIn === 0);
+  const dup = V.duplicateScene(ed, 1);
+  check('duplicate: copy sits after the original with a new id', dup.project.scenes.length === 4 && dup.project.scenes[2].text === 'b' && dup.project.scenes[2].id === dup.id && dup.id !== dup.project.scenes[1].id);
+  const full = V.normalizeProject({ scenes: Array.from({ length: V.LIMITS.scenes }, () => ({})) });
+  check('split and duplicate stop at the scene limit', V.splitScene(full, 0, 2, false) === null && V.duplicateScene(full, 0) === null);
+  check('filterCss: look + sliders, empty when neutral', V.filterCss(ed.scenes[0]) === '' && V.filterCss({ ...ed.scenes[0], look: 'mono', brightness: 120, saturation: 0 }) === 'grayscale(1) contrast(1.1) brightness(1.2) saturate(0)');
+  check('every look is a valid filter list', Object.values(V.LOOKS).every((l) => /^((blur|brightness|contrast|grayscale|hue-rotate|saturate|sepia)\([\d.a-z-]+\) ?)*$/.test(l.css)));
+  check('fitRect: cover fills, contain letterboxes, both centred', JSON.stringify(V.fitRect(200, 100, 100, 100, 'cover')) === '{"x":-50,"y":0,"w":200,"h":100}' && JSON.stringify(V.fitRect(200, 100, 100, 100, 'contain')) === '{"x":0,"y":25,"w":100,"h":50}');
+  const lr = V.logoRect({ pos: 'br', size: 20, opacity: 1 }, 1000, 500, 200, 100);
+  check('logoRect: sized by frame width, kept inside the corner margin', lr.w === 200 && lr.h === 100 && lr.x === 780 && lr.y === 380 && V.logoRect({ pos: 'tl', size: 20 }, 1000, 500, 200, 100).x === 20);
+  check('captionReveal: fade, rise, typewriter, none', V.captionReveal('fade', 0, 'hello', 4).alpha === 0 && V.captionReveal('fade', 1, 'hello', 4).alpha === 1 && V.captionReveal('rise', 0, 'hello', 4).dy === 1 && V.captionReveal('type', 0.1, 'hello', 4).chars === 3 && V.captionReveal('type', 9, 'hello', 4).chars === 5 && V.captionReveal('none', 0, 'hello', 4).alpha === 1);
+  const mp = V.normalizeProject({ music: { volume: 0.8, fadeIn: 2, fadeOut: 2, duck: true }, scenes: [{ duration: 10 }] });
+  const near = (a, b) => Math.abs(a - b) < 1e-9;
+  check('musicGain: fade in, hold, duck under clip sound, fade out', V.musicGain(mp, 0, false) === 0 && near(V.musicGain(mp, 1, false), 0.4) && near(V.musicGain(mp, 5, false), 0.8) && near(V.musicGain(mp, 5, true), 0.24) && near(V.musicGain(mp, 9, false), 0.4) && V.musicGain(mp, 10, false) === 0);
+  check('musicGain: ducking and fades can be turned off', near(V.musicGain(V.normalizeProject({ ...mp, music: { volume: 0.8, fadeIn: 0, fadeOut: 0, duck: false } }), 0, true), 0.8));
+  check('bitrate: scales with size, fps and level, within sane bounds', V.bitrate(720, 1280, 30, 'high') > V.bitrate(720, 1280, 30, 'medium') && V.bitrate(720, 1280, 60, 'low') > V.bitrate(720, 1280, 30, 'low') && V.bitrate(10, 10, 24, 'low') === 500000 && V.bitrate(9999, 9999, 60, 'high') === 40000000 && V.bitrate(720, 1280, 30, 'nope') === V.bitrate(720, 1280, 30, 'medium'));
   check('sceneAt on an empty project is null', V.sceneAt(V.normalizeProject({}), 1) === null);
   const covers = Object.keys(V.MOTIONS).every((m) => [0, 0.3, 1].every((q) => { const f = V.motionTransform(m, q); return f.scale >= 1 && Math.abs(f.tx) <= (f.scale - 1) / 2 + 1e-9 && Math.abs(f.ty) <= (f.scale - 1) / 2 + 1e-9; }));
   check('camera moves never expose the frame edge', covers);
@@ -192,6 +230,92 @@ function get(port, p, method) {
       check('UI: VI button switches back', (await page.innerText('nav [data-tab=export]')) === 'Xuất' && (await page.innerText('#scenes .card h3 >> nth=0')).startsWith('Cảnh 1'));
       check('UI: project survives a reload', (await page.locator('#scenes .card').count()) === 3);
 
+      // --- compositor: probe pixels of each transition, look, framing, caption and logo -----
+      const px = await page.evaluate(async () => {
+        const V = window.PGVideo, R = window.PGRender;
+        const solid = (color, w, h) => new Promise((res) => { const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); x.fillStyle = color; x.fillRect(0, 0, w, h); const i = new Image(); i.onload = () => res(i); i.src = c.toDataURL(); });
+        const red = await solid('#ff0000', 90, 160), blue = await solid('#0000ff', 90, 160), wide = await solid('#00ff00', 320, 90), white = await solid('#ffffff', 40, 20);
+        const c = document.createElement('canvas'); c.width = 90; c.height = 160;
+        const ctx = c.getContext('2d', { willReadFrequently: true });
+        const at = (x, y) => Array.from(ctx.getImageData(x, y, 1, 1).data.slice(0, 3));
+        const make = (transition, more, proj) => {
+          const p = V.normalizeProject({ aspect: '9:16', endFade: false, ...(proj || {}), scenes: [{ id: 'a', duration: 2, transition: 'cut', motion: 'static', caption: '' }, { id: 'b', duration: 2, transition, transDur: 1, motion: 'static', caption: '', ...(more || {}) }] });
+          return [p, new Map([['a', { type: 'image', el: red }], ['b', { type: 'image', el: (more && more.wideImg) ? wide : blue }]])];
+        };
+        const shot = (transition, t, more, proj, opts) => { const [p, m] = make(transition, more, proj); R.drawFrame(ctx, p, t, m, opts || {}); };
+        const out = {};
+        shot('cut', 2.5); out.cut = at(45, 80);
+        shot('dissolve', 2.5); out.dissolve = at(45, 80);
+        shot('fade', 2.5); out.fade = at(45, 80);
+        shot('wipe', 2.5); out.wipeL = at(10, 80); out.wipeR = at(80, 80);
+        shot('slide-left', 2.5); out.slideL = at(10, 80); out.slideR = at(80, 80);
+        shot('slide-up', 2.5); out.slideT = at(45, 20); out.slideB = at(45, 140);
+        shot('zoom', 2.5); out.zoom = at(45, 80);
+        shot('dissolve', 3.5); out.after = at(45, 80);
+        shot('cut', 3, { look: 'mono' }); out.mono = at(45, 80);
+        shot('cut', 3, { brightness: 50 }); out.dark = at(45, 80);
+        shot('cut', 3, { wideImg: true, fit: 'cover' }); out.coverTop = at(45, 5);
+        shot('cut', 3, { wideImg: true, fit: 'contain' }); out.containTop = at(45, 5); out.containMid = at(45, 80);
+        shot('cut', 3, { caption: 'MMMM' }, { caption: { pos: 'top', bg: 'none', anim: 'none', size: 'l', color: '#ffff00' } }); out.capTop = [0, 1, 2].some((k) => { for (let x = 20; x < 70; x++) for (let y = 8; y < 32; y++) { const q = at(x, y); if (q[0] > 200 && q[1] > 200 && q[2] < 80) return true; } return false; });
+        out.capBottomEmpty = (() => { for (let x = 20; x < 70; x += 2) for (let y = 120; y < 150; y += 2) { const q = at(x, y); if (q[0] > 200 && q[1] > 200) return false; } return true; })();
+        shot('cut', 3, {}, { logo: { pos: 'tl', size: 40, opacity: 1 } }, { logo: white }); out.logoIn = at(12, 12); out.logoOut = at(80, 150);
+        shot('cut', 3, {}, { endFade: true }); out.endMid = at(45, 80);
+        shot('cut', 4, {}, { endFade: true }); out.endBlack = at(45, 80);
+        return out;
+      });
+      const is = (q, r, g, b, tol) => Math.abs(q[0] - r) <= (tol || 12) && Math.abs(q[1] - g) <= (tol || 12) && Math.abs(q[2] - b) <= (tol || 12);
+      check('render: cut shows only the new scene; after a transition only the new scene', is(px.cut, 0, 0, 255) && is(px.after, 0, 0, 255), JSON.stringify([px.cut, px.after]));
+      check('render: dissolve blends both scenes half-way', is(px.dissolve, 128, 0, 128, 16), JSON.stringify(px.dissolve));
+      check('render: fade comes from black, not from the old scene', is(px.fade, 0, 0, 128, 16), JSON.stringify(px.fade));
+      check('render: wipe reveals the new scene from the left', is(px.wipeL, 0, 0, 255) && is(px.wipeR, 255, 0, 0), JSON.stringify([px.wipeL, px.wipeR]));
+      check('render: slide-left pushes the old scene out to the left', is(px.slideL, 255, 0, 0) && is(px.slideR, 0, 0, 255), JSON.stringify([px.slideL, px.slideR]));
+      check('render: slide-up pushes the old scene out the top', is(px.slideT, 255, 0, 0) && is(px.slideB, 0, 0, 255), JSON.stringify([px.slideT, px.slideB]));
+      check('render: zoom-through cross-fades while the old scene grows', is(px.zoom, 128, 0, 128, 16), JSON.stringify(px.zoom));
+      check('render: mono look removes colour, brightness slider darkens', px.mono[0] === px.mono[1] && px.mono[1] === px.mono[2] && is(px.dark, 0, 0, 128, 16), JSON.stringify([px.mono, px.dark]));
+      check('render: cover fills the frame; contain keeps the whole picture over a dimmed blur', is(px.coverTop, 0, 255, 0) && is(px.containMid, 0, 255, 0) && px.containTop[1] > 60 && px.containTop[1] < 200, JSON.stringify([px.coverTop, px.containTop, px.containMid]));
+      check('render: caption follows position and colour settings', px.capTop === true && px.capBottomEmpty === true);
+      check('render: logo sits in its corner only', is(px.logoIn, 255, 255, 255) && is(px.logoOut, 0, 0, 255), JSON.stringify([px.logoIn, px.logoOut]));
+      check('render: closing fade reaches black on the last frame', is(px.endMid, 0, 0, 255) && is(px.endBlack, 0, 0, 0), JSON.stringify([px.endMid, px.endBlack]));
+
+      // --- editor: timeline, split, duplicate, undo/redo, advanced scene controls ---------
+      await page.click('nav [data-tab=export]');
+      const blocks = () => page.locator('#timeline button').count();
+      check('editor: timeline shows one block per scene', (await blocks()) === 3);
+      await page.click('#timeline button >> nth=1');
+      check('editor: tapping a block moves the playhead to that scene', (await page.locator('#timeline button.on').innerText()).startsWith('2') && Number(await page.inputValue('#seek')) > 300);
+      await page.click('#split');
+      check('editor: splitting at a scene edge is refused with a hint', (await blocks()) === 3 && !(await page.locator('#toast').isHidden()));
+      const totalBefore = await page.evaluate(() => JSON.parse(localStorage.getItem('pgv.project')).scenes.reduce((a, s) => a + s.duration, 0));
+      await page.fill('#seek', '500');
+      await page.click('#split');
+      const afterSplit = await page.evaluate(() => JSON.parse(localStorage.getItem('pgv.project')).scenes);
+      check('editor: split at the playhead adds a scene and keeps the total length', (await blocks()) === 4 && Math.abs(afterSplit.reduce((a, s) => a + s.duration, 0) - totalBefore) < 0.11 && afterSplit[2].transition === 'cut', String(await blocks()));
+      await page.click('#dup');
+      check('editor: duplicate adds a block', (await blocks()) === 5);
+      await page.click('#undo'); await page.click('#undo');
+      check('editor: undo twice restores the three scenes', (await blocks()) === 3);
+      await page.click('#redo');
+      check('editor: redo brings the split back', (await blocks()) === 4);
+      await page.click('#undo');
+      await page.locator('details.panel summary').nth(0).click();
+      await page.selectOption('#cap-pos', 'top');
+      await page.selectOption('#cap-anim', 'type');
+      await page.uncheck('#end-fade');
+      const proj1 = await page.evaluate(() => JSON.parse(localStorage.getItem('pgv.project')));
+      check('editor: text and export panels write into the project', proj1.caption.pos === 'top' && proj1.caption.anim === 'type' && proj1.endFade === false);
+      await page.click('#undo');
+      check('editor: undo also covers panel settings and refreshes the controls', (await page.isChecked('#end-fade')) === true && (await page.inputValue('#cap-anim')) === 'type');
+      await page.click('#edit-scene');
+      check('editor: "edit this scene" opens its advanced block', (await page.locator('#scenes details.adv[open]').count()) === 1);
+      const card = page.locator('#scenes .card:has(details.adv[open])');
+      await card.locator('select').nth(2).selectOption('wipe');
+      await page.locator('#scenes .card:has(details.adv[open]) details.adv select').nth(1).selectOption('film');
+      const proj2 = await page.evaluate(() => JSON.parse(localStorage.getItem('pgv.project')).scenes.find((x) => x.look === 'film') || {});
+      check('editor: transition and colour look are saved on the scene', proj2.transition === 'wipe' && proj2.look === 'film', JSON.stringify([proj2.transition, proj2.look]));
+      check('editor: advanced block stays open after a re-render', (await page.locator('#scenes details.adv[open]').count()) === 1);
+      await page.reload();
+      check('editor: edits survive a reload', (await page.evaluate(() => JSON.parse(localStorage.getItem('pgv.project')).scenes.filter((x) => x.look === 'film').length)) === 1 && (await page.locator('#scenes .card').count()) === 3);
+
       const dl = page.waitForEvent('download', { timeout: 60000 });
       await page.goto(`http://127.0.0.1:${port}/?selftest=1`);
       await page.waitForFunction(() => window.PGV_SELFTEST, null, { timeout: 60000 });
@@ -219,6 +343,64 @@ function get(port, p, method) {
         return { w: v.videoWidth, h: v.videoHeight, t: v.currentTime, lit: n / (d.length / 4) };
       }, buf.toString('base64'));
       check('export: file decodes and plays back with picture', played.w === 360 && played.h === 640 && played.t > 0.5 && played.lit > 0.5, JSON.stringify(played));
+      // --- clip editing end to end: trim + speed + music, exported twice ---------------------
+      const clipFile = path.join(os.tmpdir(), `pgv-clip-${process.pid}.${isMp4 ? 'mp4' : 'webm'}`);
+      const wavFile = path.join(os.tmpdir(), `pgv-tone-${process.pid}.wav`);
+      fs.writeFileSync(clipFile, buf);
+      const sr = 8000, n = sr * 3, wav = Buffer.alloc(44 + n * 2);
+      wav.write('RIFF', 0); wav.writeUInt32LE(36 + n * 2, 4); wav.write('WAVEfmt ', 8); wav.writeUInt32LE(16, 16); wav.writeUInt16LE(1, 20); wav.writeUInt16LE(1, 22);
+      wav.writeUInt32LE(sr, 24); wav.writeUInt32LE(sr * 2, 28); wav.writeUInt16LE(2, 32); wav.writeUInt16LE(16, 34); wav.write('data', 36); wav.writeUInt32LE(n * 2, 40);
+      for (let i = 0; i < n; i++) wav.writeInt16LE(Math.round(Math.sin((i * 2 * Math.PI * 440) / sr) * 12000), 44 + i * 2);
+      fs.writeFileSync(wavFile, wav);
+      await page.goto(`http://127.0.0.1:${port}/`);
+      await page.click('nav [data-tab=brief]');
+      await page.fill('#brief', 'Lobby at dawn.\nGuest walks to the pool.');
+      await page.fill('#total', '4');
+      page.once('dialog', (d) => d.accept());
+      await page.click('#make');
+      await page.locator('#scenes input[type=file]').nth(1).setInputFiles(clipFile);
+      await page.waitForSelector('#scenes .media');
+      const clipCard = page.locator('#scenes .card').nth(1);
+      await clipCard.locator('details.adv summary').click();
+      const advNums = clipCard.locator('details.adv input[type=number]');
+      await advNums.nth(0).fill('0.5'); await advNums.nth(0).dispatchEvent('change');
+      await advNums.nth(1).fill('2.5'); await advNums.nth(1).dispatchEvent('change');
+      await clipCard.locator('details.adv select').first().selectOption('2');
+      await clipCard.locator('details.adv button').first().click();
+      const sc = await page.evaluate(() => JSON.parse(localStorage.getItem('pgv.project')).scenes[1]);
+      check('clip: trim and speed saved; "match length" sets the scene to (2.5 − 0.5) ÷ 2 = 1 s', sc.trimIn === 0.5 && sc.trimOut === 2.5 && sc.speed === 2 && sc.duration === 1, JSON.stringify([sc.trimIn, sc.trimOut, sc.speed, sc.duration]));
+      await page.click('nav [data-tab=export]');
+      await page.locator('details.panel summary').nth(1).click();
+      await page.setInputFiles('#music', wavFile);
+      await page.waitForFunction(() => document.getElementById('music-name').textContent.includes('.wav'));
+      await page.click('#timeline button >> nth=1');
+      await page.waitForTimeout(400);
+      const seekPos = await page.evaluate(() => [...document.querySelectorAll('video')].length);
+      check('clip: scrubbing keeps the clip paused on the page (no stray video elements)', seekPos === 0);
+      await page.selectOption('#quality', '360');
+      const probe = async (b64) => page.evaluate(async (data) => {
+        const v = document.createElement('video');
+        v.src = URL.createObjectURL(new Blob([Uint8Array.from(atob(data), (ch) => ch.charCodeAt(0))]));
+        await new Promise((res, rej) => { v.onloadeddata = res; v.onerror = () => rej(new Error('decode failed')); });
+        v.volume = 0.01;
+        await v.play().catch(() => { v.muted = true; return v.play(); });
+        await new Promise((res) => setTimeout(res, 1200));
+        return { w: v.videoWidth, audio: v.webkitAudioDecodedByteCount, t: v.currentTime };
+      }, b64);
+      for (const round of [1, 2]) {
+        const d2 = page.waitForEvent('download', { timeout: 60000 });
+        await page.click('#export');
+        const f2 = fs.readFileSync(await (await d2).path());
+        await page.waitForFunction(() => document.getElementById('progress').hidden);
+        const info = await probe(f2.toString('base64'));
+        check(`clip: export ${round} plays and carries sound (music + clip routed through one audio graph)`, info.w === 360 && info.t > 0.5 && info.audio > 0, JSON.stringify(info));
+      }
+      await page.reload();
+      await page.click('nav [data-tab=export]'); // before the saved files finish loading
+      const restored = await page.waitForFunction(() => document.getElementById('music-name').textContent.includes('.wav') && document.querySelectorAll('#timeline button.has-media').length === 1, null, { timeout: 8000 }).then(() => true, () => false);
+      check('clip: music and attached clip come back after a reload, without leaving the chosen tab', restored && !(await page.locator('#tab-export').isHidden()));
+      for (const f of [clipFile, wavFile]) fs.rmSync(f, { force: true });
+
       check('no page errors, no request leaves localhost', errors.length === 0 && external.length === 0, errors.concat(external).join(' | '));
     } catch (e) {
       check('browser run completed', false, e.message.split('\n')[0]);
