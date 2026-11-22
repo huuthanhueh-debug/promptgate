@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="vi" data-palette="a">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exchangethings.vn wireframe M0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Wireframe M0, Exchangethings.vn. Tokens: một màu nhấn mỗi phương án, nút và chip bo tròn hẳn, thẻ bo 16px, ô nhập bo 12px. */
+:root {
+  --bg: #eef2f5;
+  --surface: #fcfdfd;
+  --surface-2: #f1f4f6;
+  --border: #dbe2e8;
+  --text: #15202b;
+  --text-2: #445260;
+  --muted: #5e6b78;
+  --ok: #15703a;
+  --ok-soft: #e3f3e8;
+  --warn: #8a4b00;
+  --warn-soft: #fbefdc;
+  --bad: #b42318;
+  --bad-soft: #fde8e6;
+  --shadow: 0 1px 2px rgb(21 32 43 / .06), 0 8px 24px rgb(21 32 43 / .08);
+  --accent: #0f766e;
+  --accent-soft: #e2f2ef;
+  --on-accent: #f7fffd;
+  --accent-text: #0d6a63;
+  --bezel: #1b252e;
+  color-scheme: light;
+}
+:root[data-palette="b"] {
+  --accent: #c2410c;
+  --accent-soft: #fbece4;
+  --on-accent: #fffaf6;
+  --accent-text: #a8380a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1217; --surface: #141b21; --surface-2: #1b242c; --border: #2a3640;
+    --text: #e6ecf1; --text-2: #b3c0cb; --muted: #9aa8b4;
+    --ok: #5fd08a; --ok-soft: #173826; --warn: #f0b25c; --warn-soft: #3a2a12; --bad: #ff8a80; --bad-soft: #3e1a18;
+    --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+    --accent: #3cbcad; --accent-soft: #123630; --on-accent: #04201c; --accent-text: #5fd0c2; --bezel: #05090c;
+    color-scheme: dark;
+  }
+  :root[data-palette="b"]:not([data-theme="light"]) {
+    --accent: #f2804c; --accent-soft: #3b1d0e; --on-accent: #2a0d02; --accent-text: #f79b6f;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1217; --surface: #141b21; --surface-2: #1b242c; --border: #2a3640;
+  --text: #e6ecf1; --text-2: #b3c0cb; --muted: #9aa8b4;
+  --ok: #5fd08a; --ok-soft: #173826; --warn: #f0b25c; --warn-soft: #3a2a12; --bad: #ff8a80; --bad-soft: #3e1a18;
+  --shadow: 0 1px 2px rgb(0 0 0 / .4), 0 8px 24px rgb(0 0 0 / .35);
+  --accent: #3cbcad; --accent-soft: #123630; --on-accent: #04201c; --accent-text: #5fd0c2; --bezel: #05090c;
+  color-scheme: dark;
+}
+:root[data-theme="dark"][data-palette="b"] {
+  --accent: #f2804c; --accent-soft: #3b1d0e; --on-accent: #2a0d02; --accent-text: #f79b6f;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 400 15px/1.5 "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.ic { width: 1.25em; height: 1.25em; fill: currentColor; flex: none; vertical-align: -0.25em; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+
+/* Page chrome */
+.page-head {
+  max-width: 1760px; margin: 0 auto; padding: 24px 16px 8px;
+  display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: end; justify-content: space-between;
+}
+.page-head h1 { margin: 0; font-size: 28px; line-height: 1.15; font-weight: 700; letter-spacing: -0.01em; }
+.page-head p { margin: 4px 0 0; color: var(--text-2); max-width: 60ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px 24px; }
+.controls fieldset { border: 0; margin: 0; padding: 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.controls legend { float: left; margin-right: 8px; font-weight: 600; color: var(--text-2); }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface); cursor: pointer; white-space: nowrap;
+}
+.seg input:checked + span { background: var(--text); color: var(--surface); border-color: var(--text); }
+.seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.swatch { width: 12px; height: 12px; border-radius: 999px; display: inline-block; }
+
+.board {
+  max-width: 1760px; margin: 0 auto; padding: 16px 16px 48px;
+  display: grid; gap: 32px; grid-template-columns: minmax(0, 1fr); justify-items: center;
+}
+@media (min-width: 900px) { .board { grid-template-columns: repeat(2, 410px); justify-content: center; } }
+@media (min-width: 1760px) { .board { grid-template-columns: repeat(4, 410px); } }
+.screen { width: 100%; max-width: 410px; min-width: 0; }
+.notes { padding: 14px 6px 0; }
+.notes h2 { margin: 0 0 6px; font-size: 17px; font-weight: 700; }
+.notes ul { margin: 0; padding-left: 18px; color: var(--text-2); }
+.notes li + li { margin-top: 4px; }
+
+/* Phone frame */
+.phone {
+  width: 410px; height: 864px; border-radius: 52px; padding: 10px; background: var(--bezel);
+  box-shadow: var(--shadow);
+}
+.display {
+  height: 100%; border-radius: 42px; overflow: hidden; background: var(--surface);
+  display: flex; flex-direction: column; position: relative;
+}
+@media (max-width: 459px) {
+  .phone { width: 100%; height: auto; padding: 0; border-radius: 20px; background: none; }
+  .display { border-radius: 20px; border: 1px solid var(--border); min-height: 760px; }
+}
+.status { height: 40px; flex: none; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px; color: var(--text-2); }
+.appbar { display: flex; align-items: center; gap: 10px; padding: 6px 16px 10px; flex: none; }
+.appbar h3 { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.2; }
+.appbar .sub { font-size: 13px; color: var(--muted); }
+.appbar .grow { flex: 1; min-width: 0; }
+.icon-btn {
+  width: 40px; height: 40px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface);
+  display: inline-grid; place-items: center; cursor: pointer;
+}
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
+.mark { width: 30px; height: 30px; border-radius: 9px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; }
+.content { flex: 1; overflow: hidden; padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+
+.chips {
+  display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-right: 24px;
+  -webkit-mask-image: linear-gradient(to right, #000 82%, transparent); mask-image: linear-gradient(to right, #000 82%, transparent);
+}
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface);
+  font-size: 13px; white-space: nowrap; color: var(--text-2);
+}
+.chip.on { background: var(--accent-soft); border-color: transparent; color: var(--accent-text); font-weight: 600; }
+
+/* Swipe deck */
+.deck { position: relative; flex: 1; min-height: 0; }
+.card {
+  position: absolute; inset: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden;
+}
+.card.behind-2 { transform: translateY(16px) scale(.92); opacity: .5; }
+.card.behind-1 { transform: translateY(8px) scale(.96); opacity: .8; }
+.photo {
+  flex: 1; min-height: 0; background:
+    radial-gradient(120% 80% at 30% 20%, var(--accent-soft), transparent 60%), var(--surface-2);
+  display: grid; place-items: center; color: var(--muted); text-align: center; font-size: 13px;
+}
+.photo .ic { width: 56px; height: 56px; display: block; margin: 0 auto 6px; opacity: .7; }
+.dots { display: flex; gap: 4px; justify-content: center; padding: 8px 0 0; }
+.dots i { width: 22px; height: 3px; border-radius: 999px; background: var(--border); }
+.dots i.on { background: var(--text-2); }
+.card-body { padding: 12px 14px 14px; display: grid; gap: 8px; }
+.title-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.title-row h4 { margin: 0; font-size: 19px; font-weight: 700; line-height: 1.2; }
+.value { font-weight: 700; font-size: 16px; white-space: nowrap; }
+.meta { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--text-2); }
+.meta span { display: inline-flex; align-items: center; gap: 4px; }
+.label { font-size: 12px; color: var(--muted); font-weight: 600; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); }
+.tag.accent { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+.tag.ok { background: var(--ok-soft); color: var(--ok); font-weight: 600; }
+.actions { display: flex; justify-content: center; gap: 40px; padding: 4px 0 2px; flex: none; }
+.act { display: grid; justify-items: center; gap: 4px; font-size: 12px; color: var(--text-2); background: none; border: 0; cursor: pointer; }
+.act .round { width: 60px; height: 60px; border-radius: 999px; display: grid; place-items: center; border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow); }
+.act .round .ic { width: 26px; height: 26px; }
+.act.like .round { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+
+.tabbar { flex: none; display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--border); padding: 8px 6px 18px; background: var(--surface); }
+.tab { display: grid; justify-items: center; gap: 2px; font-size: 11px; color: var(--muted); position: relative; }
+.tab .ic { width: 24px; height: 24px; }
+.tab.on { color: var(--accent-text); font-weight: 600; }
+.badge-n { position: absolute; top: -2px; left: 50%; margin-left: 6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #b42318; color: #fffafa; font-size: 11px; line-height: 18px; text-align: center; font-weight: 600; }
+
+/* Offer screen */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.side { border: 1px solid var(--border); border-radius: 16px; padding: 10px; display: grid; gap: 6px; background: var(--surface); }
+.side .label { text-transform: none; }
+.thumb { height: 76px; border-radius: 12px; background: var(--surface-2); display: grid; place-items: center; color: var(--muted); }
+.thumb .ic { width: 30px; height: 30px; }
+.side strong { font-size: 14px; line-height: 1.3; }
+.side .v { font-size: 14px; font-weight: 700; }
+
+.scale-box { border-radius: 16px; background: var(--surface-2); padding: 12px 12px 10px; display: grid; gap: 8px; }
+.scale { position: relative; height: 132px; }
+.beam {
+  position: absolute; left: 66px; right: 66px; top: 22px; height: 6px; border-radius: 999px; background: var(--text-2);
+  transform: rotate(var(--tilt, 0deg)); transform-origin: 50% 50%;
+}
+.pan {
+  position: absolute; top: 3px; width: 112px; margin-left: -56px; transform: rotate(calc(var(--tilt, 0deg) * -1));
+  transform-origin: 50% 0; display: grid; justify-items: center;
+}
+.pan::before { content: ""; width: 2px; height: 22px; background: var(--muted); }
+.pan .tray {
+  width: 112px; padding: 6px 4px; border-radius: 12px; text-align: center; background: var(--surface); border: 1px solid var(--border);
+  font-size: 12px; color: var(--text-2); line-height: 1.25;
+}
+.pan .tray b { display: block; font-size: 15px; color: var(--text); }
+.pan.l { left: 0; }
+.pan.r { left: 100%; }
+.post { position: absolute; left: 50%; top: 18px; width: 4px; height: 82px; margin-left: -2px; background: var(--muted); border-radius: 2px; }
+.post::after { content: ""; position: absolute; left: -18px; bottom: -2px; width: 40px; height: 6px; border-radius: 999px; background: var(--muted); }
+.pivot { position: absolute; left: 50%; top: 17px; width: 16px; height: 16px; margin-left: -8px; border-radius: 999px; background: var(--accent); }
+@media (prefers-reduced-motion: no-preference) {
+  .beam, .pan { transition: transform .35s cubic-bezier(.16, 1, .3, 1); }
+}
+.verdict { display: inline-flex; align-items: center; gap: 6px; justify-self: center; padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+.verdict.ok { background: var(--ok-soft); color: var(--ok); }
+.verdict.warn { background: var(--warn-soft); color: var(--warn); }
+.verdict.bad { background: var(--bad-soft); color: var(--bad); }
+
+.field { display: grid; gap: 6px; }
+.field-top { display: flex; justify-content: space-between; align-items: baseline; }
+.field-top label { font-weight: 600; font-size: 14px; }
+.field-top output { font-weight: 700; font-size: 16px; }
+input[type=range] { width: 100%; accent-color: var(--accent); height: 28px; margin: 0; }
+.hint { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
+.link-btn { background: none; border: 0; padding: 4px 0; color: var(--accent-text); font-weight: 600; cursor: pointer; }
+.rows { border-top: 1px solid var(--border); display: grid; }
+.row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; font-size: 14px; }
+.row span:first-child { color: var(--text-2); }
+.row b { text-align: right; }
+.free { color: var(--ok); }
+.cta {
+  width: 100%; padding: 14px 18px; border-radius: 999px; border: 0; background: var(--accent); color: var(--on-accent);
+  font-weight: 700; font-size: 16px; cursor: pointer; white-space: nowrap;
+}
+.cta:active { transform: scale(.98); }
+.ghost {
+  width: 100%; padding: 12px 18px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface);
+  font-weight: 600; font-size: 15px; cursor: pointer; display: inline-flex; justify-content: center; align-items: center; gap: 8px;
+}
+.foot { flex: none; padding: 10px 16px 20px; display: grid; gap: 8px; border-top: 1px solid var(--border); background: var(--surface); }
+.foot .small { text-align: center; font-size: 12px; color: var(--muted); }
+
+/* Tracking screen */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; }
+.step { display: grid; grid-template-columns: 28px 1fr; gap: 10px; position: relative; padding-bottom: 12px; }
+.step:not(:last-child)::before { content: ""; position: absolute; left: 13px; top: 26px; bottom: 0; width: 2px; background: var(--border); }
+.step.done:not(:last-child)::before { background: var(--accent); }
+.dot { width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center; border: 2px solid var(--border); background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 700; }
+.step.done .dot { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.step.now .dot { border-color: var(--accent); color: var(--accent-text); }
+.step b { display: block; font-size: 14px; }
+.step small { color: var(--text-2); font-size: 13px; }
+.box { border: 1px solid var(--border); border-radius: 16px; padding: 12px; display: grid; gap: 6px; background: var(--surface); }
+.box h5 { margin: 0; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+.kv { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; }
+.kv span { color: var(--text-2); }
+.kv b { text-align: right; }
+.state-ok { color: var(--ok); font-weight: 600; }
+
+/* Vault screen */
+.banner { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 16px; background: var(--ok-soft); color: var(--ok); font-weight: 600; font-size: 14px; }
+.banner .ic { width: 22px; height: 22px; }
+.code {
+  font: 600 18px/1.2 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; letter-spacing: .06em;
+  padding: 12px; border-radius: 12px; background: var(--surface-2); text-align: center;
+}
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.btn-sm {
+  padding: 9px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface);
+  font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
+}
+.file { display: flex; gap: 10px; align-items: center; }
+.file .ic { width: 30px; height: 30px; color: var(--accent-text); }
+.file div { display: grid; }
+.file small { color: var(--text-2); }
+.timer { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--text-2); }
+
+.page-foot { max-width: 1760px; margin: 0 auto; padding: 0 16px 32px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<!-- Icons: Phosphor Icons regular, MIT License, (c) 2023 Phosphor Icons -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="i-x" viewBox="0 0 256 256"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></symbol>
+<symbol id="i-heart" viewBox="0 0 256 256"><path d="M178,40c-20.65,0-38.73,8.88-50,23.89C116.73,48.88,98.65,40,78,40a62.07,62.07,0,0,0-62,62c0,70,103.79,126.66,108.21,129a8,8,0,0,0,7.58,0C136.21,228.66,240,172,240,102A62.07,62.07,0,0,0,178,40ZM128,214.8C109.74,204.16,32,155.69,32,102A46.06,46.06,0,0,1,78,56c19.45,0,35.78,10.36,42.6,27a8,8,0,0,0,14.8,0c6.82-16.67,23.15-27,42.6-27a46.06,46.06,0,0,1,46,46C224,155.61,146.24,204.15,128,214.8Z"/></symbol>
+<symbol id="i-sliders-horizontal" viewBox="0 0 256 256"><path d="M40,88H73a32,32,0,0,0,62,0h81a8,8,0,0,0,0-16H135a32,32,0,0,0-62,0H40a8,8,0,0,0,0,16Zm64-24A16,16,0,1,1,88,80,16,16,0,0,1,104,64ZM216,168H199a32,32,0,0,0-62,0H40a8,8,0,0,0,0,16h97a32,32,0,0,0,62,0h17a8,8,0,0,0,0-16Zm-48,24a16,16,0,1,1,16-16A16,16,0,0,1,168,192Z"/></symbol>
+<symbol id="i-map-pin" viewBox="0 0 256 256"><path d="M128,64a40,40,0,1,0,40,40A40,40,0,0,0,128,64Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,128Zm0-112a88.1,88.1,0,0,0-88,88c0,31.4,14.51,64.68,42,96.25a254.19,254.19,0,0,0,41.45,38.3,8,8,0,0,0,9.18,0A254.19,254.19,0,0,0,174,200.25c27.45-31.57,42-64.85,42-96.25A88.1,88.1,0,0,0,128,16Zm0,206c-16.53-13-72-60.75-72-118a72,72,0,0,1,144,0C200,161.23,144.53,209,128,222Z"/></symbol>
+<symbol id="i-arrows-left-right" viewBox="0 0 256 256"><path d="M213.66,181.66l-32,32a8,8,0,0,1-11.32-11.32L188.69,184H48a8,8,0,0,1,0-16H188.69l-18.35-18.34a8,8,0,0,1,11.32-11.32l32,32A8,8,0,0,1,213.66,181.66Zm-139.32-64a8,8,0,0,0,11.32-11.32L67.31,88H208a8,8,0,0,0,0-16H67.31L85.66,53.66A8,8,0,0,0,74.34,42.34l-32,32a8,8,0,0,0,0,11.32Z"/></symbol>
+<symbol id="i-shield-check" viewBox="0 0 256 256"><path d="M208,40H48A16,16,0,0,0,32,56v56c0,52.72,25.52,84.67,46.93,102.19,23.06,18.86,46,25.26,47,25.53a8,8,0,0,0,4.2,0c1-.27,23.91-6.67,47-25.53C198.48,196.67,224,164.72,224,112V56A16,16,0,0,0,208,40Zm0,72c0,37.07-13.66,67.16-40.6,89.42A129.3,129.3,0,0,1,128,223.62a128.25,128.25,0,0,1-38.92-21.81C61.82,179.51,48,149.3,48,112l0-56,160,0ZM82.34,141.66a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32l-56,56a8,8,0,0,1-11.32,0Z"/></symbol>
+<symbol id="i-lock-simple" viewBox="0 0 256 256"><path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80ZM96,56a32,32,0,0,1,64,0V80H96ZM208,208H48V96H208V208Z"/></symbol>
+<symbol id="i-lock-simple-open" viewBox="0 0 256 256"><path d="M208,80H96V56a32,32,0,0,1,32-32c15.37,0,29.2,11,32.16,25.59a8,8,0,0,0,15.68-3.18C171.32,24.15,151.2,8,128,8A48.05,48.05,0,0,0,80,56V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm0,128H48V96H208V208Z"/></symbol>
+<symbol id="i-truck" viewBox="0 0 256 256"><path d="M255.42,117l-14-35A15.93,15.93,0,0,0,226.58,72H192V64a8,8,0,0,0-8-8H32A16,16,0,0,0,16,72V184a16,16,0,0,0,16,16H49a32,32,0,0,0,62,0h50a32,32,0,0,0,62,0h17a16,16,0,0,0,16-16V120A7.94,7.94,0,0,0,255.42,117ZM192,88h34.58l9.6,24H192ZM32,72H176v64H32ZM80,208a16,16,0,1,1,16-16A16,16,0,0,1,80,208Zm81-24H111a32,32,0,0,0-62,0H32V152H176v12.31A32.11,32.11,0,0,0,161,184Zm31,24a16,16,0,1,1,16-16A16,16,0,0,1,192,208Zm48-24H223a32.06,32.06,0,0,0-31-24V128h48Z"/></symbol>
+<symbol id="i-check-circle" viewBox="0 0 256 256"><path d="M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"/></symbol>
+<symbol id="i-warning-circle" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm-8-80V80a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm20,36a12,12,0,1,1-12-12A12,12,0,0,1,140,172Z"/></symbol>
+<symbol id="i-copy" viewBox="0 0 256 256"><path d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"/></symbol>
+<symbol id="i-download-simple" viewBox="0 0 256 256"><path d="M224,144v64a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0Zm-101.66,5.66a8,8,0,0,0,11.32,0l40-40a8,8,0,0,0-11.32-11.32L136,124.69V32a8,8,0,0,0-16,0v92.69L93.66,98.34a8,8,0,0,0-11.32,11.32Z"/></symbol>
+<symbol id="i-clock" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"/></symbol>
+<symbol id="i-cards" viewBox="0 0 256 256"><path d="M184,72H40A16,16,0,0,0,24,88V200a16,16,0,0,0,16,16H184a16,16,0,0,0,16-16V88A16,16,0,0,0,184,72Zm0,128H40V88H184V200ZM232,56V176a8,8,0,0,1-16,0V56H64a8,8,0,0,1,0-16H216A16,16,0,0,1,232,56Z"/></symbol>
+<symbol id="i-chats-circle" viewBox="0 0 256 256"><path d="M232.07,186.76a80,80,0,0,0-62.5-114.17A80,80,0,1,0,23.93,138.76l-7.27,24.71a16,16,0,0,0,19.87,19.87l24.71-7.27a80.39,80.39,0,0,0,25.18,7.35,80,80,0,0,0,108.34,40.65l24.71,7.27a16,16,0,0,0,19.87-19.86ZM62,159.5a8.28,8.28,0,0,0-2.26.32L32,168l8.17-27.76a8,8,0,0,0-.63-6,64,64,0,1,1,26.26,26.26A8,8,0,0,0,62,159.5Zm153.79,28.73L224,216l-27.76-8.17a8,8,0,0,0-6,.63,64.05,64.05,0,0,1-85.87-24.88A79.93,79.93,0,0,0,174.7,89.71a64,64,0,0,1,41.75,92.48A8,8,0,0,0,215.82,188.23Z"/></symbol>
+<symbol id="i-plus-circle" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm48-88a8,8,0,0,1-8,8H136v32a8,8,0,0,1-16,0V136H88a8,8,0,0,1,0-16h32V88a8,8,0,0,1,16,0v32h32A8,8,0,0,1,176,128Z"/></symbol>
+<symbol id="i-handshake" viewBox="0 0 256 256"><path d="M254.3,107.91,228.78,56.85a16,16,0,0,0-21.47-7.15L182.44,62.13,130.05,48.27a8.14,8.14,0,0,0-4.1,0L73.56,62.13,48.69,49.7a16,16,0,0,0-21.47,7.15L1.7,107.9a16,16,0,0,0,7.15,21.47l27,13.51,55.49,39.63a8.06,8.06,0,0,0,2.71,1.25l64,16a8,8,0,0,0,7.6-2.1l55.07-55.08,26.42-13.21a16,16,0,0,0,7.15-21.46Zm-54.89,33.37L165,113.72a8,8,0,0,0-10.68.61C136.51,132.27,116.66,130,104,122L147.24,80h31.81l27.21,54.41ZM41.53,64,62,74.22,36.43,125.27,16,115.06Zm116,119.13L99.42,168.61l-49.2-35.14,28-56L128,64.28l9.8,2.59-45,43.68-.08.09a16,16,0,0,0,2.72,24.81c20.56,13.13,45.37,11,64.91-5L188,152.66Zm62-57.87-25.52-51L214.47,64,240,115.06Zm-87.75,92.67a8,8,0,0,1-7.75,6.06,8.13,8.13,0,0,1-1.95-.24L80.41,213.33a7.89,7.89,0,0,1-2.71-1.25L51.35,193.26a8,8,0,0,1,9.3-13l25.11,17.94L126,208.24A8,8,0,0,1,131.82,217.94Z"/></symbol>
+<symbol id="i-user-circle" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM74.08,197.5a64,64,0,0,1,107.84,0,87.83,87.83,0,0,1-107.84,0ZM96,120a32,32,0,1,1,32,32A32,32,0,0,1,96,120Zm97.76,66.41a79.66,79.66,0,0,0-36.06-28.75,48,48,0,1,0-59.4,0,79.66,79.66,0,0,0-36.06,28.75,88,88,0,1,1,131.52,0Z"/></symbol>
+<symbol id="i-package" viewBox="0 0 256 256"><path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32l80.34,44-29.77,16.3-80.35-44ZM128,120,47.66,76l33.9-18.56,80.34,44ZM40,90l80,43.78v85.79L40,175.82Zm176,85.78h0l-80,43.79V133.82l32-17.51V152a8,8,0,0,0,16,0V107.55L216,90v85.77Z"/></symbol>
+<symbol id="i-device-mobile" viewBox="0 0 256 256"><path d="M176,16H80A24,24,0,0,0,56,40V216a24,24,0,0,0,24,24h96a24,24,0,0,0,24-24V40A24,24,0,0,0,176,16ZM72,64H184V192H72Zm8-32h96a8,8,0,0,1,8,8v8H72V40A8,8,0,0,1,80,32Zm96,192H80a8,8,0,0,1-8-8v-8H184v8A8,8,0,0,1,176,224Z"/></symbol>
+<symbol id="i-t-shirt" viewBox="0 0 256 256"><path d="M247.59,61.22,195.83,33A8,8,0,0,0,192,32H160a8,8,0,0,0-8,8,24,24,0,0,1-48,0,8,8,0,0,0-8-8H64a8,8,0,0,0-3.84,1L8.41,61.22A15.76,15.76,0,0,0,1.82,82.48l19.27,36.81A16.37,16.37,0,0,0,35.67,128H56v80a16,16,0,0,0,16,16H184a16,16,0,0,0,16-16V128h20.34a16.37,16.37,0,0,0,14.58-8.71l19.27-36.81A15.76,15.76,0,0,0,247.59,61.22ZM35.67,112a.62.62,0,0,1-.41-.13L16.09,75.26,56,53.48V112ZM184,208H72V48h16.8a40,40,0,0,0,78.38,0H184Zm36.75-96.14a.55.55,0,0,1-.41.14H200V53.48l39.92,21.78Z"/></symbol>
+<symbol id="i-file-zip" viewBox="0 0 256 256"><path d="M184,144H168a8,8,0,0,0-8,8v56a8,8,0,0,0,16,0v-8h8a28,28,0,0,0,0-56Zm0,40h-8V160h8a12,12,0,0,1,0,24Zm-48-32v56a8,8,0,0,1-16,0V152a8,8,0,0,1,16,0ZM96,208a8,8,0,0,1-8,8H56a8,8,0,0,1-7-12l25.16-44H56a8,8,0,0,1,0-16H88a8,8,0,0,1,7,12L69.79,200H88A8,8,0,0,1,96,208ZM213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40v72a8,8,0,0,0,16,0V40h88V88a8,8,0,0,0,8,8h48v16a8,8,0,0,0,16,0V88A8,8,0,0,0,213.66,82.34ZM160,80V51.31L188.69,80Z"/></symbol>
+<symbol id="i-ticket" viewBox="0 0 256 256"><path d="M232,104a8,8,0,0,0,8-8V64a16,16,0,0,0-16-16H32A16,16,0,0,0,16,64V96a8,8,0,0,0,8,8,24,24,0,0,1,0,48,8,8,0,0,0-8,8v32a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V160a8,8,0,0,0-8-8,24,24,0,0,1,0-48ZM32,167.2a40,40,0,0,0,0-78.4V64H88V192H32Zm192,0V192H104V64H224V88.8a40,40,0,0,0,0,78.4Z"/></symbol>
+<symbol id="i-graduation-cap" viewBox="0 0 256 256"><path d="M251.76,88.94l-120-64a8,8,0,0,0-7.52,0l-120,64a8,8,0,0,0,0,14.12L32,117.87v48.42a15.91,15.91,0,0,0,4.06,10.65C49.16,191.53,78.51,216,128,216a130,130,0,0,0,48-8.76V240a8,8,0,0,0,16,0V199.51a115.63,115.63,0,0,0,27.94-22.57A15.91,15.91,0,0,0,224,166.29V117.87l27.76-14.81a8,8,0,0,0,0-14.12ZM128,200c-43.27,0-68.72-21.14-80-33.71V126.4l76.24,40.66a8,8,0,0,0,7.52,0L176,143.47v46.34C163.4,195.69,147.52,200,128,200Zm80-33.75a97.83,97.83,0,0,1-16,14.25V134.93l16-8.53ZM188,118.94l-.22-.13-56-29.87a8,8,0,0,0-7.52,14.12L171,128l-43,22.93L25,96,128,41.07,231,96Z"/></symbol>
+<symbol id="i-caret-left" viewBox="0 0 256 256"><path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"/></symbol>
+<symbol id="i-eye" viewBox="0 0 256 256"><path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"/></symbol>
+<symbol id="i-info" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"/></symbol>
+</defs></svg>
+
+<header class="page-head">
+  <div>
+    <h1>Exchangethings.vn</h1>
+    <p>Wireframe mốc M0: 4 màn chính để duyệt. Số liệu là dữ liệu mẫu của kịch bản 1 và 3 trong SPEC.</p>
+  </div>
+  <div class="controls">
+    <fieldset>
+      <legend>Màu</legend>
+      <label class="seg"><input type="radio" name="palette" value="a" checked><span><i class="swatch" style="background:#0f766e"></i>A Xanh ngọc</span></label>
+      <label class="seg"><input type="radio" name="palette" value="b"><span><i class="swatch" style="background:#c2410c"></i>B Cam đất</span></label>
+    </fieldset>
+    <fieldset>
+      <legend>Chế độ</legend>
+      <label class="seg"><input type="radio" name="theme" value="auto" checked><span>Theo máy</span></label>
+      <label class="seg"><input type="radio" name="theme" value="light"><span>Sáng</span></label>
+      <label class="seg"><input type="radio" name="theme" value="dark"><span>Tối</span></label>
+    </fieldset>
+  </div>
+</header>
+
+<main class="board">
+
+  <!-- 1. Quẹt thẻ -->
+  <section class="screen" aria-labelledby="s1">
+    <div class="phone"><div class="display">
+      <div class="status">14:05</div>
+      <div class="appbar">
+        <div class="brand grow"><span class="mark"><svg class="ic"><use href="#i-arrows-left-right"/></svg></span>Exchangethings</div>
+        <button class="icon-btn" aria-label="Bộ lọc"><svg class="ic"><use href="#i-sliders-horizontal"/></svg></button>
+      </div>
+      <div class="content">
+        <div class="chips" aria-label="Lọc theo loại">
+          <span class="chip on">Tất cả</span><span class="chip">Vật lý</span><span class="chip">Đồ số</span><span class="chip">Dịch vụ</span><span class="chip">Voucher</span>
+        </div>
+        <div class="deck">
+          <div class="card behind-2" aria-hidden="true"></div>
+          <div class="card behind-1" aria-hidden="true"></div>
+          <article class="card" aria-label="iPhone 18 256GB của Bình">
+            <div class="photo"><div><svg class="ic"><use href="#i-device-mobile"/></svg>Ảnh sản phẩm 1/4</div></div>
+            <div class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
+            <div class="card-body">
+              <div class="title-row"><h4>iPhone 18 256GB</h4><span class="value">17.000.000 ₫</span></div>
+              <div class="meta">
+                <span>Đã dùng 4 tháng</span>
+                <span><svg class="ic"><use href="#i-map-pin"/></svg>TP. Hồ Chí Minh</span>
+                <span><svg class="ic"><use href="#i-shield-check"/></svg>Bình, uy tín 92</span>
+              </div>
+              <div class="label">Muốn đổi lấy</div>
+              <div class="tags"><span class="tag">iPhone 15, 16</span><span class="tag">MacBook Air</span><span class="tag">Máy ảnh</span></div>
+              <div class="tags"><span class="tag accent">Nhận bù tối đa 4tr</span><span class="tag ok">Có IMEI, đã thoát iCloud</span></div>
+            </div>
+          </article>
+        </div>
+        <div class="actions">
+          <button class="act"><span class="round"><svg class="ic"><use href="#i-x"/></svg></span>Bỏ qua</button>
+          <button class="act like"><span class="round"><svg class="ic"><use href="#i-heart"/></svg></span>Quan tâm</button>
+        </div>
+      </div>
+      <nav class="tabbar" aria-label="Điều hướng">
+        <span class="tab on"><svg class="ic"><use href="#i-cards"/></svg>Quẹt</span>
+        <span class="tab"><svg class="ic"><use href="#i-chats-circle"/></svg><span class="badge-n">2</span>Khớp</span>
+        <span class="tab"><svg class="ic"><use href="#i-plus-circle"/></svg>Đăng món</span>
+        <span class="tab"><svg class="ic"><use href="#i-handshake"/></svg>Giao dịch</span>
+        <span class="tab"><svg class="ic"><use href="#i-user-circle"/></svg>Tôi</span>
+      </nav>
+    </div></div>
+    <div class="notes">
+      <h2 id="s1">1. Quẹt thẻ</h2>
+      <ul>
+        <li>Nút Bỏ qua và Quan tâm luôn hiện, người không quẹt được vẫn dùng đủ.</li>
+        <li>Nhãn bù tiền lấy từ khoảng bù người đăng chấp nhận.</li>
+        <li>Nhãn tin cậy (IMEI, iCloud, chứng từ) nằm dưới ảnh, không đè lên ảnh.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 2. Đề nghị và cán cân -->
+  <section class="screen" aria-labelledby="s2">
+    <div class="phone"><div class="display">
+      <div class="status">14:06</div>
+      <div class="appbar">
+        <button class="icon-btn" aria-label="Quay lại"><svg class="ic"><use href="#i-caret-left"/></svg></button>
+        <div class="grow"><h3>Đề nghị với Bình</h3><div class="sub">Hết hạn sau 48 giờ</div></div>
+      </div>
+      <div class="content">
+        <div class="two-col">
+          <div class="side"><span class="label">Bạn đưa</span><div class="thumb"><svg class="ic"><use href="#i-device-mobile"/></svg></div><strong>iPhone 15 128GB</strong><span class="v">13.000.000 ₫</span></div>
+          <div class="side"><span class="label">Bạn nhận</span><div class="thumb"><svg class="ic"><use href="#i-device-mobile"/></svg></div><strong>iPhone 18 256GB</strong><span class="v">17.000.000 ₫</span></div>
+        </div>
+        <div class="scale-box">
+          <div class="scale" id="scale" role="img" aria-label="Cán cân công bằng">
+            <div class="post"></div>
+            <div class="beam" id="beam">
+              <div class="pan l"><div class="tray">Bạn đưa<b id="giveTotal">15,6tr</b></div></div>
+              <div class="pan r"><div class="tray">Bạn nhận<b>17tr</b></div></div>
+            </div>
+            <div class="pivot"></div>
+          </div>
+          <span class="verdict ok" id="verdict">Gần cân bằng, lệch 8%</span>
+        </div>
+        <div class="field">
+          <div class="field-top"><label for="topup">Tiền bù bạn trả</label><output id="topupOut" for="topup">2.600.000 ₫</output></div>
+          <input id="topup" type="range" min="0" max="5000000" step="100000" value="2600000">
+          <div class="hint"><span>Gợi ý: 4.000.000 ₫</span><button class="link-btn" id="useSuggest">Dùng mức gợi ý</button></div>
+        </div>
+        <div class="rows">
+          <div class="row"><span>Phí nền tảng</span><b class="free">Miễn phí</b></div>
+          <div class="row"><span>Cọc của bạn (10%)</span><b>1.700.000 ₫, hoàn khi xong</b></div>
+          <div class="row"><span>Thứ tự gửi</span><b>Bạn gửi trước</b></div>
+        </div>
+      </div>
+      <div class="foot">
+        <button class="cta">Gửi đề nghị</button>
+        <div class="small">Bình có thể chấp nhận, phản đề nghị hoặc từ chối.</div>
+      </div>
+    </div></div>
+    <div class="notes">
+      <h2 id="s2">2. Đề nghị và cán cân công bằng</h2>
+      <ul>
+        <li>Kéo thanh tiền bù để thấy cán cân thăng bằng dần (có thể thử ngay trên trang này).</li>
+        <li>Xanh khi lệch đến 10%, vàng đến 25%, đỏ trên 25%. Chỉ là gợi ý, hai bên tự quyết.</li>
+        <li>Phí, cọc và thứ tự gửi hiện rõ trước khi bấm gửi.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 3. Theo dõi giao dịch -->
+  <section class="screen" aria-labelledby="s3">
+    <div class="phone"><div class="display">
+      <div class="status">16:40</div>
+      <div class="appbar">
+        <button class="icon-btn" aria-label="Quay lại"><svg class="ic"><use href="#i-caret-left"/></svg></button>
+        <div class="grow"><h3>Giao dịch với Bình</h3><div class="sub">iPhone 15 + 4.000.000 ₫ đổi iPhone 18</div></div>
+      </div>
+      <div class="content">
+        <ol class="steps">
+          <li class="step done"><span class="dot"><svg class="ic"><use href="#i-check-circle"/></svg></span><div><b>Đã chấp nhận</b><small>Cả hai đồng ý phiên bản 2</small></div></li>
+          <li class="step done"><span class="dot"><svg class="ic"><use href="#i-lock-simple"/></svg></span><div><b>Đã khóa</b><small>Tiền bù và cọc đã vào ký quỹ</small></div></li>
+          <li class="step now"><span class="dot"><svg class="ic"><use href="#i-truck"/></svg></span><div><b>Đang giao</b><small>Đơn của bạn đã được lấy, Bình đã gửi</small></div></li>
+          <li class="step"><span class="dot">4</span><div><b>Đã nhận</b><small>Mỗi bên kiểm tra và xác nhận</small></div></li>
+          <li class="step"><span class="dot">5</span><div><b>Hoàn tất</b><small>Giải ngân tiền bù, hoàn cọc</small></div></li>
+        </ol>
+        <div class="box">
+          <h5><svg class="ic"><use href="#i-lock-simple"/></svg>Tiền đang giữ hộ</h5>
+          <div class="kv"><span>Tiền bù bạn trả</span><b class="state-ok">4.000.000 ₫, đã nạp</b></div>
+          <div class="kv"><span>Cọc của bạn (10%)</span><b class="state-ok">1.700.000 ₫, đã nạp</b></div>
+          <div class="kv"><span>Cọc của Bình</span><b>0 ₫, hạng uy tín cao</b></div>
+        </div>
+        <div class="box">
+          <h5><svg class="ic"><use href="#i-package"/></svg>Vận chuyển</h5>
+          <div class="kv"><span>Đơn của bạn</span><b>Đang trên đường</b></div>
+          <div class="kv"><span>Đơn của Bình</span><b>Đã lấy hàng 15:20</b></div>
+          <div class="kv"><span>Tự hoàn tất</span><b>72 giờ sau khi giao</b></div>
+        </div>
+      </div>
+      <div class="foot">
+        <button class="cta">Đã nhận đúng mô tả</button>
+        <button class="ghost"><svg class="ic"><use href="#i-warning-circle"/></svg>Mở khiếu nại</button>
+      </div>
+    </div></div>
+    <div class="notes">
+      <h2 id="s3">3. Theo dõi giao dịch</h2>
+      <ul>
+        <li>Bên uy tín thấp hơn gửi trước; bên kia gửi khi đơn đầu đã được lấy.</li>
+        <li>Tiền nằm ở đối tác thanh toán, không nằm ở sàn; bản MVP là giả lập.</li>
+        <li>Khiếu nại đóng băng tiền và cọc cho tới khi admin quyết.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 4. Két số -->
+  <section class="screen" aria-labelledby="s4">
+    <div class="phone"><div class="display">
+      <div class="status">14:08</div>
+      <div class="appbar">
+        <button class="icon-btn" aria-label="Quay lại"><svg class="ic"><use href="#i-caret-left"/></svg></button>
+        <div class="grow"><h3>Két số</h3><div class="sub">Giao dịch với Em: template đổi mã khóa học</div></div>
+      </div>
+      <div class="content">
+        <div class="banner"><svg class="ic"><use href="#i-lock-simple-open"/></svg>Két đã mở cho cả hai bên lúc 14:05</div>
+        <div class="box">
+          <h5><svg class="ic"><use href="#i-graduation-cap"/></svg>Bạn nhận từ Em: mã khóa học</h5>
+          <div class="kv"><span>Hạn dùng</span><b>31/12/2026</b></div>
+          <div class="code" id="code" aria-live="polite">KH7Q-••••-4XPA</div>
+          <div class="btn-row">
+            <button class="btn-sm" id="reveal"><svg class="ic"><use href="#i-eye"/></svg>Hiện mã</button>
+            <button class="btn-sm"><svg class="ic"><use href="#i-copy"/></svg>Sao chép</button>
+          </div>
+          <div class="timer"><svg class="ic"><use href="#i-info"/></svg>Mỗi lần xem mã đều được ghi lại.</div>
+        </div>
+        <div class="box">
+          <h5><svg class="ic"><use href="#i-file-zip"/></svg>Bạn đã gửi Em: bộ template</h5>
+          <div class="file"><svg class="ic"><use href="#i-download-simple"/></svg><div><b>template-pack.zip</b><small>48 MB, Em đã tải lúc 14:07</small></div></div>
+        </div>
+        <div class="timer"><svg class="ic"><use href="#i-clock"/></svg>Còn 71 giờ để báo nếu mã không dùng được.</div>
+      </div>
+      <div class="foot">
+        <button class="cta">Mã dùng được, xác nhận</button>
+        <button class="ghost"><svg class="ic"><use href="#i-warning-circle"/></svg>Báo mã lỗi</button>
+      </div>
+    </div></div>
+    <div class="notes">
+      <h2 id="s4">4. Két số</h2>
+      <ul>
+        <li>Đồ số đổi đồ số: két hai bên mở cùng lúc khi cả hai đã nộp.</li>
+        <li>Mã ẩn mặc định, bấm Hiện mã mới thấy; link tải file hết hạn sau 10 phút.</li>
+        <li>Báo lỗi trong 72 giờ, kèm ảnh chụp màn hình lỗi khi nhập mã.</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="page-foot">
+  Icon: Phosphor Icons (MIT). Font: Be Vietnam Pro. Ảnh sản phẩm là ô giữ chỗ, bản thật dùng ảnh người dùng tải lên.
+</footer>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (_) {} },
+  };
+  const params = new URLSearchParams(location.search);
+  const applyPalette = (v) => { root.dataset.palette = v === 'b' ? 'b' : 'a'; };
+  const applyTheme = (v) => { if (v === 'light' || v === 'dark') root.dataset.theme = v; else delete root.dataset.theme; };
+  const palette = params.get('palette') || store.get('et-palette') || 'a';
+  const theme = params.get('theme') || store.get('et-theme') || 'auto';
+  applyPalette(palette); applyTheme(theme);
+  document.querySelectorAll('input[name=palette]').forEach((r) => {
+    r.checked = r.value === root.dataset.palette;
+    r.addEventListener('change', () => { applyPalette(r.value); store.set('et-palette', r.value); });
+  });
+  document.querySelectorAll('input[name=theme]').forEach((r) => {
+    r.checked = r.value === theme;
+    r.addEventListener('change', () => { applyTheme(r.value); store.set('et-theme', r.value); });
+  });
+
+  // Cán cân công bằng: An đưa 13tr + tiền bù, nhận 17tr (kịch bản 1).
+  const GIVE = 13000000, GET = 17000000, MAX_TILT = 14;
+  const fmt = new Intl.NumberFormat('vi-VN');
+  const short = (n) => (n / 1e6).toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + 'tr';
+  const slider = document.getElementById('topup');
+  const out = document.getElementById('topupOut');
+  const beam = document.getElementById('beam');
+  const verdict = document.getElementById('verdict');
+  const giveTotal = document.getElementById('giveTotal');
+  const scale = document.getElementById('scale');
+  function update() {
+    const t = Number(slider.value);
+    const diff = GET - (GIVE + t);                 // > 0: bên nhận nặng hơn
+    const pct = diff / Math.max(GET, GIVE);
+    const tilt = Math.max(-MAX_TILT, Math.min(MAX_TILT, pct * (MAX_TILT / 0.25)));
+    beam.style.setProperty('--tilt', tilt.toFixed(2) + 'deg');
+    out.textContent = fmt.format(t) + ' ₫';
+    giveTotal.textContent = short(GIVE + t);
+    const a = Math.abs(pct), p = Math.round(a * 100);
+    let cls = 'ok', text = p === 0 ? 'Cân bằng' : 'Gần cân bằng, lệch ' + p + '%';
+    if (a > 0.25) { cls = 'bad'; text = 'Lệch nhiều, ' + p + '%'; }
+    else if (a > 0.10) { cls = 'warn'; text = 'Lệch vừa, ' + p + '%'; }
+    verdict.className = 'verdict ' + cls;
+    verdict.textContent = text;
+    scale.setAttribute('aria-label', 'Cán cân công bằng: bạn đưa ' + short(GIVE + t) + ', bạn nhận ' + short(GET) + ', ' + text.toLowerCase());
+  }
+  slider.addEventListener('input', update);
+  document.getElementById('useSuggest').addEventListener('click', () => { slider.value = 4000000; update(); });
+  update();
+
+  // Két số: hiện hoặc ẩn mã mẫu.
+  const code = document.getElementById('code');
+  const reveal = document.getElementById('reveal');
+  let shown = false;
+  reveal.addEventListener('click', () => {
+    shown = !shown;
+    code.textContent = shown ? 'KH7Q-2M9D-4XPA' : 'KH7Q-••••-4XPA';
+    reveal.lastChild.textContent = shown ? 'Ẩn mã' : 'Hiện mã';
+  });
+})();
+</script>
+</body>
+</html>

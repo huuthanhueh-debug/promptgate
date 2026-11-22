@@ -88,4 +88,4 @@ Vòng quay: **dựng → quay → đăng → có DM → có khách hoặc ngư�
 
 ## 6. Kết luận
 
-Video dạy một kỹ năng thật: **dựng quy trình cho AI trước, rồi điều khiển bằng lệnh ngắn**, cộng với một cách bán hàng rõ ràng. Phần nên học: SOP trong `CLAUDE.md`, 3 phương án trước khi code, agent tự kiểm tra, mỗi bản dựng thành 3 tài sản, chào hàng bằng bản redesign. Phần nên bỏ qua: các con số "chắc chắn có khách" hay "10–20 nghìn USD trong 3 tháng". Bộ prompt W-01 đến W-12 đã đưa quy trình về dạng dùng được ngay cho bất kỳ dự án website nào, với điểm chất lượng trung bình 94/100 so với 64/100 của prompt gốc.
+Video dạy một kỹ năng thật: **dựng quy trình cho AI trước, rồi điều khiển bằng lệnh ngắn**, cộng với một cách bán hàng rõ ràng. Phần nên học: SOP trong `CLAUDE.md`, 3 phương án trước khi code, agent tự kiểm tra, mỗi bản dựng thành 3 tài sản, chào hàng bằng bản redesign. Phần nên bỏ qua: các con số "chắc chắn có khách" hay "10-20 nghìn USD trong 3 tháng". Bộ prompt W-01 đến W-12 đã đưa quy trình về dạng dùng được ngay cho bất kỳ dự án website nào, với điểm chất lượng trung bình 94/100 so với 64/100 của prompt gốc.

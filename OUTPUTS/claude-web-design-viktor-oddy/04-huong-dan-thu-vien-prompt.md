@@ -18,7 +18,7 @@ Mỗi prompt theo khung 5 phần mà engine PromptGate chấm điểm: **Mục t
 | G-02 · "opt 2 free here is the original code…" (70) | W-03 Dựng phương án đã chọn (94) | Thêm tiêu chuẩn responsive, a11y, hiệu năng; buộc tự kiểm tra ở 1440px và 390px; dừng chờ duyệt |
 | (không có, Claude tự làm theo SOP) | W-04 QA (100), W-05 Đóng gói (93), W-06 Deploy Vercel (96) | Viết thành prompt riêng để dùng được cả khi không có SOP |
 | G-03 · "We'll post this on Twitter, LinkedIn, and Threads…" (62) | W-07 Bài đăng kéo khách (96) | Thêm giới hạn độ dài từng nền tảng, bình luận có từ khóa DM, mẹo giờ đăng, giọng thương hiệu, cấm hứa hẹn quá đà |
-| G-04 · "redesign for this comapny <URL>" (46) | W-08 Redesign chào hàng (95) | Thêm audit 3 điểm yếu có bằng chứng, email và DM 80–120 từ, ràng buộc ghi "bản concept" |
+| G-04 · "redesign for this comapny <URL>" (46) | W-08 Redesign chào hàng (95) | Thêm audit 3 điểm yếu có bằng chứng, email và DM 80-120 từ, ràng buộc ghi "bản concept" |
 | (chỉ nói trong video: DM "RUNWAY") | W-09 Kịch bản trả lời DM (93) | Ba tin nhắn nối tiếp, mỗi tin dưới 60 từ |
 | G-05 · "Give me list of the best apps for my industry…" (78) | W-10 Radar xu hướng (96) | Bảng 5 cột có nguồn kèm ngày, ít nhất 2 nguồn mỗi mục, phân biệt bản thử nghiệm với bản chính thức, cách kiếm tiền trong 30 ngày |
 | G-07 · "I just got this idea from Claude…" (89) | W-11 Đưa ý tưởng vào sản phẩm (100) | Thêm feature flag 10%, chỉ số và ngưỡng mở rộng, đường lùi |
@@ -41,7 +41,7 @@ Mỗi prompt theo khung 5 phần mà engine PromptGate chấm điểm: **Mục t
 | W-07 | Có video demo, cần bài đăng để kéo khách |
 | W-08 | Muốn chủ động tiếp cận một doanh nghiệp cụ thể |
 | W-09 | Có người nhắn từ khóa sau bài đăng |
-| W-10 | Định hướng sản phẩm hoặc dịch vụ mới cho 12–24 tháng tới (thay "web design" bằng ngành bất kỳ: khách sạn, F&B, tài chính…) |
+| W-10 | Định hướng sản phẩm hoặc dịch vụ mới cho 12-24 tháng tới (thay "web design" bằng ngành bất kỳ: khách sạn, F&B, tài chính…) |
 | W-11 | Có ý tưởng hay, muốn đưa vào sản phẩm đang chạy mà không phá hỏng gì |
 | W-12 | Đang dùng mẫu có sẵn (MotionSites, template mua), cần đổi thành thương hiệu của mình |
 

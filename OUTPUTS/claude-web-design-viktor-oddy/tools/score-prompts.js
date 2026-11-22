@@ -47,7 +47,7 @@ for (const file of FILES) {
       type: (T.types && T.types[a.type]) || a.type,
       depth: (T.depth && T.depth[a.depth]) || a.depth,
       score: a.score,
-      missing: a.missing.map((k) => (T.dims && T.dims[k]) || k).join(', ') || '–',
+      missing: a.missing.map((k) => (T.dims && T.dims[k]) || k).join(', ') || 'đủ',
     });
   }
 }

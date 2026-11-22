@@ -22,7 +22,7 @@ Thanh chọn model ở cuối khung chat ghi **Opus 5.5 · Medium · Auto** tron
 
 ## 2. Claude trả lời gì
 
-### 2.1 Từ ảnh Pinterest ra 3 phương án (02:42–03:02)
+### 2.1 Từ ảnh Pinterest ra 3 phương án (02:42-03:02)
 
 > I'm making three low-quality 1k redesign options of the glassy VirtualFit try-on window with the reference attached, leaving out the watermark and QR code.
 
@@ -46,7 +46,7 @@ Claude báo trang đã chạy ở `http://localhost:5572/index.html`, kèm danh 
 
 Viktor kiểm tra bản mobile bằng Chrome DevTools (giả lập iPhone 16, 393×852).
 
-### 2.3 Dựng từ code gốc (02:00–02:14)
+### 2.3 Dựng từ code gốc (02:00-02:14)
 
 > I'm starting the option 2 build from your original code, which matches `~/Downloads/vasari-vhs-hero/hero-standalone.html`. Next I'm fetching a Japanese font for the large background characters.
 
@@ -56,7 +56,7 @@ Kết quả gồm 3 file (`style.css`, `body.html`, `logic.js`, tổng +404 dòn
 
 Câu này cho thấy SOP của session gồm 4 sản phẩm đầu ra cho mỗi mẫu: **video quay, prompt, file standalone, ảnh preview**, có một bước dừng chờ duyệt.
 
-### 2.4 Bài đăng mạng xã hội (05:28–06:46)
+### 2.4 Bài đăng mạng xã hội (05:28-06:46)
 
 Claude xem video, mở đầu bằng một đoạn tóm tắt: *"It's a concept site for a fashion brand called Maison Vell… That runway effect is what will make people stop scrolling, so every post opens with it."* Các bước nó tự làm: **trích khung hình từ video → xem khung hình → viết bài cho X, LinkedIn, Threads** (32 giây).
 
@@ -89,13 +89,13 @@ If you run a fashion, beauty or luxury brand and your site feels flat, I'd love 
 Comment "RUNWAY" and I'll send you a free 3-point review of your current site.
 ♻️ Repost if you think e-commerce design needs more of this.
 ```
-Mẹo: tải video trực tiếp, không để link trong bài. Từ khóa trong bình luận kéo nhiều bình luận, giúp tăng tiếp cận, và mỗi người bình luận là một lead "ấm" để nhắn tin. Đăng thứ Ba đến thứ Năm, 8–10 giờ sáng theo múi giờ của khách.
+Mẹo: tải video trực tiếp, không để link trong bài. Từ khóa trong bình luận kéo nhiều bình luận, giúp tăng tiếp cận, và mỗi người bình luận là một lead "ấm" để nhắn tin. Đăng thứ Ba đến thứ Năm, 8-10 giờ sáng theo múi giờ của khách.
 
 **Threads**: video chỉ lộ dòng đầu *"I turned an online store into a runway show"*, phần còn lại không thấy.
 
 Viktor đăng đúng bản X ở trên, kèm video quay bằng CleanShot, và tự trả lời bằng câu DM "RUNWAY".
 
-### 2.5 Xu hướng mới nổi (10:54–11:20)
+### 2.5 Xu hướng mới nổi (10:54-11:20)
 
 > Most truly early stuff right now isn't a polished app yet. It's new standards and APIs that apps will be built on.
 

@@ -19,7 +19,7 @@ Gõ `web <tên>`. Claude hỏi lần lượt, mỗi lần một câu:
 | # | Câu hỏi | Vì sao cần |
 |---|---|---|
 | 1 | Website cho ai, bán gì, hành động chính muốn khách làm là gì? | Quyết định nút CTA và thứ tự section |
-| 2 | 1–3 tham chiếu (link hoặc ảnh) và anh thích gì ở từng cái? | Thay cho việc tả bằng lời; đây là chỗ Viktor dùng Pinterest |
+| 2 | 1-3 tham chiếu (link hoặc ảnh) và anh thích gì ở từng cái? | Thay cho việc tả bằng lời; đây là chỗ Viktor dùng Pinterest |
 | 3 | Cần section nào, đã có sẵn gì (logo, ảnh, chữ, giá)? | Tránh Claude bịa nội dung |
 | 4 | Hiệu ứng chủ đạo muốn khách nhớ? Giới hạn gì? | Một hiệu ứng thật tốt hơn mười hiệu ứng vừa vừa |
 | 5 | Ngôn ngữ, tên miền, nơi đăng, hạn chót, ai sửa nội dung sau này? | Quyết định cách bàn giao |
@@ -59,11 +59,11 @@ Lệnh tắt chỉ chạy khi `CLAUDE.md` đã nằm trong thư mục dự án. 
 Anh:    web song-xanh
 Claude: Câu 1/5. Website cho ai, bán gì, và hành động chính muốn khách làm là gì?
 Anh:    Khách sạn boutique 24 phòng ven biển. Khách là cặp đôi và gia đình trẻ. Hành động chính: đặt phòng trực tiếp.
-Claude: Câu 2/5. Gửi 1–3 tham chiếu và cho biết anh thích gì ở từng cái.
+Claude: Câu 2/5. Gửi 1-3 tham chiếu và cho biết anh thích gì ở từng cái.
 Anh:    https://www.pinterest.com/pin/... (thích vòng cung thẻ kính) · godly.website/... (thích chữ to)
 Claude: Câu 3/5. ...
         (đủ 5 câu)
-Claude: Đã viết work/song-xanh/SPEC.md. Đang chạy bước 1–2…
+Claude: Đã viết work/song-xanh/SPEC.md. Đang chạy bước 1-2…
         3 phương án ở work/song-xanh/options/. Chọn phương án nào? Free hay Paid?
 Anh:    opt 1 paid
 Claude: Đã dựng xong, preview ở http://localhost:5571. Ảnh 1440px và 390px đính kèm.
