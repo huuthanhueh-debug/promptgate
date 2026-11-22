@@ -1,6 +1,6 @@
 # SPEC · Exchangethings.vn (MVP)
 
-> Trạng thái: **M0, chờ duyệt**. Phiên bản 0.1, ngày 22/11/2026. Các lựa chọn của chủ dự án và lý do kỹ thuật nằm ở `DECISIONS.md`; tiến độ ở `PLAN.md`; giao diện ở `wireframes/index.html`.
+> Trạng thái: **Đã duyệt** ngày 22/11/2026 (phiên bản 0.1). Các lựa chọn của chủ dự án và lý do kỹ thuật nằm ở `DECISIONS.md`; tiến độ ở `PLAN.md`; giao diện ở `wireframes/index.html`.
 
 ## 1. Tóm tắt
 

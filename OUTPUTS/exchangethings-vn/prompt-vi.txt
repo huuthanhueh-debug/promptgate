@@ -68,7 +68,7 @@ DỮ LIỆU TỐI THIỂU
 profiles, items, item_media, item_wants, swipes, matches, offers, offer_versions, offer_items, transactions, transaction_events, escrow_payments, shipments, vault_entries, messages, reviews, reports, disputes, blocks, notifications, categories, banned_keywords, platform_settings.
 
 GIAO DIỆN
-- Hiện đại, sáng, đáng tin. Đề xuất 2 phương án màu chủ đạo trong M0 để tôi chọn.
+- Hiện đại, sáng, đáng tin. Màu chủ đạo đã chọn ở M0: Xanh ngọc #0F766E (DECISIONS.md D-16, D-17); nếu chưa có M0 thì đề xuất 2 phương án để tôi chọn.
 - Hiệu ứng chủ đạo: "cán cân công bằng" ở màn đề nghị. Cán cân nghiêng theo chênh lệch giá trị hai bên; kéo thanh tiền bù thì cân thăng bằng dần và hiện mức bù gợi ý.
 - Thẻ quẹt gồm ảnh, tình trạng, giá trị, tỉnh/thành, chip "muốn đổi lấy", nhãn "Bù tối đa 4tr", "Bán thẳng", "Cần chứng từ".
 - Hiệu ứng khớp: hai thẻ chạm nhau, hiện chữ "Khớp rồi!".

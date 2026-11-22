@@ -12,8 +12,9 @@
 | D-04 | Giao hàng vật lý bằng **cả gặp trực tiếp và vận chuyển** | Linh hoạt, phủ toàn quốc | Cần cơ chế cọc và thứ tự gửi cho kiểu vận chuyển |
 | D-05 | **Cọc theo điểm uy tín**: mới 20%, thường 10%, uy tín cao 0% | Thưởng người làm ăn sòng phẳng, gây khó cho tài khoản mới lập để lừa | Cần định nghĩa hạng rõ ràng (SPEC mục 3) và test cho cả ba mức |
 | D-06 | Đối tác thanh toán ưu tiên **PayOS (VietQR)**; MVP dùng mock | Người dùng Việt quen chuyển khoản bằng mã QR | Phải xác nhận PayOS cung cấp được ký quỹ cho mô hình sàn trước khi bật; giữ interface để thay đối tác nếu cần |
+| D-17 | **Duyệt M0**: SPEC giữ nguyên phạm vi (6 loại món, 5 kịch bản), màu A Xanh ngọc | Chủ dự án duyệt ngày 22/11/2026 | Bắt đầu M1 trong repo riêng của dự án |
 
-## Quyết định thiết kế (đề xuất trong M0)
+## Quyết định thiết kế (đã được duyệt cùng M0)
 
 | # | Quyết định | Lý do | Hệ quả |
 |---|---|---|---|
@@ -26,4 +27,4 @@
 | D-13 | Stack **Next.js + Supabase** (Postgres, Auth, Storage, Realtime, RLS) | Một nền tảng có sẵn chat realtime, lưu ảnh và phân quyền ở tầng dữ liệu; đi nhanh cho MVP | Phụ thuộc Supabase; nếu cần đổi thì giữ lớp truy cập dữ liệu tách riêng |
 | D-14 | Hiệu ứng chủ đạo **"cán cân công bằng"** | Cho hai bên thấy ngay chênh lệch giá trị và mức bù hợp lý; khác biệt so với các app quẹt thẻ khác | Màn đề nghị là màn quan trọng nhất về thiết kế; cần test cách tính độ lệch |
 | D-15 | Font **Be Vietnam Pro** | Thiết kế cho tiếng Việt, dấu hiển thị chuẩn ở mọi cỡ chữ | Nạp qua next/font, tự host |
-| D-16 | Hai phương án màu: **A Xanh ngọc** (#0F766E) và **B Cam đất** (#C2410C) | A gợi cảm giác tin cậy và tái sử dụng; B năng động, gợi cảm giác săn deal. Đã tránh tím kiểu AI và màu nhận diện của Tinder, Shopee, Chợ Tốt | Chủ dự án chọn một trong `wireframes/index.html`. Tương phản chữ trên nút đo được 5,4:1 (A) và 5,0:1 (B) ở chế độ sáng, 7,3:1 và 6,9:1 ở chế độ tối; mọi cặp màu chữ/nền chính đều từ 4,5:1 trở lên (chuẩn WCAG AA) |
+| D-16 | Hai phương án màu: **A Xanh ngọc** (#0F766E) và **B Cam đất** (#C2410C) | A gợi cảm giác tin cậy và tái sử dụng; B năng động, gợi cảm giác săn deal. Đã tránh tím kiểu AI và màu nhận diện của Tinder, Shopee, Chợ Tốt | **Chủ dự án chọn A Xanh ngọc** (22/11/2026). Tương phản chữ trên nút đo được 5,4:1 (A) và 5,0:1 (B) ở chế độ sáng, 7,3:1 và 6,9:1 ở chế độ tối; mọi cặp màu chữ/nền chính đều từ 4,5:1 trở lên (chuẩn WCAG AA) |

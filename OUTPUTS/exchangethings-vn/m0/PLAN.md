@@ -6,7 +6,7 @@
 
 | Mốc | Phạm vi | Đầu ra | Xong khi | Ước lượng |
 |---|---|---|---|---|
-| **M0** | Kế hoạch, đặc tả, wireframe | `PLAN.md`, `SPEC.md`, `DECISIONS.md`, `wireframes/` (4 màn, 2 phương án màu) | Chủ dự án duyệt SPEC và chọn phương án màu | Đã làm, chờ duyệt |
+| **M0** | Kế hoạch, đặc tả, wireframe | `PLAN.md`, `SPEC.md`, `DECISIONS.md`, `wireframes/` (4 màn, 2 phương án màu) | Chủ dự án duyệt SPEC và chọn phương án màu | **Đã duyệt 22/11/2026**, chọn màu A Xanh ngọc |
 | **M1** | Nền móng | Repo Next.js + Supabase; migration toàn bộ bảng + RLS; đăng nhập email/Google; hồ sơ; địa chỉ 34 tỉnh/thành; đăng món 6 loại; tải ảnh có xóa EXIF; seed 30 món, 9 người dùng (8 mẫu + 1 mới), 1 admin | Test RLS cho profiles, items, item_media pass; seed chạy lại cho cùng kết quả | 2-3 ngày |
 | **M2** | Quẹt, khớp, chat | Chồng thẻ, bộ lọc, điểm gợi ý; tạo match; hiệu ứng khớp; chat realtime có che SĐT và số tài khoản | Unit test điểm gợi ý pass; e2e "hai người thích nhau thì khớp" pass | 2 ngày |
 | **M3** | Đề nghị | Màn đề nghị hai cột; phiên bản đề nghị; phản đề nghị; hết hạn 48 giờ; cán cân công bằng; mức bù gợi ý | Unit test độ lệch và mức bù pass; e2e phần thương lượng của kịch bản 1 pass | 2 ngày |

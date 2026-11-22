@@ -68,7 +68,7 @@ MINIMUM DATA MODEL
 profiles, items, item_media, item_wants, swipes, matches, offers, offer_versions, offer_items, transactions, transaction_events, escrow_payments, shipments, vault_entries, messages, reviews, reports, disputes, blocks, notifications, categories, banned_keywords, platform_settings.
 
 INTERFACE
-- Modern, light, trustworthy. Propose 2 primary colour options in M0 for me to choose.
+- Modern, light, trustworthy. Primary colour chosen in M0: teal #0F766E (DECISIONS.md D-16, D-17); if there is no M0 yet, propose 2 options for me to choose.
 - Signature interaction: the "fairness scale" on the offer screen. The scale tilts with the value gap between the two sides; dragging the top-up slider brings it level and shows the suggested top-up.
 - Swipe cards show photos, condition, value, province, "wants in return" chips, and badges such as "Top-up up to 4M", "Buy now", "Proof required".
 - Match animation: the two cards meet and "It's a match!" appears.

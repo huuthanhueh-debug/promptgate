@@ -2,7 +2,7 @@
 
 Sàn đổi đồ trong nước: đăng món, quẹt như app hẹn hò, hai bên cùng thích thì khớp, thương lượng đổi ngang, đổi có bù tiền hoặc mua thẳng. Đổi được mọi thứ hợp pháp: hàng vật lý, file số, mã khóa học, voucher, dịch vụ, kiến thức.
 
-**Trạng thái:** prompt dựng MVP đã xong (bản Việt và bản Anh, PromptGate **98/100**). Mốc **M0 đã xong, chờ anh duyệt**.
+**Trạng thái:** prompt dựng MVP đã xong (bản Việt và bản Anh, PromptGate **98/100**). Mốc **M0 đã được duyệt** ngày 22/11/2026, màu chủ đạo **A Xanh ngọc**. Tiếp theo: dựng M1 trong repo riêng.
 
 ![Wireframe M0, phương án A Xanh ngọc](m0/wireframes/preview-a.png)
 
@@ -29,11 +29,11 @@ Sàn đổi đồ trong nước: đăng món, quẹt như app hẹn hò, hai bê
 | `m0/wireframes/index.html` | Wireframe 4 màn (quẹt, đề nghị với cán cân, theo dõi giao dịch, két số); đổi được màu A/B và sáng/tối; cán cân kéo thử được |
 | `m0/wireframes/preview-a.png`, `preview-b.png` | Ảnh chụp hai phương án màu |
 
-## Việc anh cần làm để duyệt M0
+## M0 đã duyệt như thế nào
 
-1. Mở `m0/wireframes/index.html`, bấm qua lại **A Xanh ngọc** và **B Cam đất**, kéo thử thanh tiền bù ở màn 2, rồi chọn một phương án màu.
-2. Đọc `m0/SPEC.md`, nhất là mục 5.5 (giao dịch theo từng loại), mục 7 (tiền) và mục 8 (cán cân).
-3. Trả lời 7 câu hỏi mở ở cuối SPEC (tên miền, pháp nhân, thời điểm thu phí, PayOS ký quỹ, vận chuyển, người kiểm duyệt, kênh hỗ trợ).
+1. Màu chủ đạo: **A Xanh ngọc** (#0F766E).
+2. SPEC: duyệt nguyên trạng, giữ đủ 6 loại món và 5 kịch bản.
+3. Còn mở: 7 câu hỏi ở cuối SPEC (tên miền, pháp nhân, thời điểm thu phí, PayOS ký quỹ, vận chuyển, người kiểm duyệt, kênh hỗ trợ); không chặn M1.
 
 ## Sau khi duyệt: bắt đầu dựng
 
