@@ -1,0 +1,108 @@
+=== [S-02] Swap & Buy: swipe-to-swap marketplace (English version) ===
+ROLE
+Work as a senior full-stack engineer and product designer who has shipped two-sided marketplaces. Build a working, secure, tested MVP, not a UI mockup.
+
+GOAL
+Build the "Swap & Buy" website (working name). Users list what they own and swipe through other people's listings the way dating apps work; when both sides like each other's items it is a match, and they negotiate a swap, optionally with a cash top-up or an outright purchase. Anything legal can be swapped: physical goods, digital files, knowledge or services, course codes, discount codes, vouchers. Vietnam only: every user and every transaction is in Vietnam.
+
+5 SCENARIOS THAT MUST WORK END TO END (use them as seed data and e2e tests)
+1. An owns an iPhone 15 128GB and likes Binh's iPhone 18. An offers: iPhone 15 + 2,600,000 VND top-up (about 100 USD). Binh counters with a 4,000,000 VND top-up. An accepts; both ship through a delivery carrier.
+2. Chi swaps a Gucci shirt for Dung's Zegna shoes, no cash, meeting in person in Ho Chi Minh City. Both items need photos of proof of authenticity.
+3. Em swaps an unexpired online course code for Phuc's design template pack: fully digital, through the vault.
+4. Giang buys Hoa's 500,000 VND discount voucher outright for 350,000 VND, giving no item.
+5. Khanh swaps one 60-minute English lesson for one logo design consultation with Linh.
+
+USERS
+Vietnamese people aged 18–40, mostly on phones, used to e-commerce marketplaces and dating apps. Their two biggest fears: shipping an item and getting nothing back, and receiving a used code or a fake. Every design decision must reduce these two fears.
+
+MVP FEATURES
+1. Accounts: sign in with email or Google; profile with photo, province, trust score, completed swaps, response time; +84 phone verification through a SmsProvider interface (mock implementation).
+2. Listings: type (physical / digital file / service-knowledge / course code / voucher-discount code), title, description, condition, estimated value (VND), "wants in return" (categories, keywords or specific items), accepted top-up range (pay extra or receive extra), open to outright sale and at what price, delivery method (carrier / meet in person / digital), expiry date for codes and vouchers.
+   - Physical items: at least 3 photos.
+   - Phones: IMEI required (only the last 4 digits shown) and a commitment to sign out of iCloud or the Google account before handover.
+   - Luxury brands: photo of receipt or authenticity card required, visible only to matched users.
+3. Swiping: card stack, swipe right for interested, left to skip, with buttons for anyone who cannot swipe; filters for type, category, value range, province, and "only items that fit what I own".
+4. Matching: if A likes one of B's items and B likes any of A's items, create a match, open a chat and play the match animation. Direct offers without a match are also allowed.
+5. Offers: two columns, "I give" and "I get", several items per side, plus a cash top-up (who pays, how much) or cash only (outright purchase). Counter-offers over several rounds, each round a new version; offers expire after 48 hours; a swap only starts when both sides accept the same version.
+6. Real-time chat per match with photo sharing. Until the swap is locked, automatically mask phone numbers, bank account numbers and off-platform payment links.
+7. Swap tracking page with every step, a "received" confirmation button, and a dispute button with photo or video evidence.
+8. Vault for codes and files: content encrypted at rest and revealed to the other party only under the rules in SWAP FLOW; files downloaded through signed URLs that expire after 10 minutes; every view logged.
+9. Two-way reviews after each swap. Trust score computed from reviews, completion rate and lost disputes.
+10. Report and block users. Admin area: review flagged listings, handle reports and disputes, ban accounts, manage categories, banned keywords, fees and thresholds.
+11. Bilingual: Vietnamese (default) and English. All prices shown in VND.
+
+MATCHING AND THE FAIRNESS SCALE
+- Suggestion score = 0.35 × wants fit + 0.25 × value balance (including top-up ranges) + 0.20 × proximity + 0.20 × trust. Weights live in platform_settings.
+- Suggested top-up = value difference between the two sides, rounded to 100,000 VND, within the range both sides accept. It is only a suggestion; the two parties decide.
+
+SWAP FLOW (state machine; the server rejects every invalid transition)
+offer_sent → countered (repeatable) → accepted → locked → in_progress → delivered → completed
+Side branches: expired, cancelled (only before locked), disputed → resolved_refund or resolved_release.
+- locked: waits until every required part is in: top-up paid into escrow, deposits for carrier swaps, codes or files uploaded to the vault.
+- Physical items by carrier: each side deposits 10% of the value of the item it receives (configurable), refunded on completion. The side with the lower trust score ships first; the other ships once the carrier has picked up the first parcel.
+- Mixed swaps (digital for physical): the physical side ships first; the code or file is revealed when the parcel is delivered or the recipient confirms.
+- Fully digital swaps: both vault entries are revealed at the same moment, once both are uploaded and any top-up is in escrow.
+- Services: completed when the person receiving the service confirms after the session.
+- Auto-complete 72 hours after delivery or reveal if nobody opens a dispute. Escrowed money is released to the recipient only on completed or resolved_release.
+
+MONEY AND SHIPPING
+- The platform never holds user money itself. Top-ups, purchases and deposits go through a payment intermediary licensed by the State Bank of Vietnam that offers escrow. MVP: a PaymentProvider interface + mock; note where VietQR/PayOS, VNPay and MoMo will plug in.
+- Shipping: a ShippingProvider interface + mock (tracking number typed by hand); leave room for GHN, GHTK and Viettel Post.
+- Meeting in person: suggested public meeting spots, an inspection checklist, and a "met and received everything" button.
+- Addresses follow Vietnam's administrative structure in force since 1 July 2025: 34 provinces and cities, two levels (province → ward/commune), no district level.
+- Configurable platform fee: by default 3% of the cash part (top-up or purchase), deducted from the side receiving the cash; straight swaps are free. Show the fee clearly before the accept button.
+
+SAFETY AND LEGAL
+- Banned: weapons, drugs, prescription medicine, counterfeits, goods of unknown origin, accounts and personal data, pirated software or courses, non-transferable codes, cryptocurrency, animals. Keyword filter on listing; users can report.
+- Anyone listing a code or file must tick "I have the right to transfer/share this content".
+- Accounts without phone verification or with fewer than 3 completed swaps: maximum total value per swap 5,000,000 VND (configurable).
+- Strip EXIF (including GPS location) from uploaded photos. Exact addresses are visible to the other party only once the swap is locked.
+- Prices and payments in VND only, in line with Vietnam's restrictions on foreign currency use (Circular 32/2013/TT-NHNN); USD appears in the seed scenarios only, never in the UI.
+- Draft Terms of Use, a Privacy Policy (under the Personal Data Protection Law No. 91/2025/QH15) and Marketplace Operating Rules (under the E-commerce Law No. 122/2025/QH15), each labelled "needs legal review before launch".
+
+STACK (you may change it if you have a reason, but state the reason before coding)
+Next.js (App Router) + TypeScript + Tailwind CSS + shadcn/ui; Framer Motion for swiping and animation; Supabase (Postgres, Auth, Storage, Realtime) with Row Level Security on every table; Zod for input validation; next-intl for VI/EN; Vitest and Playwright; deploy on Vercel; installable PWA.
+
+MINIMUM DATA MODEL
+profiles, items, item_media, item_wants, swipes, matches, offers, offer_versions, offer_items, transactions, transaction_events, escrow_payments, shipments, vault_entries, messages, reviews, reports, disputes, blocks, notifications, categories, banned_keywords, platform_settings.
+
+INTERFACE
+- Modern, light, trustworthy. Propose 2 primary colour options in M0 for me to choose.
+- Signature interaction: the "fairness scale" on the offer screen. The scale tilts with the value gap between the two sides; dragging the top-up slider brings it level and shows the suggested top-up.
+- Swipe cards show photos, condition, value, province, "wants in return" chips, and badges such as "Top-up up to 2.6M", "Buy now", "Proof required".
+- Match animation: the two cards meet and "It's a match!" appears.
+- Do not use the name, logo, colours or copy of Tinder or any other app.
+- Every animation respects prefers-reduced-motion.
+
+SEED DATA
+30 items across all 5 types in at least 6 provinces, including the 5 scenarios above; 8 sample users with review history; 1 admin account. The users in scenarios 1 and 2 are phone-verified with at least 3 completed swaps, so the 5,000,000 VND limit does not block them; add 1 new user to test that limit itself. Running the seed command repeatedly gives the same result.
+
+DELIVERABLES
+- A repo that runs locally with one command (pnpm dev) after filling .env.local from .env.example.
+- PLAN.md (milestones, time estimates), SPEC.md (flows, permissions, state machine), DECISIONS.md (technical decisions and their reasons), README.md (setup, seed, tests, deploy).
+- SQL migrations with RLS policies; a seed script.
+- Unit tests for the suggestion score, the suggested top-up and the state machine; RLS tests; Playwright e2e tests for the 5 scenarios.
+
+CONSTRAINTS
+- No real payment or shipping integration; interfaces + mocks only, selected by environment variables.
+- No secrets (keys, passwords) in code; never log vault contents.
+- No invented reviews, statistics or partner logos in the UI.
+- Mobile-first: best at 390px, still correct at 1440px; every swipe action has an equivalent button for keyboard and screen-reader users.
+
+HOW TO WORK
+Plan first, then work milestone by milestone; at the end of each milestone run the tests and check your own work before moving on.
+- M0: PLAN.md, SPEC.md, wireframes of the 4 key screens (swipe, offer, swap tracking, vault), 2 colour options. STOP and wait for my approval.
+- M1: accounts, profiles, listings, photo upload.
+- M2: swiping, matching, chat.
+- M3: offers, counter-offers, fairness scale.
+- M4: swap flow, mock escrow, mock shipping, vault.
+- M5: trust score, reports, disputes, admin.
+- M6: bilingual UI, PWA, performance, documentation, deploy.
+At the end of each milestone report in three lines: what was done · which tests pass · what I need to decide.
+
+DONE WHEN
+- All 5 scenarios run end to end locally on the seed data, each covered by a passing automated e2e test.
+- RLS tests prove that people outside a swap cannot read its vault entries, chat or the other party's address.
+- The state machine rejects every invalid transition (with tests).
+- Mobile Lighthouse on the home and swipe screens: Performance 85 or higher, Accessibility 95 or higher; no console errors; switching VI/EN leaves no untranslated text.
+- A Vercel preview link if I grant access; otherwise step-by-step deploy instructions.
