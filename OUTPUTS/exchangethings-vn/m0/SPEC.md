@@ -190,8 +190,10 @@ Bắt buộc có test tự động chứng minh từng dòng "Không" ở bảng
 
 | Bảng | Cột chính |
 |---|---|
-| profiles | id, display_name, avatar_url, province_code, ward_code, phone_e164 (mã hóa), phone_verified_at, trust_score, tier (new/regular/high), completed_swaps, rating_avg, rating_count, lost_disputes_90d, role (user/admin), locale, banned_at |
-| items | id, owner_id, type (physical/digital_file/course_code/voucher/service/other), category_id, title, description, condition, est_value_vnd, topup_pay_max_vnd, topup_receive_max_vnd, sell_price_vnd, delivery_methods, province_code, expires_at, imei_last4, imei_encrypted, signed_out_confirmed, transfer_right_confirmed, status (draft/pending_review/active/reserved/swapped/removed) |
+| profiles | id, display_name, avatar_path, province_code, ward_code, trust_score, tier (new/regular/high), completed_swaps, rating_avg, rating_count, lost_disputes_90d, role (user/admin), locale, banned_at |
+| profile_private | id, phone_e164, phone_verified_at, street_address. Chỉ chủ tài khoản và admin đọc được; mã hóa ở tầng ứng dụng từ M4 (DECISIONS D-18) |
+| items | id, owner_id, type (physical/digital_file/course_code/voucher/service/other), category_id, title, description, condition, est_value_vnd, topup_pay_max_vnd, topup_receive_max_vnd, sell_price_vnd, delivery_methods, province_code, expires_on, imei_last4 (đồng bộ từ item_private), signed_out_confirmed, transfer_right_confirmed, duration_minutes, status (draft/pending_review/active/reserved/swapped/removed), review_note, requires_review |
+| item_private | item_id, owner_id, imei_full. Chỉ chủ món và admin đọc được; mã hóa ở tầng ứng dụng từ M4 (DECISIONS D-18) |
 | item_media | id, item_id, kind (photo/proof), storage_path, width, height, exif_stripped |
 | item_wants | id, item_id, want_type (item/category/keyword), wanted_item_id, category_id, keyword |
 | swipes | viewer_id, item_id, direction (like/pass), created_at; khóa chính (viewer_id, item_id) |

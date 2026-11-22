@@ -76,7 +76,7 @@ INTERFACE
 - Every animation respects prefers-reduced-motion.
 
 SEED DATA
-30 items across all 6 types in at least 6 provinces, including the 5 scenarios above; 8 sample users with review history; 1 admin account. The users in scenarios 1 and 2 are phone-verified with at least 3 completed swaps, so the 5,000,000 VND limit does not block them; add 1 new user to test that limit itself. Running the seed command repeatedly gives the same result.
+30 items across all 6 types in at least 6 provinces, including the 5 scenarios above; 10 users covering both sides of the 5 scenarios, 9 of them with review history and 1 new user to test the 5,000,000 VND limit; 1 admin account. The users in scenarios 1 and 2 are phone-verified with at least 3 completed swaps, so the limit does not block them. Running the seed command repeatedly gives the same result.
 
 DELIVERABLES
 - A repo that runs locally with one command (pnpm dev) after filling .env.local from .env.example.

@@ -76,7 +76,7 @@ GIAO DIỆN
 - Mọi hiệu ứng tôn trọng prefers-reduced-motion.
 
 DỮ LIỆU MẪU
-30 món đủ 6 loại, ở ít nhất 6 tỉnh/thành, gồm cả 5 kịch bản trên; 8 người dùng mẫu có lịch sử đánh giá; 1 tài khoản admin. Người dùng trong kịch bản 1 và 2 đã xác minh số điện thoại và có từ 3 giao dịch hoàn tất, để không vướng giới hạn 5.000.000 ₫; thêm 1 người dùng mới để test chính giới hạn này. Chạy lệnh seed nhiều lần vẫn ra cùng kết quả.
+30 món đủ 6 loại, ở ít nhất 6 tỉnh/thành, gồm cả 5 kịch bản trên; 10 người dùng đủ hai phía của 5 kịch bản, trong đó 9 người có lịch sử đánh giá và 1 người dùng mới để test giới hạn 5.000.000 ₫; 1 tài khoản admin. Người dùng trong kịch bản 1 và 2 đã xác minh số điện thoại và có từ 3 giao dịch hoàn tất, để không vướng giới hạn này. Chạy lệnh seed nhiều lần vẫn ra cùng kết quả.
 
 ĐẦU RA
 - Repo chạy local bằng một lệnh (pnpm dev) sau khi điền .env.local theo .env.example.

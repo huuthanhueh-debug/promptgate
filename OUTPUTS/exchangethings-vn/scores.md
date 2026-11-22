@@ -8,4 +8,4 @@ Chấm bằng engine PromptGate (scripts/lib/engine.js), gói general, business,
 | S-02 | Exchangethings.vn: swipe-to-swap marketplace (English version) | xây dựng | sâu | **98** | đủ |
 
 - Prompt nâng cấp: 2 prompt, điểm trung bình 98/100, thấp nhất 98.
-- Tất cả prompt nâng cấp đạt ngưỡng 85.
+- Tất cả prompt nâng cấp đạt ngưỡng 80.
