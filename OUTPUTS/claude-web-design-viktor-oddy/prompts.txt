@@ -1,0 +1,127 @@
+# THƯ VIỆN PROMPT: LÀM WEBSITE CÓ CHUYỂN ĐỘNG VỚI CLAUDE VÀ ĐI TÌM KHÁCH
+# Rút từ quy trình của Viktor Oddy (video 04/11/2026), viết lại theo chuẩn: Mục tiêu · Ngữ cảnh · Đầu ra · Ràng buộc · Hoàn thành khi.
+# Cách dùng: copy nguyên khối giữa hai dòng ===, điền chỗ ⟨…⟩, gửi cho Claude (Claude Code hoặc claude.ai).
+# Thứ tự gợi ý cho một dự án: W-01 → W-02 → W-03 → W-04 → W-05 → W-06, sau đó W-07 đến W-09 để kéo khách.
+# Chấm lại điểm: node OUTPUTS/claude-web-design-viktor-oddy/tools/score-prompts.js
+
+=== [W-01] Phân tích ảnh tham chiếu thành DESIGN.md ===
+Mục tiêu: Phân tích thiết kế tham chiếu ⟨URL Pinterest/Dribbble hoặc ảnh đính kèm⟩ và viết design brief để dựng thành trang web có chuyển động cho ⟨tên thương hiệu⟩ (ngành ⟨ngành⟩).
+Ngữ cảnh: Ảnh tham chiếu chỉ để lấy cảm hứng về bố cục, nhịp chuyển động, màu và chữ. Không sao chép logo, watermark, QR code hay nội dung có bản quyền trong ảnh.
+Đầu ra: file DESIGN.md gồm 6 mục:
+1. Bố cục từng section, từ trên xuống.
+2. Bảng màu dạng hex, ghi vai trò từng màu (nền, chữ, nhấn).
+3. Font chữ, kèm font Google Fonts thay thế nếu font gốc trả phí.
+4. Hiệu ứng chủ đạo (signature interaction), viết theo dạng: kích hoạt → chuyển động → trạng thái cuối.
+5. Danh sách asset cần tạo hoặc tìm (ảnh, video nền, model 3D).
+6. Rủi ro kỹ thuật trên điện thoại.
+Ràng buộc: tối đa một trang A4; chỉ ghi điều nhìn thấy được, chỗ nào phải đoán thì ghi "(giả định)".
+Lập kế hoạch ngắn trước khi phân tích, tự kiểm tra DESIGN.md với ảnh gốc trước khi báo xong.
+Hoàn thành khi: người chưa xem ảnh gốc đọc DESIGN.md vẫn hình dung được trang.
+
+=== [W-02] Ba phương án thiết kế trước khi viết code ===
+Mục tiêu: Dựa trên DESIGN.md, tạo 3 phương án hero section khác nhau rõ rệt cho ⟨tên thương hiệu⟩ để tôi chọn trước khi code.
+Ngữ cảnh: Ảnh gốc tại ⟨đường dẫn ảnh tham chiếu⟩. Ba hướng cần có:
+1. Bám sát tham chiếu, làm sạch và nâng chất lượng.
+2. Táo bạo hơn về bố cục (split layout, chữ cỡ lớn hoặc 3D).
+3. Đổi tông (dark mode hoặc tông ấm).
+Đầu ra: mỗi phương án là 1 ảnh mockup khổ 1K (nếu không có công cụ tạo ảnh thì làm 1 file HTML tĩnh), lưu trong thư mục options/, kèm 3 dòng mô tả: bố cục, hiệu ứng chính, điểm khác hai phương án còn lại.
+Ràng buộc: chưa viết code production; không đưa watermark hay QR của ảnh gốc vào bất kỳ phương án nào.
+Hoàn thành khi: đủ 3 file trong options/ và bạn kết thúc bằng câu "Chọn phương án nào?" rồi dừng chờ tôi.
+
+=== [W-03] Dựng phương án đã chọn thành trang chạy được ===
+Mục tiêu: Dựng phương án ⟨số⟩ thành trang web hoàn chỉnh, có chuyển động.
+Ngữ cảnh: Mockup ở options/option⟨số⟩.png, design brief ở DESIGN.md. Nếu có code gốc ở ⟨đường dẫn code gốc⟩ thì sửa từ code đó, không viết lại từ đầu.
+Đầu ra: index.html, style.css, main.js trong thư mục site/, chạy không cần bước build; thư viện (GSAP, Three.js nếu cần) lấy qua CDN có ghim số phiên bản.
+Ràng buộc:
+- Responsive từ 360px đến 1440px; hiệu ứng chủ đạo vẫn dùng được bằng cảm ứng.
+- Có prefers-reduced-motion, alt cho mọi ảnh, tương phản chữ đạt WCAG AA.
+- Tổng dung lượng trang dưới 3 MB, chuyển động mượt 60fps, không lỗi console.
+- Không thêm nội dung hay thương hiệu nằm ngoài DESIGN.md.
+Kế hoạch: liệt kê ngắn các bước trước khi viết code.
+Hoàn thành khi: trang chạy trên preview server, bạn đã tự kiểm tra ở 1440px và 390px (chụp màn hình cả hai), gửi tôi link localhost cùng danh sách thao tác người dùng làm được, rồi dừng chờ tôi duyệt.
+
+=== [W-04] QA trước khi đưa khách xem ===
+Mục tiêu: Kiểm tra chất lượng trang tại ⟨link localhost hoặc thư mục site/⟩ trước khi gửi khách.
+Ngữ cảnh: Thiết kế đã được duyệt, chỉ sửa lỗi, không đổi giao diện.
+Kiểm tra 6 mục:
+1. Hiển thị ở 390px, 768px, 1440px.
+2. Lỗi console và request 404.
+3. Lighthouse: Performance và Accessibility.
+4. Dùng bàn phím: Tab qua được mọi nút và link.
+5. Bật prefers-reduced-motion thì chuyển động phải dịu lại.
+6. Safari trên iOS (giả lập nếu không có máy thật).
+Đầu ra: bảng 3 cột (hạng mục · kết quả · cách sửa); sửa luôn lỗi mức cao, lỗi còn lại ghi vào TODO.md; mỗi thay đổi ghi một dòng vào CHANGELOG.md.
+Ràng buộc: không đổi bố cục, màu, chữ đã duyệt.
+Hoàn thành khi: Lighthouse Performance từ 85 trở lên, Accessibility từ 95 trở lên, console không còn lỗi.
+
+=== [W-05] Đóng gói: file standalone, prompt tái tạo, kịch bản quay ===
+Mục tiêu: Đóng gói trang đã duyệt trong site/ thành bộ bàn giao, lưu vào thư mục release/.
+Đầu ra gồm 3 file:
+1. standalone.html: một file duy nhất, CSS và JS viết inline, mở trực tiếp bằng trình duyệt là chạy.
+2. PROMPT.md: một spec-prompt đủ để AI khác dựng lại trang tương đương từ đầu (bố cục, màu hex, font, từng animation kèm thời lượng và easing, hành vi trên điện thoại, cách tạo asset).
+3. shotlist.md: kịch bản quay màn hình 15-20 giây, thứ tự thao tác, cảnh desktop trước rồi điện thoại.
+Ràng buộc: PROMPT.md dưới 800 từ; không chứa tên, số liệu hay dữ liệu riêng của khách.
+Hoàn thành khi: standalone.html chạy đúng khi tắt mạng (trừ CDN đã khai báo) và PROMPT.md đọc độc lập được.
+
+=== [W-06] Đưa trang lên Vercel và gắn tên miền ===
+Mục tiêu: Deploy thư mục ⟨site/ hoặc release/⟩ lên Vercel với tên project ⟨tên-project⟩.
+Ngữ cảnh: Tôi ⟨đã/chưa⟩ cài Vercel CLI. Nếu chưa, hướng dẫn tôi từng lệnh; cách nhanh nhất không cần CLI là kéo thả thư mục vào vercel.com/new.
+Đầu ra: URL production, danh sách lệnh đã chạy, và 3 bước gắn tên miền ⟨tên miền⟩ (bản ghi DNS cần thêm ở nhà cung cấp tên miền).
+Ràng buộc: không commit file .env hay khóa API; chỉ deploy đúng thư mục đã chỉ định.
+Hoàn thành khi: mở URL production trên điện thoại thấy trang chạy đúng.
+
+=== [W-07] Viết bài đăng mạng xã hội để kéo khách ===
+Mục tiêu: Viết bài đăng cho X, LinkedIn và Threads giới thiệu trang ⟨tên dự án⟩ trong video đính kèm ⟨tên file .mp4⟩, nhằm kéo khách thuê thiết kế web ngành ⟨ngành mục tiêu⟩ chứ không nhằm lấy like.
+Ngữ cảnh: Xem video trước, tả lại hiệu ứng nổi bật nhất trong 1 câu, rồi dùng chính hiệu ứng đó làm câu mở bài. Khách mục tiêu: ⟨chân dung khách, thị trường, múi giờ⟩.
+Đầu ra cho từng nền tảng:
+- Bài chính: X dưới 280 ký tự; LinkedIn 120-200 từ, xuống dòng ngắn; Threads dưới 500 ký tự.
+- 1 bình luận tự trả lời chứa lời mời bằng từ khóa, ví dụ: DM "⟨TỪ KHÓA⟩" để nhận 3 ý tưởng miễn phí cho site của bạn.
+- 2 mẹo đăng riêng cho nền tảng đó (giờ đăng theo múi giờ khách, chỗ đặt link).
+Ràng buộc: giọng ⟨giọng thương hiệu⟩; viết bằng ⟨ngôn ngữ⟩; tối đa 3 hashtag; không hứa kết quả không kiểm chứng được; link để trong bình luận, không để trong bài chính.
+Hoàn thành khi: đọc lướt 3 giây đã hiểu trang này khác trang thường ở điểm nào và biết bước tiếp theo phải làm gì.
+
+=== [W-08] Redesign site của khách tiềm năng để chào hàng ===
+Mục tiêu: Làm bản concept redesign trang chủ cho ⟨tên công ty⟩ (⟨URL site hiện tại⟩) để dùng làm mồi chào hàng.
+Các bước:
+1. Đọc site hiện tại, chỉ ra 3 điểm yếu lớn nhất (thị giác, chuyển đổi, tốc độ trên điện thoại), mỗi điểm kèm bằng chứng cụ thể (ảnh chụp màn hình hoặc số đo).
+2. Dựng 1 trang chủ concept dùng đúng tên, sản phẩm thật và tông màu của họ, phong cách ⟨tham chiếu hoặc mô tả style⟩.
+3. Viết tin nhắn chào hàng (1 email, 1 DM), mỗi bản 80-120 từ, mở đầu bằng điểm yếu số 1, kèm link concept, mời gọi 15 phút.
+Đầu ra: audit.md, thư mục concept/ chạy được, outreach.md.
+Ràng buộc: ghi rõ "bản concept, chưa chính thức" trên trang; chỉ dùng logo và ảnh của họ trong bản concept gửi riêng cho họ; không bịa số liệu về doanh nghiệp của họ.
+Hoàn thành khi: concept chạy trên preview và tin nhắn gửi được ngay sau khi điền tên người nhận.
+
+=== [W-09] Kịch bản trả lời người nhắn từ khóa ===
+Mục tiêu: Viết kịch bản trả lời DM cho người nhắn từ khóa "⟨TỪ KHÓA⟩" sau bài đăng về ⟨tên dự án⟩.
+Ngữ cảnh: Dịch vụ của tôi: ⟨mô tả dịch vụ⟩; gói chào: ⟨tên gói⟩ giá ⟨giá⟩; thời gian làm ⟨số ngày⟩.
+Đầu ra: 3 tin nhắn nối tiếp:
+1. Cảm ơn và xin link site hiện tại của họ.
+2. Gửi 3 ý tưởng miễn phí theo mẫu: ý tưởng · vì sao hợp với họ · ví dụ minh họa.
+3. Đề xuất gói dịch vụ và mời gọi 15 phút.
+Ràng buộc: mỗi tin dưới 60 từ; thân thiện, chuyên nghiệp, không ép mua; viết bằng ⟨ngôn ngữ⟩.
+Hoàn thành khi: tôi chỉ cần thay link site của khách là gửi được ngay.
+
+=== [W-10] Radar xu hướng mới nổi của ngành ===
+Mục tiêu: Tìm trên web 5 xu hướng hoặc công nghệ mới nổi trong ngành ⟨ngành⟩ mà ít người làm ⟨vai trò của tôi⟩ đang khai thác, nhưng có khả năng thành nhu cầu bắt buộc trong 12-24 tháng tới.
+Ngữ cảnh: Loại trừ các công cụ đã phổ biến như ⟨ví dụ: Framer, Webflow⟩. Năng lực hiện có của tôi: ⟨kỹ năng, sản phẩm đang có⟩.
+Đầu ra: bảng 5 dòng với các cột: tên · là gì (1 câu) · bằng chứng đang lên (nguồn có ngày, ưu tiên 6 tháng gần nhất) · mức cạnh tranh hiện tại (thấp/vừa/cao) · cách tôi kiếm tiền từ nó trong 30 ngày. Sau bảng, chọn 2 cơ hội ít cạnh tranh nhất và giải thích lý do.
+Ràng buộc: mỗi xu hướng cần ít nhất 2 nguồn độc lập; ghi rõ cái nào mới là bản thử nghiệm hoặc thông báo, cái nào đã phát hành chính thức; không tự suy ra số liệu.
+Lập kế hoạch tìm kiếm trước, tự kiểm tra từng nguồn còn truy cập được trước khi đưa vào bảng.
+Hoàn thành khi: mọi dòng trong bảng có link nguồn và ngày đăng.
+
+=== [W-11] Đưa ý tưởng mới vào sản phẩm của mình, mở dần cho người dùng ===
+Mục tiêu: Đề xuất cách đưa ý tưởng "⟨dán ý tưởng⟩" vào ⟨tên sản phẩm hoặc website⟩.
+Ngữ cảnh: Code ở ⟨đường dẫn repo⟩; người dùng chính: ⟨mô tả⟩; chỉ số đang theo dõi: ⟨ví dụ: tỷ lệ đăng ký⟩.
+Đầu ra:
+1. 3 cách áp dụng, xếp theo công sức và tác động.
+2. Kế hoạch triển khai cách tốt nhất theo từng bước, mỗi bước có tiêu chí xong.
+3. Feature flag để bật cho 10% người dùng trước.
+4. Chỉ số đo thành công và ngưỡng để mở cho 100%.
+Ràng buộc: không làm hỏng luồng hiện tại; tắt flag là mọi thứ trở về như cũ.
+Hoàn thành khi: kế hoạch đủ chi tiết để bắt tay code ngay.
+
+=== [W-12] Tùy biến một mẫu có sẵn bằng một yêu cầu ===
+Mục tiêu: Trên mẫu ⟨tên mẫu⟩, thay ⟨vật thể chính, ví dụ con sứa⟩ thành ⟨vật thể mới⟩ và đổi toàn bộ chữ, menu, sản phẩm sang thương hiệu ⟨tên thương hiệu⟩ (ngành ⟨ngành⟩, màu chủ đạo ⟨mã hex⟩).
+Ngữ cảnh: code mẫu ở ⟨thư mục, ví dụ template/⟩, file chính index.html; logo, ảnh và nội dung thật của thương hiệu ở ⟨thư mục, ví dụ assets/⟩.
+Đầu ra: bản preview và danh sách những gì đã đổi.
+Ràng buộc: giữ nguyên bố cục, phong cách và thời gian của các animation; ảnh mới cùng tỷ lệ khung với ảnh cũ.
+Hoàn thành khi: không còn chữ hay ảnh mẫu nào sót lại; bạn tự rà và báo kết quả rà.

@@ -1,0 +1,49 @@
+# DECISIONS · Exchangethings.vn
+
+> Nhật ký quyết định. Mỗi mục: bối cảnh, quyết định, hệ quả. "Chủ dự án" là lựa chọn anh đã bấm ngày 22/11/2026; "Thiết kế" là quyết định kỹ thuật đề xuất trong M0, chờ anh duyệt cùng SPEC.
+
+## Do chủ dự án chọn
+
+| # | Quyết định | Bối cảnh | Hệ quả |
+|---|---|---|---|
+| D-01 | Tên thương hiệu **Exchangethings.vn** | Tên tạm "Swap & Buy" là từ chung, khó đăng ký nhãn hiệu. Tên "Keo.vn" bị loại vì chữ "kèo" trên mạng gắn với cá cược bóng đá, dễ bị quảng cáo và cổng thanh toán soi kỹ | Cần kiểm tra và đăng ký tên miền exchangethings.vn và nhãn hiệu trước khi ra mắt |
+| D-02 | **Miễn phí** giai đoạn đầu | Sàn hai chiều cần đủ người đăng và người quẹt trước | Phí đặt 0% trong `platform_settings`; giao diện ghi "Miễn phí"; cơ chế phí vẫn được code và test |
+| D-03 | Đổi **mọi thứ hợp pháp**: 5 loại chính + loại "khác" | Chủ dự án muốn sàn không giới hạn loại món | Loại "khác" phải chờ admin duyệt; danh sách hàng cấm áp dụng cho mọi loại |
+| D-04 | Giao hàng vật lý bằng **cả gặp trực tiếp và vận chuyển** | Linh hoạt, phủ toàn quốc | Cần cơ chế cọc và thứ tự gửi cho kiểu vận chuyển |
+| D-05 | **Cọc theo điểm uy tín**: mới 20%, thường 10%, uy tín cao 0% | Thưởng người làm ăn sòng phẳng, gây khó cho tài khoản mới lập để lừa | Cần định nghĩa hạng rõ ràng (SPEC mục 3) và test cho cả ba mức |
+| D-06 | Đối tác thanh toán ưu tiên **PayOS (VietQR)**; MVP dùng mock | Người dùng Việt quen chuyển khoản bằng mã QR | Phải xác nhận PayOS cung cấp được ký quỹ cho mô hình sàn trước khi bật; giữ interface để thay đối tác nếu cần |
+| D-17 | **Duyệt M0**: SPEC giữ nguyên phạm vi (6 loại món, 5 kịch bản), màu A Xanh ngọc | Chủ dự án duyệt ngày 22/11/2026 | Bắt đầu M1 trong repo riêng của dự án |
+
+## Quyết định thiết kế (đã được duyệt cùng M0)
+
+| # | Quyết định | Lý do | Hệ quả |
+|---|---|---|---|
+| D-07 | Nền tảng **không tự giữ tiền**; dùng trung gian thanh toán có ký quỹ | Giữ tiền người dùng cần giấy phép của Ngân hàng Nhà nước | Mọi khoản tiền đi qua `PaymentProvider`; MVP là mock |
+| D-08 | **Chỉ VND** trên giao diện | Thông tư 32/2013/TT-NHNN hạn chế niêm yết và thanh toán bằng ngoại tệ trong nước | Ví dụ "100 USD" của chủ dự án thành 2.600.000 ₫ trong dữ liệu mẫu |
+| D-09 | Địa chỉ theo **34 tỉnh/thành, 2 cấp** | Cải cách hành chính có hiệu lực từ 01/07/2025, không còn cấp huyện | Bảng mã tỉnh và phường/xã theo danh mục mới; form địa chỉ 2 bước |
+| D-10 | **Két số** với luật mở theo kiểu giao dịch | Chống nhận mã đã dùng, chống lấy mã rồi bỏ đi | Nội dung mã hóa, signed URL 10 phút, ghi log mỗi lần xem |
+| D-11 | **Bên uy tín thấp hơn gửi trước** | Giảm rủi ro mà không cần cọc bằng toàn bộ giá trị món | Cần trạng thái "đã lấy hàng" từ vận chuyển (mock: nhập tay) |
+| D-12 | **Giới hạn 5.000.000 ₫** mỗi giao dịch cho Thành viên mới | Kẻ gian thường dùng tài khoản mới | Người dùng thật vẫn giao dịch nhỏ ngay; dữ liệu mẫu kịch bản 1 và 2 dùng tài khoản đã đủ điều kiện |
+| D-13 | Stack **Next.js + Supabase** (Postgres, Auth, Storage, Realtime, RLS) | Một nền tảng có sẵn chat realtime, lưu ảnh và phân quyền ở tầng dữ liệu; đi nhanh cho MVP | Phụ thuộc Supabase; nếu cần đổi thì giữ lớp truy cập dữ liệu tách riêng |
+| D-14 | Hiệu ứng chủ đạo **"cán cân công bằng"** | Cho hai bên thấy ngay chênh lệch giá trị và mức bù hợp lý; khác biệt so với các app quẹt thẻ khác | Màn đề nghị là màn quan trọng nhất về thiết kế; cần test cách tính độ lệch |
+| D-15 | Font **Be Vietnam Pro** | Thiết kế cho tiếng Việt, dấu hiển thị chuẩn ở mọi cỡ chữ | Nạp qua next/font, tự host |
+| D-16 | Hai phương án màu: **A Xanh ngọc** (#0F766E) và **B Cam đất** (#C2410C) | A gợi cảm giác tin cậy và tái sử dụng; B năng động, gợi cảm giác săn deal. Đã tránh tím kiểu AI và màu nhận diện của Tinder, Shopee, Chợ Tốt | **Chủ dự án chọn A Xanh ngọc** (22/11/2026). Tương phản chữ trên nút đo được 5,4:1 (A) và 5,0:1 (B) ở chế độ sáng, 7,3:1 và 6,9:1 ở chế độ tối; mọi cặp màu chữ/nền chính đều từ 4,5:1 trở lên (chuẩn WCAG AA) |
+
+## Quyết định khi xây M1 (22/11/2026)
+
+| # | Quyết định | Bối cảnh | Hệ quả |
+|---|---|---|---|
+| D-18 | Dữ liệu riêng tư **tách bảng**: `profile_private` (số điện thoại, địa chỉ), `item_private` (IMEI đầy đủ) | RLS chặn theo dòng, không chặn theo cột; để chung bảng thì ai đọc được hồ sơ cũng đọc được số điện thoại | Chỉ chủ sở hữu và admin đọc được. **Lệch SPEC mục 11**: số điện thoại và IMEI chưa mã hóa ở tầng ứng dụng (Supabase đã mã hóa ổ đĩa). Kế hoạch: mã hóa cùng hạ tầng khóa của két số ở M4; khi đó chưa ra mắt nên chưa có dữ liệu thật phải chuyển |
+| D-19 | Dữ liệu mẫu: **10 người dùng cho hai phía của 5 kịch bản** (Giang là tài khoản mới) và 1 admin; IMEI mẫu hợp lệ theo thuật toán Luhn | PLAN cũ ghi "8 mẫu + 1 mới", không đủ người cho cả hai phía của 5 kịch bản | Seed sinh từ script; test kiểm tra file seed khớp script từng byte và chạy lại cho cùng kết quả |
+| D-20 | **Chỉ server ghi ảnh**: xoay đúng chiều, xóa toàn bộ EXIF, GPS, XMP, lưu WebP 1600px kèm bản 480px cho lưới món | Nếu người dùng tự ghi bảng ảnh thì có thể bỏ qua bước xóa vị trí | Bảng `item_media` không cấp quyền ghi cho người dùng; trình duyệt thu nhỏ ảnh trước khi gửi để tải nhanh trên 4G; ảnh chứng từ chỉ chủ món và admin xem |
+| D-21 | Bộ lọc từ khóa **so khớp nguyên từ, giữ dấu** | So khớp chuỗi con bỏ dấu bắt nhầm: "đạn" khớp "Đàn", "chó" khớp "cho", "thuốc" khớp "thuộc" | Từ đơn có dấu chỉ khớp khi giữ dấu; cụm nhiều từ và từ không dấu khớp cả khi gõ không dấu ("hang fake", "ma tuy") |
+| D-22 | **Chống lách kiểm duyệt** | Khi viết test tìm ra 4 cách lách | Không đổi danh mục khi món đã đăng (tránh đăng ở danh mục dễ rồi chuyển sang hàng hiệu); món bị admin từ chối, đăng lại vẫn phải chờ duyệt; lọc từ khóa cả khi món chờ duyệt và kiểm lại lúc admin bấm duyệt; người dùng không tự ghi 4 số cuối IMEI |
+| D-23 | **Lớp dữ liệu server dùng `pg`**: mỗi request đặt vai trò và JWT claims trong transaction, như Supabase/PostgREST | Theo D-13 (giữ lớp truy cập dữ liệu tách riêng); test RLS và app dùng chung một cơ chế | RLS áp dụng y hệt khi app chạy; chạy được với Postgres local và Supabase (qua pooler). Đăng nhập thật: Supabase Auth (link qua email, Google). Máy dev có `AUTH_MODE=dev` để đăng nhập bằng người dùng mẫu; chế độ này tự từ chối khi database không ở localhost hoặc khi chạy trên Vercel |
+| D-24 | Tên ngắn 6 thành phố trực thuộc trung ương: Hà Nội, Hải Phòng, Huế, Đà Nẵng, Cần Thơ, **TP.HCM** | Dữ liệu gốc để tên ngắn trùng tên đầy đủ ("Thành phố Hà Nội") nên thẻ món bị cắt chữ | Script sinh migration tự rút gọn; dữ liệu gốc giữ nguyên để truy nguồn |
+| D-25 | Mọi phần đọc phiên đăng nhập nằm trong `<Suspense>` và gọi `connection()` trước | Next.js 16 bật Cache Components và Partial Prefetching: đọc cookie hay giờ hệ thống ngoài Suspense làm hỏng build | Trang có khung tĩnh hiện ngay, phần riêng của từng người tải sau; build không cần biến môi trường; điều hướng thanh dưới chỉ gồm mục đã chạy được (Quẹt, Khớp vào ở M2) |
+| D-26 | **Duyệt M1**; mã hóa số điện thoại và IMEI làm ở M4 cùng két số | Chủ dự án chọn "Duyệt, mã hóa ở M4" (22/11/2026) | Bước tiếp theo: đưa bản M1 lên Supabase và Vercel chạy thử, kiểm tra quyền chuyển vai trò của user database (README bước 5) trước khi sang M2 |
+| D-27 | **Rà soát độc lập trước khi lên mạng**, vá toàn bộ 8 phát hiện (23/11/2026) | Một lượt rà soát riêng, không dựa trên nhận định của người viết, tái hiện được 8 lỗi | (1) Đường dẫn quay lại sau đăng nhập không còn chuyển hướng được ra trang ngoài. (2) Bộ lọc từ khóa chuẩn hóa văn bản trước khi so (ký tự vô hình, khoảng trắng lạ, dấu rời, chữ Cyrillic giống Latin, chữ dính số) và lọc cả mục "muốn đổi lấy", tên hiển thị, lời giới thiệu. (3) Món loại "khác" đổi tên, mô tả hoặc thêm ảnh thì duyệt lại; ghi chú duyệt là nội bộ, có nhật ký `item_reviews`. (4) Chuỗi kết nối database được phân tích một lần, tham số lạ như `?host=` bị từ chối. (5) Kiểm tra quyền và số ảnh trước khi giải mã ảnh; chặn ảnh trên 50 megapixel. (6) Giới hạn 10 ảnh, 4 chứng từ, 5 mong muốn và việc xóa ảnh được khóa ở tầng database, hết lỗi khi nhiều thao tác chạy cùng lúc. (7) Điện thoại đã đăng không đổi được IMEI hay bỏ cam kết thoát tài khoản. (8) Cookie phiên hỏng không làm sập trang. Mỗi lỗi có test; cài lỗi ngược 15/15 bị bắt |
+| D-28 | **Hồ sơ chỉ lộ cột công khai**: tên, ảnh, tỉnh/thành, giới thiệu, uy tín. Phường/xã, vai trò, ngày khóa là riêng tư | Supabase mở sẵn một cổng API đọc thẳng database; để cả bảng thì ai cũng liệt kê được phường/xã của mọi người | Chủ tài khoản đọc hồ sơ đầy đủ qua hàm `my_profile()`. Tên mặc định của tài khoản mới là "Thành viên XXXX", không lấy từ email hay tên Google. Mọi hàm mới mặc định không ai gọi được; có test canh danh sách hàm được phép |
+| D-29 | **Việc còn lại trước khi mở cho khách** (chưa làm ở M1) | Ghi rõ để không bị quên | (a) Tạo tài khoản database riêng, quyền tối thiểu cho app thay vì dùng tài khoản `postgres`. (b) Tắt cổng Data API của Supabase cho schema public vì app không dùng. (c) Giới hạn tần suất thao tác (SPEC mục 12). (d) Bộ lọc từ khóa chỉ là lớp chặn đầu: cách viết lách nhìn thấy được như "v4pe", "s.ú.n.g" cần báo cáo của người dùng và admin (M6). (e) Mã hóa số điện thoại, IMEI (M4, xem D-18) |
+| D-30 | **Cài database không cần token Supabase** (23/11/2026) | Chủ dự án không có và không cấp Access Token; từ phiên làm việc trên mây cũng không kết nối thẳng được tới database | Hai kênh: (A) dán `supabase/setup.sql` vào SQL Editor, một transaction, có bảng kết quả, dán lần hai bị từ chối; (B) workflow GitHub Actions "Database" dùng secret `DATABASE_URL` để chạy `pnpm db:migrate` và `pnpm db:doctor`. Bộ chạy migration có sổ `app_meta.migrations` kèm checksum: chạy lại không sao, file đã chạy mà bị sửa thì từ chối, mỗi file một transaction. Link đăng nhập nhận cả mẫu email mặc định của Supabase nên không phải sửa mẫu. Đã chạy thử trên Postgres local giả lập Supabase; **chưa chạy trên Supabase thật** |
+

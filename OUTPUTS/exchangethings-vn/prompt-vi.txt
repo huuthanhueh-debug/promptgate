@@ -1,0 +1,110 @@
+=== [S-01] Exchangethings.vn: sàn đổi đồ kiểu quẹt thẻ (bản tiếng Việt) ===
+VAI TRÒ
+Làm việc với vai trò senior full-stack engineer kiêm product designer đã từng ra mắt marketplace hai chiều. Xây một MVP chạy thật, an toàn, có test, không phải bản demo giao diện.
+
+MỤC TIÊU
+Xây website Exchangethings.vn. Người dùng đăng món mình có, quẹt các món người khác đăng giống cách quẹt của app hẹn hò; hai bên cùng thích thì khớp (match), rồi thương lượng đổi, có thể bù tiền hoặc mua thẳng. Đổi được mọi thứ hợp pháp: hàng vật lý, file số, kiến thức hoặc dịch vụ, mã khóa học, voucher và mã giảm giá, và món khác không vi phạm pháp luật. Chỉ phục vụ người dùng và giao dịch trong Việt Nam.
+
+5 KỊCH BẢN BẮT BUỘC CHẠY ĐƯỢC (dùng làm dữ liệu mẫu và test e2e)
+1. An có iPhone 15 128GB, thích iPhone 18 của Bình. An đề nghị: iPhone 15 + bù 2.600.000 ₫ (khoảng 100 USD). Bình phản đề nghị bù 4.000.000 ₫. An đồng ý, hai bên gửi hàng qua đơn vị vận chuyển.
+2. Chi đổi áo Gucci lấy giày Zegna của Dũng, không bù tiền, gặp trực tiếp tại TP. Hồ Chí Minh. Cả hai món phải có ảnh chứng từ chính hãng.
+3. Em đổi mã khóa học online còn hạn lấy bộ template thiết kế của Phúc: giao dịch số hoàn toàn, qua két số.
+4. Giang mua thẳng voucher giảm giá 500.000 ₫ của Hòa với giá 350.000 ₫, không đưa món nào.
+5. Khánh đổi 1 buổi dạy tiếng Anh 60 phút lấy 1 buổi tư vấn thiết kế logo của Linh.
+
+NGƯỜI DÙNG
+Người Việt 18-40 tuổi, dùng điện thoại là chính, quen sàn thương mại điện tử và app hẹn hò. Hai nỗi sợ lớn nhất: gửi đồ đi mà không nhận lại, và nhận phải mã đã dùng hoặc hàng giả. Mọi quyết định thiết kế phải giảm hai nỗi sợ này.
+
+TÍNH NĂNG MVP
+1. Tài khoản: đăng nhập bằng email hoặc Google; hồ sơ có ảnh, tỉnh/thành, điểm uy tín, số giao dịch hoàn tất, thời gian phản hồi; xác minh số điện thoại +84 qua interface SmsProvider (bản mock).
+2. Đăng món: loại (vật lý / file số / dịch vụ-kiến thức / mã khóa học / voucher-mã giảm giá / khác), tiêu đề, mô tả, tình trạng, giá trị ước tính (VND), "muốn đổi lấy" (danh mục, từ khóa hoặc món cụ thể), khoảng tiền bù chấp nhận (trả thêm hoặc nhận thêm), có bán thẳng không và giá bán, cách giao (vận chuyển / gặp trực tiếp / giao số), hạn dùng với mã và voucher.
+   - Hàng vật lý: ít nhất 3 ảnh.
+   - Điện thoại: bắt buộc IMEI (chỉ hiện 4 số cuối) và cam kết đã thoát iCloud hoặc tài khoản Google trước khi giao.
+   - Hàng hiệu: bắt buộc ảnh hóa đơn hoặc thẻ chính hãng, chỉ người đã khớp mới xem được.
+   - Loại "khác": chỉ hiển thị sau khi admin duyệt.
+3. Quẹt thẻ: chồng thẻ, quẹt phải là quan tâm, quẹt trái là bỏ qua, có nút bấm thay cho người không quẹt được; lọc theo loại, danh mục, khoảng giá trị, tỉnh/thành và "chỉ món hợp với đồ tôi có".
+4. Khớp: A thích một món của B và B thích một món bất kỳ của A thì tạo match, mở chat, chạy hiệu ứng khớp. Vẫn cho gửi đề nghị trực tiếp không cần khớp.
+5. Đề nghị: hai cột "Tôi đưa" và "Tôi nhận", mỗi cột nhiều món, cộng tiền bù (ai trả, bao nhiêu) hoặc chỉ tiền (mua thẳng). Phản đề nghị nhiều vòng, mỗi vòng là một phiên bản; đề nghị hết hạn sau 48 giờ; chỉ khi hai bên cùng chấp nhận một phiên bản mới thành giao dịch.
+6. Chat realtime theo match, gửi được ảnh. Trước khi giao dịch được khóa, tự che số điện thoại, số tài khoản và link thanh toán ngoài nền tảng.
+7. Giao dịch: trang theo dõi từng bước, nút xác nhận đã nhận, nút mở khiếu nại kèm ảnh hoặc video bằng chứng.
+8. Két số cho mã và file: nội dung mã hóa khi lưu, chỉ mở cho đối phương theo quy tắc ở mục GIAO DỊCH; file tải bằng signed URL hết hạn sau 10 phút; ghi log mỗi lần xem.
+9. Đánh giá hai chiều sau giao dịch. Điểm uy tín tính từ đánh giá, tỉ lệ hoàn tất và số khiếu nại thua.
+10. Báo cáo, chặn người dùng. Trang admin: duyệt món bị gắn cờ và món loại "khác", xử lý báo cáo và khiếu nại, khóa tài khoản, quản lý danh mục, từ khóa cấm, phí, mức cọc và các ngưỡng.
+11. Song ngữ tiếng Việt (mặc định) và tiếng Anh. Mọi giá hiển thị bằng VND.
+
+GHÉP CẶP VÀ CÁN CÂN
+- Điểm gợi ý = 0,35 × khớp mong muốn + 0,25 × cân bằng giá trị (tính cả khoảng tiền bù) + 0,20 × gần về địa lý + 0,20 × uy tín. Trọng số lưu trong platform_settings.
+- Mức bù gợi ý = chênh lệch giá trị hai bên, làm tròn đến 100.000 ₫, nằm trong khoảng hai bên chấp nhận. Đây chỉ là gợi ý, hai bên tự quyết.
+
+GIAO DỊCH (state machine; server từ chối mọi chuyển trạng thái sai)
+offer_sent → countered (lặp lại được) → accepted → locked → in_progress → delivered → completed
+Nhánh phụ: expired, cancelled (chỉ trước locked), disputed → resolved_refund hoặc resolved_release.
+- locked: chờ đủ các phần cần có: tiền bù nạp vào ký quỹ, tiền cọc nếu gửi qua vận chuyển, mã hoặc file nộp vào két.
+- Hàng vật lý qua vận chuyển: mỗi bên cọc theo điểm uy tín, tính trên giá trị món mình nhận: tài khoản mới 20%, bình thường 10%, uy tín cao 0% (uy tín cao = từ 20 giao dịch hoàn tất, điểm trung bình từ 4,8/5, không thua khiếu nại nào trong 90 ngày; tỉ lệ và ngưỡng cấu hình được). Cọc hoàn lại khi hoàn tất. Bên có điểm uy tín thấp hơn gửi trước; bên kia gửi khi đơn đầu đã được đơn vị vận chuyển lấy hàng.
+- Giao dịch lai (đồ số đổi đồ vật lý): bên hàng vật lý gửi trước; mã hoặc file mở khi đơn báo giao thành công hoặc người nhận xác nhận.
+- Giao dịch số hoàn toàn: mở két hai bên cùng lúc khi cả hai đã nộp và tiền bù (nếu có) đã vào ký quỹ.
+- Dịch vụ: hoàn tất khi người nhận dịch vụ xác nhận sau buổi hẹn.
+- Tự hoàn tất sau 72 giờ kể từ lúc giao hàng hoặc mở két nếu không có khiếu nại. Tiền ký quỹ chỉ chuyển cho bên nhận khi completed hoặc resolved_release.
+
+TIỀN VÀ VẬN CHUYỂN
+- Nền tảng không tự giữ tiền người dùng. Tiền bù, tiền mua và tiền cọc đi qua đối tác trung gian thanh toán được Ngân hàng Nhà nước cấp phép, có ký quỹ. MVP: interface PaymentProvider + bản mock. Adapter thật đầu tiên là PayOS (VietQR), chỉ bật sau khi xác nhận PayOS cung cấp được ký quỹ cho sàn; VNPay và MoMo để sau.
+- Vận chuyển: interface ShippingProvider + bản mock (nhập mã vận đơn tay); chừa chỗ gắn GHN, GHTK, Viettel Post.
+- Gặp trực tiếp: gợi ý điểm hẹn công cộng, checklist kiểm tra hàng, nút "đã gặp và nhận đủ".
+- Địa chỉ theo đơn vị hành chính mới từ 01/07/2025: 34 tỉnh/thành, hai cấp tỉnh → phường/xã, không còn cấp huyện.
+- Phí nền tảng: giai đoạn đầu miễn phí (0%), giao diện ghi rõ "Miễn phí". Vẫn cài sẵn cơ chế phí cấu hình được trong admin (sau này ví dụ 3% trên phần tiền bù hoặc mua thẳng, trừ vào bên nhận tiền; đổi ngang không thu phí).
+
+AN TOÀN VÀ PHÁP LÝ
+- Cấm đăng: vũ khí, ma túy, thuốc kê đơn, hàng giả/nhái, hàng không rõ nguồn gốc, tài khoản và dữ liệu cá nhân, phần mềm hoặc khóa học lậu, mã không được phép chuyển nhượng, tiền mã hóa, động vật. Lọc từ khóa khi đăng; người dùng báo cáo được.
+- Người đăng mã hoặc file phải tích ô "Tôi có quyền chuyển nhượng/chia sẻ nội dung này".
+- Tài khoản chưa xác minh số điện thoại hoặc dưới 3 giao dịch hoàn tất: tổng giá trị mỗi giao dịch tối đa 5.000.000 ₫ (cấu hình được).
+- Xóa EXIF (có vị trí GPS) khỏi ảnh khi tải lên. Địa chỉ chính xác chỉ hiện cho đối phương sau khi giao dịch locked.
+- Giá và thanh toán chỉ bằng VND theo quy định hạn chế sử dụng ngoại hối (Thông tư 32/2013/TT-NHNN); USD chỉ xuất hiện trong kịch bản mẫu, không hiển thị trên giao diện.
+- Soạn bản nháp Điều khoản sử dụng, Chính sách quyền riêng tư (theo Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15) và Quy chế hoạt động sàn (theo Luật Thương mại điện tử số 122/2025/QH15); gắn nhãn "cần luật sư duyệt trước khi ra mắt".
+
+CÔNG NGHỆ (được đổi nếu có lý do, nhưng phải nêu lý do trước khi code)
+Next.js (App Router) + TypeScript + Tailwind CSS + shadcn/ui; Framer Motion cho quẹt thẻ và hiệu ứng; Supabase (Postgres, Auth, Storage, Realtime), bật Row Level Security cho mọi bảng; Zod kiểm tra input; next-intl cho VI/EN; Vitest và Playwright; deploy lên Vercel; PWA cài được lên điện thoại.
+
+DỮ LIỆU TỐI THIỂU
+profiles, items, item_media, item_wants, swipes, matches, offers, offer_versions, offer_items, transactions, transaction_events, escrow_payments, shipments, vault_entries, messages, reviews, reports, disputes, blocks, notifications, categories, banned_keywords, platform_settings.
+
+GIAO DIỆN
+- Hiện đại, sáng, đáng tin. Màu chủ đạo đã chọn ở M0: Xanh ngọc #0F766E (DECISIONS.md D-16, D-17); nếu chưa có M0 thì đề xuất 2 phương án để tôi chọn.
+- Hiệu ứng chủ đạo: "cán cân công bằng" ở màn đề nghị. Cán cân nghiêng theo chênh lệch giá trị hai bên; kéo thanh tiền bù thì cân thăng bằng dần và hiện mức bù gợi ý.
+- Thẻ quẹt gồm ảnh, tình trạng, giá trị, tỉnh/thành, chip "muốn đổi lấy", nhãn "Bù tối đa 4tr", "Bán thẳng", "Cần chứng từ".
+- Hiệu ứng khớp: hai thẻ chạm nhau, hiện chữ "Khớp rồi!".
+- Không dùng tên, logo, màu hay câu chữ của Tinder hoặc app nào khác.
+- Mọi hiệu ứng tôn trọng prefers-reduced-motion.
+
+DỮ LIỆU MẪU
+30 món đủ 6 loại, ở ít nhất 6 tỉnh/thành, gồm cả 5 kịch bản trên; 10 người dùng đủ hai phía của 5 kịch bản, trong đó 9 người có lịch sử đánh giá và 1 người dùng mới để test giới hạn 5.000.000 ₫; 1 tài khoản admin. Người dùng trong kịch bản 1 và 2 đã xác minh số điện thoại và có từ 3 giao dịch hoàn tất, để không vướng giới hạn này. Chạy lệnh seed nhiều lần vẫn ra cùng kết quả.
+
+ĐẦU RA
+- Repo chạy local bằng một lệnh (pnpm dev) sau khi điền .env.local theo .env.example.
+- PLAN.md (các mốc, ước lượng thời gian), SPEC.md (luồng, phân quyền, state machine), DECISIONS.md (quyết định kỹ thuật kèm lý do), README.md (cài đặt, seed, test, deploy).
+- Migration SQL kèm chính sách RLS; script seed.
+- Unit test cho điểm gợi ý, mức bù gợi ý, mức cọc theo uy tín và state machine; test RLS; test e2e bằng Playwright cho 5 kịch bản.
+
+RÀNG BUỘC
+- Không tích hợp thanh toán hay vận chuyển thật; chỉ interface + mock, chọn bằng biến môi trường.
+- Không để bí mật (key, mật khẩu) trong code; không ghi log nội dung két số.
+- Không bịa đánh giá, số liệu hay logo đối tác trên giao diện.
+- Mobile-first: đẹp nhất ở 390px, vẫn chuẩn ở 1440px; mọi thao tác quẹt có nút tương đương cho bàn phím và trình đọc màn hình.
+
+CÁCH LÀM
+Lập kế hoạch trước, làm theo từng mốc; hết mỗi mốc thì chạy test và tự kiểm tra rồi mới sang mốc sau.
+Nếu thư mục đã có PLAN.md, SPEC.md, DECISIONS.md và wireframes/ (M0 đã được duyệt), đọc kỹ các file đó, bỏ qua M0 và bắt đầu từ M1.
+- M0: PLAN.md, SPEC.md, wireframe 4 màn chính (quẹt, đề nghị, giao dịch, két số), 2 phương án màu. DỪNG chờ tôi duyệt.
+- M1: tài khoản, hồ sơ, đăng món, tải ảnh.
+- M2: quẹt, khớp, chat.
+- M3: đề nghị, phản đề nghị, cán cân.
+- M4: giao dịch, ký quỹ mock, vận chuyển mock, két số.
+- M5: uy tín, báo cáo, khiếu nại, admin.
+- M6: song ngữ, PWA, hiệu năng, tài liệu, deploy.
+Cuối mỗi mốc báo trong 3 dòng: đã làm gì · test nào pass · cần tôi quyết định gì.
+
+HOÀN THÀNH KHI
+- Cả 5 kịch bản chạy trọn trên bản local với dữ liệu mẫu, mỗi kịch bản có test e2e tự động pass.
+- Test RLS chứng minh người ngoài giao dịch không đọc được két số, chat và địa chỉ của người khác.
+- State machine từ chối mọi chuyển trạng thái sai (có test).
+- Lighthouse mobile ở trang chủ và màn quẹt: Performance từ 85, Accessibility từ 95 trở lên; console không lỗi; chuyển VI/EN không sót chữ.
+- Có link Vercel preview nếu tôi cấp quyền; nếu chưa, có hướng dẫn deploy từng bước.

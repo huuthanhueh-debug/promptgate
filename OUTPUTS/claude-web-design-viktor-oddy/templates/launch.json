@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "vi-du",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "http-server", "work/vi-du/site", "-p", "5571", "-c-1"],
+      "port": 5571,
+      "autoPort": true
+    }
+  ]
+}

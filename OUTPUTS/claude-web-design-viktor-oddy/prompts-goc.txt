@@ -1,0 +1,27 @@
+# PROMPT GỐC TRONG VIDEO (nguyên văn, kể cả lỗi chính tả của tác giả)
+# Nguồn: Viktor Oddy, "I Tried the LAZIEST Way to Make Money With Claude Design", YouTube, 04/11/2026
+# Bản tiếng Việt: TikTok @cunghocainha (lồng tiếng AI), 05/11/2026
+# Dùng để so điểm với bản nâng cấp trong prompts.txt. Không cần copy các prompt này.
+
+=== [G-01] Dán link Pinterest vào session đã có SOP (Claude Code, 02:06) ===
+https://www.pinterest.com/pin/743234744804756299/
+Here's the next one
+
+=== [G-02] Chọn phương án + gửi code gốc (Claude Code, 02:14) ===
+opt 2 free here is the original code so you won't start fro mscratch
+<!doctype html> <html lang="en"> <head> <meta charset="utf-8"> <title>Leon Vasari: Filmography</title> ...
+
+=== [G-03] Viết bài mạng xã hội từ video quay màn hình (Claude Code, 05:28) ===
+We'll post this on Twitter, LinkedIn, and Threads. Please write me a option for social media on for each platform that will most likely go viral. My focus is to get web design clients
+
+=== [G-04] Redesign site của một công ty thật (MotionSites Studio, 07:30) ===
+redesign for this comapny https://bobobobo.com/
+
+=== [G-05] Tìm xu hướng mới nổi của ngành (Claude chat + web search, 10:26) ===
+Give me list of the best apps for my industry, say for web design, that are very trending, that is something is emerging, not something that has already been tried. I want something that would work in the future. Do not suggest me ideas like Framer or Webflow. I want something that not a lot of people thinking about it today, but it will be very, very trending and popular and necessary in the future.
+
+=== [G-06] Đổi vật thể chính trong mẫu có sẵn (MotionSites Studio, 00:38) ===
+change the jellyfish to be a normal fish
+
+=== [G-07] Đưa ý tưởng về sản phẩm của mình (nói trong video, 11:05) ===
+I just got this idea from Claude. How can we customize it into our own business?
