@@ -194,7 +194,8 @@ Bắt buộc có test tự động chứng minh từng dòng "Không" ở bảng
 | profile_private | id, phone_e164, phone_verified_at, street_address. Chỉ chủ tài khoản và admin đọc được; mã hóa ở tầng ứng dụng từ M4 (DECISIONS D-18) |
 | items | id, owner_id, type (physical/digital_file/course_code/voucher/service/other), category_id, title, description, condition, est_value_vnd, topup_pay_max_vnd, topup_receive_max_vnd, sell_price_vnd, delivery_methods, province_code, expires_on, imei_last4 (đồng bộ từ item_private), signed_out_confirmed, transfer_right_confirmed, duration_minutes, status (draft/pending_review/active/reserved/swapped/removed), review_note, requires_review |
 | item_private | item_id, owner_id, imei_full. Chỉ chủ món và admin đọc được; mã hóa ở tầng ứng dụng từ M4 (DECISIONS D-18) |
-| item_media | id, item_id, kind (photo/proof), storage_path, width, height, exif_stripped |
+| item_media | id, item_id, kind (photo/proof), storage_path, width, height, exif_stripped. Tối đa 10 ảnh và 4 chứng từ mỗi món |
+| item_reviews | id, item_id, reviewer_id, approved, note, created_at. Nhật ký duyệt món, chỉ thêm; chủ món chỉ đọc lý do từ chối (DECISIONS D-27) |
 | item_wants | id, item_id, want_type (item/category/keyword), wanted_item_id, category_id, keyword |
 | swipes | viewer_id, item_id, direction (like/pass), created_at; khóa chính (viewer_id, item_id) |
 | matches | id, user_a, user_b, item_a, item_b, created_at |
