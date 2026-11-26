@@ -10,6 +10,15 @@
 - `video/` is now self-contained (own `package.json`, tests in `video/tests/`, icon generator, licence, CI workflow) so it can become its own repository with `git subtree split --prefix=video`.
 - Tests: `video/tests/video.js` (core logic, clip-editing maths, server, packaging, and in headless Chromium when Playwright is present: pixel checks of every transition, the editor UI, real exports with sound), wired into `node tests/run.js`.
 
+## 1.4.0 — 2026-11-26 — spelling and handoff
+- Spelling auto-fix for English and Vietnamese (`scripts/lib/spell.js`), shared by every edition through `cleanFiller()`: common typos, teen-code shorthand (`ko` → `không`), Vietnamese tone marks on the wrong vowel (`cuả` → `của`, `sưả` → `sửa`), Telex keys left unconverted (`YTooi` → `Tôi`), and `i`/`im` → `I`/`I'm` in English text only. Code spans, URLs, paths and file names are never touched.
+- Where you see it: the plugin's suggest prompt tells Claude to fix spelling in all three versions; the tray popup lists each fix (`Spelling fixed: a → b`) and A/B/C use the corrected words; the claude.ai extension rewrites with the same fixer.
+- Handoff structure for multi-session work: `analyze()` returns `handoff {needed, present, path}`. When a prompt looks multi-session (a cue such as "continue" or "hôm qua", or a folder path) and does not name `HANDOFF.md` yet, version C ends with a 6-line handoff block in the prompt's language and the tip line mentions `HANDOFF.md`. A and B stay short.
+- New `SessionStart` hook `scripts/session-boot.js`: when the project folder (or its `_handoff/`) has `GOAL.md` / `HANDOFF.md`, it adds a short boot instruction so the session reads them first. Fails open; `handoff.enabled: false` in `config.json` turns the block and the hook off.
+- Tray: waits up to 90 s for the engine, shows a "system is busy" balloon after 3 s and logs slow runs (`node slow: …`, `node timeout after …`), so an overloaded machine no longer looks like a dead engine.
+- Extension: the bundle built from this tree (`npm run build:ext`) has spelling and the handoff block. The Chrome Web Store build does not change until a new zip is submitted.
+- `.gitignore` covers `_handoff/` and the local recovery-codes folder.
+
 ## 1.3.1 — 2026-11-03 — doctor
 - New `/promptgate:doctor [--fix]` (`npm run doctor`): one command that checks every edition on this machine — plugin registration and a live hook run, Windows tray process, claude.ai bundle freshness, the optional virtual-office widget — and with `--fix` starts the tray and rebuilds the extension. `--json` for scripts; exit 1 only when the plugin or hook is broken.
 - Tests: `tests/doctor.js` (helpers with synthetic input + a real run in a temp config dir), wired into `node tests/run.js`.
