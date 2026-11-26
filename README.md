@@ -112,6 +112,7 @@ If PromptGate saves you tokens, a star on GitHub or a look at the hotel toolkits
 - **Phase 1 (done, 1.0)**: Claude Code plugin.
 - **Phase 2 (done, 1.2)**: Windows tray with a global hotkey, same engine in the Claude desktop app and any other window. Select text, press Ctrl+Alt+P, pick A/B/C. See [tray/README.md](tray/README.md); run `tray\PromptGate.cmd` or `npm run tray`.
 - **Phase 3 (done)**: Chrome extension for claude.ai, [on the Chrome Web Store](https://chromewebstore.google.com/detail/ohfifdheanlidimoffbkbkednifkpiae). Source and manual install in [`extension/`](extension/README.md).
+- **PromptGate Video (preview)**: offline video studio with prompts for 11 AI video tools, desktop + Android APK. See [video/README.vi.md](video/README.vi.md); run `npm run video`.
 
 ## Troubleshooting
 
