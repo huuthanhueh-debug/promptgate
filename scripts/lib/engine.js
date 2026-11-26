@@ -1,6 +1,7 @@
 'use strict';
 // PromptGate scoring + rewrite engine. Deterministic, dependency-free, well under 1 ms per prompt.
 const L = require('./lexicon');
+const { fixSpelling } = require('./spell');
 
 // JS \b is ASCII-only, which breaks on Vietnamese letters (đ, ư, ơ...). Rewrite \b into
 // Unicode-aware lookarounds and force the u flag.
@@ -26,6 +27,16 @@ const kwRe = (kw) => new RegExp('(?<![\\p{L}\\p{N}_])' + escapeRe(kw).replace(/\
 const VERB_RE = new RegExp('(?<![\\p{L}\\p{N}_])(?:' + [...L.VERBS.vi, ...L.VERBS.en].map(escapeRe).join('|') + ')(?![\\p{L}\\p{N}_])', 'iu');
 const PROPER_RE = /(?<=[\s(,:;])[A-Z][a-z]{2,}(?:[A-Z][a-z]+)*(?![\p{L}])/gu;
 
+// Multi-session cues (SPEC-handoff-structure §1). Phrases match whole words, case-insensitive.
+const HANDOFF_CUE_RES = ['tiếp tục', 'làm tiếp', 'phiên trước', 'hôm qua', 'lần trước', 'dở dang', 'dự án', 'hằng ngày', 'mỗi sáng', 'hẹn giờ', 'xuyên đêm', 'scheduled', 'overnight', 'continue', 'resume', 'pick up', 'where we left off', 'long-running'].map(kwRe);
+const HANDOFF_NAMED = /(?<![\p{L}\p{N}_])(?:HANDOFF|GOAL)\.md(?![\p{L}\p{N}_])/iu;
+// A folder path: a Windows drive path (to a comma, semicolon or end of line), or ~/ or ./ at a word start.
+function handoffPath(text) {
+  const drive = text.match(/[A-Za-z]:\\[^\n,;"<>|]+/);
+  if (drive) return drive[0].replace(/[\s.!?]+$/, '');
+  const rel = text.match(/(?:^|\s)((?:~|\.)\/\S+)/);
+  return rel ? rel[1].replace(/[.,;:!?)]+$/, '') : '';
+}
 const count = (text, re) => { const m = text.match(re); return m ? m.length : 0; };
 const words = (text) => text.trim().split(/\s+/).filter(Boolean);
 const sentences = (text) => text.split(/[.!?\n]+/).map((s) => s.trim()).filter(Boolean);
@@ -149,6 +160,10 @@ function analyze(text, opts) {
   const cue = count(trimmed, R.DEPTH_CUE) > 0;
   dims.depth = depth === 'deep' ? (cue ? 10 : followUp ? 7 : 3) : depth === 'standard' ? (cue ? 10 : 7) : (cue ? 7 : 10);
 
+  // Multi-session handoff (SPEC §1): a cue or a folder path means the work spans sessions.
+  const hpath = handoffPath(trimmed);
+  const hcue = hpath !== '' || HANDOFF_CUE_RES.some((re) => re.test(trimmed));
+  const handoff = { needed: opts.handoff !== false && hcue, present: HANDOFF_NAMED.test(trimmed), path: hpath };
   const score = Object.values(dims).reduce((s, v) => s + v, 0);
   const missing = [];
   for (const k of ['goal', 'context', 'output', 'constraints', 'acceptance', 'depth']) {
@@ -159,6 +174,7 @@ function analyze(text, opts) {
     lang, type, depth, followUp, nWords: nW, refs: refc, dims, max: MAX, score,
     missing, excess: { filler, long, repeated },
     flags: { hasVerb, isQ: cls.isQ, cue },
+    handoff,
   };
 }
 
@@ -175,7 +191,7 @@ function tidyPunct(t) {
 }
 
 function cleanFiller(text) {
-  let t = text.trim();
+  let t = fixSpelling(text.trim());
   for (const re of R.FILLER) t = t.replace(re, ' ');
   t = tidyPunct(t);
   for (let i = 0; i < 2; i++) {
@@ -221,7 +237,16 @@ function describeExcess(a, T) {
 }
 function tipFor(a, T) {
   const k = a.missing[0] || (a.excess.filler ? 'economy' : null);
-  return k ? T.tips[k] : '';
+  const dim = k ? T.tips[k] : '';
+  const hb = a.handoff && a.handoff.needed && !a.handoff.present ? T.tips.handoff : '';
+  return [dim, hb].filter(Boolean).join(' ');
+}
+
+// The handoff block (01_MASTER-PROMPT.md, mục B) in the prompt's language. No folder → placeholder.
+function handoffBlock(T, folder) { return T.handoff.block(folder || T.handoff.folderPh); }
+// Lines for version C when the prompt is multi-session and does not name the handoff files yet.
+function handoffLines(a, T) {
+  return a.handoff && a.handoff.needed && !a.handoff.present ? handoffBlock(T, a.handoff.path).split('\n') : [];
 }
 
 function formatBlock(a, suggestion, T, viaLlm) {
@@ -248,4 +273,4 @@ function formatDims(a, T) {
   return Object.keys(MAX).map((k) => `${T.dims[k]} ${a.dims[k]}/${MAX[k]}`).join(' · ');
 }
 
-module.exports = { R, MAX, words, normalize, detectLang, classify, analyze, rewrite, cleanFiller, tidyPunct, formatBlock, formatSystem, formatDims, tipFor, describeExcess };
+module.exports = { R, MAX, words, normalize, detectLang, classify, analyze, rewrite, cleanFiller, tidyPunct, formatBlock, formatSystem, formatDims, tipFor, describeExcess, handoffPath, handoffBlock, handoffLines };

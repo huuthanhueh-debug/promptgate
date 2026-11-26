@@ -1,6 +1,17 @@
 {
   "description": "PromptGate scores every prompt before Claude sees it. Weak prompts get three filled-in rewrites to pick from (or are blocked in block mode); good prompts pass silently.",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"require(require('path').join(process.env.CLAUDE_PLUGIN_ROOT,'scripts','session-boot.js'))\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [

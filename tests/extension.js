@@ -82,6 +82,10 @@ check('A/B/C carry the goal line', [v.A, v.B, v.C].every((x) => x.startsWith('M�
 check('context filled from chat when prompt lacks it', v.B.includes('Ngữ cảnh: src/app.js'));
 check('constraints auto-filled, no placeholder left', v.B.includes('Ràng buộc: giữ nguyên phần không liên quan') && !/Ràng buộc:.*⟨/.test(v.B));
 check('C adds the plan/verify line when missing', v.C.includes('Ultrathink.') && !v.B.includes('Ultrathink.'));
+const hvX = core.variants('làm tiếp phần TQC hôm qua trong D:\\PERSONAL\\The Quiet Concierge', { language: 'vi' }, []);
+check('extension: C carries the handoff block, B does not', /HANDOFF\.md/.test(hvX.C) && !/HANDOFF/.test(hvX.B), hvX.C.slice(-160));
+check('extension: the block keeps the drive path', hvX.C.includes('D:\\PERSONAL\\The Quiet Concierge'));
+check('C adds the plan/verify line when missing', v.C.includes('Ultrathink.') && !v.B.includes('Ultrathink.'));
 const deepV = core.variants('Xây một app Electron kiểu Kahoot cho công ty event, chạy trên laptop MC, cổng 3777', { language: 'vi' }, []);
 check('deep build task recommends C', deepV.rec === 'C', deepV.rec);
 const forced = core.variants('sửa lỗi login không chạy', { language: 'vi', depth: 'light' }, []);

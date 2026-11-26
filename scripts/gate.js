@@ -62,7 +62,7 @@ async function main() {
   }
 
   const pack = packs.load();
-  const a = E.analyze(trimmed, { pack, language: cfg.language, followUp });
+  const a = E.analyze(trimmed, { pack, language: cfg.language, followUp, handoff: !(cfg.handoff && cfg.handoff.enabled === false) });
   const blockAt = followUp ? cfg.blockBelow - 10 : cfg.blockBelow;
   const T = t(a.lang);
   const typeLabel = T.types[a.type] || a.type;
@@ -75,7 +75,8 @@ async function main() {
       // suggest mode: Claude fills the gaps and offers A/B/C as buttons. No block, no retyping.
       const rec = a.depth === 'deep' ? 'C' : a.depth === 'light' ? 'A' : 'B';
       const missing = a.missing.map((k) => T.dims[k]).join(', ');
-      const ctx = T.suggest({ score: a.score, typeLabel, depthLabel }, missing, rec, skeleton);
+      const spellNote = '\nSpelling: in all 3 versions, silently fix every spelling, typo, Vietnamese tone-mark (hỏi/ngã) and teen-code shorthand error in the user\'s words (both English and Vietnamese); keep code, paths, URLs and names exactly as written.';
+      const ctx = T.suggest({ score: a.score, typeLabel, depthLabel }, missing, rec, skeleton, E.handoffLines(a, T).join('\n')) + spellNote;
       state[session] = st; cfgm.saveState(state);
       cfgm.appendLog(Object.assign(base, { action: 'suggest' }));
       return out({ systemMessage: T.suggestSys(a.score, typeLabel), hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: ctx.slice(0, 9500) } });

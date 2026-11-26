@@ -119,17 +119,26 @@ function Start-Node([string]$scriptPath, [string[]]$nodeArgs) {
 }
 
 # Runs a Node script to completion; returns stdout (UTF-8) or $null on timeout.
-function Invoke-Node([string]$scriptPath, [string[]]$nodeArgs, [int]$timeoutMs) {
+# On a loaded machine (antivirus scanning, RAM exhausted) node.exe can take tens of seconds to start.
+# $onSlow (optional) runs once if the script is still going after $slowMs, so the user sees "busy"
+# instead of nothing; the elapsed time of slow runs goes to tray.log for later diagnosis.
+function Invoke-Node([string]$scriptPath, [string[]]$nodeArgs, [int]$timeoutMs, [scriptblock]$onSlow = $null, [int]$slowMs = 3000) {
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
     $p = Start-Node $scriptPath $nodeArgs
     $outTask = $p.StandardOutput.ReadToEndAsync()
     $errTask = $p.StandardError.ReadToEndAsync()
-    if (-not $p.WaitForExit($timeoutMs)) { try { $p.Kill() } catch {}; Write-Log ("node timeout: " + $scriptPath + ' ' + ($nodeArgs -join ' ')); return $null }
+    if ($onSlow -and $timeoutMs -gt $slowMs) {
+        $done = $p.WaitForExit($slowMs)
+        if (-not $done) { try { & $onSlow } catch {}; $done = $p.WaitForExit($timeoutMs - $slowMs) }
+    } else { $done = $p.WaitForExit($timeoutMs) }
+    if (-not $done) { try { $p.Kill() } catch {}; Write-Log ("node timeout after " + [int]$sw.Elapsed.TotalSeconds + "s: " + $scriptPath + ' ' + ($nodeArgs -join ' ')); return $null }
+    if ($sw.ElapsedMilliseconds -ge $slowMs) { Write-Log ("node slow: " + [int]$sw.Elapsed.TotalSeconds + "s for " + ($nodeArgs -join ' ')) }
     $err = $errTask.Result
     if ($err -and $err.Trim()) { Write-Log ("node stderr: " + $err.Trim()) }
     return $outTask.Result
 }
-function Invoke-CoreJson([string[]]$coreArgs, [int]$timeoutMs) {
-    $out = Invoke-Node $script:CoreJs $coreArgs $timeoutMs
+function Invoke-CoreJson([string[]]$coreArgs, [int]$timeoutMs, [scriptblock]$onSlow = $null) {
+    $out = Invoke-Node $script:CoreJs $coreArgs $timeoutMs $onSlow
     if (-not $out) { return $null }
     try { return ($out | ConvertFrom-Json) } catch { Write-Log ("core bad json: " + $out.Substring(0, [Math]::Min(300, $out.Length))); return $null }
 }
@@ -300,6 +309,7 @@ function Show-Popup($r, $cap) {
         $sep = '  ' + [char]0xB7 + '  '   # middle dot; keep this file ASCII-only
         $y += (New-Label $f ($line2 -join $sep) $pad $y ($W - 2 * $pad) $script:FontSmall $script:Muted).Height + 1
         if ($r.tip) { $y += (New-Label $f ([string]$ui.tip + ': ' + $r.tip) $pad $y ($W - 2 * $pad) $script:FontSmall $script:Muted).Height + 6 } else { $y += 6 }
+        if ($r.spellText) { $y += (New-Label $f ([string]$ui.spellFixed + ': ' + $r.spellText) $pad $y ($W - 2 * $pad) $script:FontSmall ([System.Drawing.Color]::FromArgb(120, 220, 140))).Height + 6 }
 
         $btnW = 128; $boxX = $pad + $btnW + 10; $boxW = $W - $pad - $boxX
         foreach ($v in $r.versions) {
@@ -376,8 +386,11 @@ function On-Hotkey {
         $req = @{ text = [string]$cap.Text; source = [string]$cap.Title; origin = $cap.Origin }
         $reqPath = Join-Path $script:TmpDir 'req.json'
         Write-Json $reqPath $req
-        $res = Invoke-CoreJson @('--req', $reqPath) 30000
+        $script:SlowMsg = [string]$script:UI.slowWait
+        if (-not $script:SlowMsg) { $script:SlowMsg = 'System is busy; waiting for the engine (up to 90 s)...' }
+        $res = Invoke-CoreJson @('--req', $reqPath) 90000 { $script:Notify.ShowBalloonTip(5000, 'PromptGate', $script:SlowMsg, [System.Windows.Forms.ToolTipIcon]::Info) }
         if (-not $res) { $script:Notify.ShowBalloonTip(4000, 'PromptGate', [string]$script:UI.engineFail, [System.Windows.Forms.ToolTipIcon]::Error); return }
+        if ($res.spellText) { Write-Log ("spelling fixed in popup: " + @($res.spellText -split ', ').Count + " fix(es)") }
         Show-Popup $res $cap
     } catch {
         Write-Log "hotkey handler error: $_"
