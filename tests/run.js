@@ -67,6 +67,37 @@ check('"thanks so much" removed from goal', !/so much/i.test(E.cleanFiller('Make
 check('leading "Ok," removed from goal', E.cleanFiller('Ok, sửa lỗi đăng nhập trong auth.js giúp tôi nhé').startsWith('Sửa'), E.cleanFiller('Ok, sửa lỗi đăng nhập trong auth.js giúp tôi nhé'));
 check('"Okay" in English removed too', E.cleanFiller('Okay, fix the login bug in auth.js').startsWith('Fix'), E.cleanFiller('Okay, fix the login bug in auth.js'));
 
+console.log('spelling (all editions share cleanFiller)');
+const S = require(path.join(ROOT, 'scripts/lib/spell.js'));
+check('EN typos fixed', E.cleanFiller('teh app doesnt recieve the the adress') === 'The app doesn\'t receive the address', E.cleanFiller('teh app doesnt recieve the the adress'));
+check('EN case kept (Seperate → Separate, DEFINATELY → DEFINITELY)', S.fixSpelling('Seperate and DEFINATELY') === 'Separate and DEFINITELY', S.fixSpelling('Seperate and DEFINATELY'));
+check('EN "i"/"im" → "I"/"I\'m" in English text', S.fixSpelling('i think im done') === 'I think I\'m done', S.fixSpelling('i think im done'));
+check('VI typos and shorthand fixed', S.fixSpelling('sữa lổi đăng nhập ko dc, xãy ra nhửng dử liệu sai') === 'sửa lỗi đăng nhập không được, xảy ra những dữ liệu sai', S.fixSpelling('sữa lổi đăng nhập ko dc, xãy ra nhửng dử liệu sai'));
+check('VI reduplication kept (từ từ, rất rất)', S.fixSpelling('làm từ từ, rất rất kỹ') === 'làm từ từ, rất rất kỹ');
+check('code, paths, URLs untouched', S.fixSpelling('fix `teh` in src/teh.js and https://x.io/recieve teh') === 'fix `teh` in src/teh.js and https://x.io/recieve the', S.fixSpelling('fix `teh` in src/teh.js and https://x.io/recieve teh'));
+check('"i" untouched in Vietnamese text', S.fixSpelling('biến i trong vòng lặp') === 'biến i trong vòng lặp');
+check('product name fixed', S.fixSpelling('Promtgate và prmotgate lỗi') === 'PromptGate và PromptGate lỗi', S.fixSpelling('Promtgate và prmotgate lỗi'));
+// Colin's real typos (_handoff/lessons.md, 26/11/2026): all six were left unchanged before
+[
+  ['kiểu Promt mới này', 'kiểu Prompt mới này'],
+  ['các Promt cho TQC', 'các Prompt cho TQC'],
+  ['Cho Promgate học luôn', 'Cho PromptGate học luôn'],
+  ['sàn lọc kỹ', 'sàng lọc kỹ'],
+  ['Đã sưả', 'Đã sửa'],
+  ['YTooi không tìm thấy', 'Tôi không tìm thấy'],
+].forEach(([typed, want]) => check(`real typo: "${typed}" → "${want}"`, S.fixSpelling(typed) === want, S.fixSpelling(typed)));
+// the new rules must not touch valid words: qu-/gi- syllables, English words with double letters, valid floor "sàn"
+[
+  'quả cam và giả sử đúng',
+  'đặt phòng room 1205 có view đẹp, book trước',
+  'good food, see you in the pool',
+  'lau sàn nhà sạch',
+  'của mùa chùa địa',
+  'Mình đã sửa xong',
+].forEach((ok) => check(`no false fix: "${ok}"`, S.fixSpelling(ok) === ok, S.fixSpelling(ok)));
+check('misplaced tone mark moved in common words (cuả, muà, điạ)', S.fixSpelling('cuả muà điạ chỉ') === 'của mùa địa chỉ', S.fixSpelling('cuả muà điạ chỉ'));
+check('tone normalisation off in English text', S.fixSpelling('Qua the Tooi') === 'Qua the Tooi', S.fixSpelling('Qua the Tooi'));
+
 console.log('rewrite');
 const a1 = E.analyze('Bạn ơi giúp tôi sửa lỗi app với, nó không chạy', { pack });
 const r1 = E.rewrite('Bạn ơi giúp tôi sửa lỗi app với, nó không chạy', a1, pack, t('vi'));
@@ -85,6 +116,76 @@ check('writing context placeholder is type-aware', E.rewrite('write me an email 
 const fuA = E.analyze('Duyệt rồi, hãy render MP4 cho trailer.', { pack, followUp: true });
 const coldA = E.analyze('Duyệt rồi, hãy render MP4 cho trailer.', { pack });
 check(`follow-up scores higher than cold (${fuA.score} > ${coldA.score})`, fuA.score > coldA.score);
+
+console.log('handoff: multi-session cue, block and session boot (SPEC-handoff-structure)');
+const HV_PATH = 'D:\\PERSONAL\\The Quiet Concierge';
+const HV = 'làm tiếp phần TQC hôm qua trong ' + HV_PATH;
+const hvA = E.analyze(HV, { pack });
+check('multi-session cue + drive path → handoff needed', !!hvA.handoff && hvA.handoff.needed === true, JSON.stringify(hvA.handoff));
+check('handoff path is the drive path exactly', !!hvA.handoff && hvA.handoff.path === HV_PATH, hvA.handoff && hvA.handoff.path);
+check('HANDOFF.md not named yet → not present', !!hvA.handoff && hvA.handoff.present === false);
+check('one-off prompt → handoff not needed', E.analyze('Viết email cảm ơn khách hàng đã đặt phòng', { pack }).handoff.needed === false);
+check('"continuous" does not trigger the cue "continue"', E.analyze('Viết một đoạn về continuous integration', { pack }).handoff.needed === false);
+check('EN cue "overnight" → needed', E.analyze('Continue the TQC posts overnight and report back', { pack }).handoff.needed === true);
+check('"./" path alone → needed', E.analyze('Kiểm tra lỗi trong ./src/app.js giúp tôi nhé', { pack }).handoff.needed === true);
+const hvP = E.analyze('làm tiếp theo HANDOFF.md và GOAL.md trong ' + HV_PATH, { pack });
+check('prompt naming HANDOFF.md → present (no second block)', hvP.handoff.needed === true && hvP.handoff.present === true);
+check('handoff switch off → never needed', E.analyze(HV, { pack, handoff: false }).handoff.needed === false);
+const hbVi = E.handoffBlock(t('vi'), HV_PATH).split('\n');
+check('VI block is 6 lines, folder in line 1, HANDOFF.md in the stop rules', hbVi.length === 6 && hbVi[0].includes(HV_PATH) && /HANDOFF\.md/.test(hbVi[3]), hbVi.length + ' lines');
+check('block without a path falls back to <thư mục dự án>', E.handoffBlock(t('vi'), '').includes('<thư mục dự án>'));
+const hbEn = E.handoffBlock(t('en'), '').split('\n');
+check('EN block is 6 lines and names GOAL.md, lessons.md, HANDOFF.md', hbEn.length === 6 && /GOAL\.md/.test(hbEn[1]) && /lessons\.md/.test(hbEn[1]) && /HANDOFF\.md/.test(hbEn[1]));
+check('tipFor adds a handoff tip when needed and not present', E.tipFor(hvA, t('vi')).includes('HANDOFF.md'), E.tipFor(hvA, t('vi')));
+
+const makeCfg = (cfgObj) => {
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), 'pg-cfg-'));
+  if (cfgObj) { fs.mkdirSync(path.join(d, 'promptgate'), { recursive: true }); fs.writeFileSync(path.join(d, 'promptgate', 'config.json'), JSON.stringify(cfgObj)); }
+  return d;
+};
+const hookIn = (cfgDir, prompt, sid) => {
+  const input = { session_id: sid, cwd: cfgDir, hook_event_name: 'UserPromptSubmit', prompt };
+  const env = Object.assign({}, process.env, { CLAUDE_CONFIG_DIR: cfgDir, CLAUDE_PLUGIN_ROOT: ROOT });
+  const r = spawnSync(process.execPath, [path.join(ROOT, 'scripts/gate.js')], { input: JSON.stringify(input), encoding: 'utf8', env, timeout: 15000 });
+  try { return JSON.parse(r.stdout || '{}'); } catch (_) { return {}; }
+};
+const ctxOf = (o) => ((o && o.hookSpecificOutput) || {}).additionalContext || '';
+const hvSug = hookIn(makeCfg(null), 'làm tiếp phần TQC hôm qua', 'hv-sug');
+check('suggest C carries the handoff block (no path → placeholder)', /AskUserQuestion/.test(ctxOf(hvSug)) && /HANDOFF\.md/.test(ctxOf(hvSug)) && /<thư mục dự án>/.test(ctxOf(hvSug)), ctxOf(hvSug).slice(0, 120));
+const hvOff = hookIn(makeCfg({ handoff: { enabled: false } }), 'làm tiếp phần TQC hôm qua', 'hv-off');
+check('handoff.enabled=false → suggestion still made, no block', /AskUserQuestion/.test(ctxOf(hvOff)) && !/HANDOFF\.md/.test(ctxOf(hvOff)));
+const hvOne = hookIn(makeCfg(null), 'làm cho tôi cái này tốt hơn đi bạn ơi nhé', 'hv-one');
+check('one-off weak prompt → suggestion without the block', /AskUserQuestion/.test(ctxOf(hvOne)) && !/HANDOFF\.md/.test(ctxOf(hvOne)));
+
+const SB = path.join(ROOT, 'scripts/session-boot.js');
+const tmpDir = (files) => {
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), 'pg-boot-'));
+  for (const [rel, body] of Object.entries(files || {})) { fs.mkdirSync(path.dirname(path.join(d, rel)), { recursive: true }); fs.writeFileSync(path.join(d, rel), body); }
+  return d;
+};
+function boot(cwd, extraEnv, cfgObj) {
+  const env = Object.assign({}, process.env, { CLAUDE_CONFIG_DIR: makeCfg(cfgObj), CLAUDE_PLUGIN_ROOT: ROOT }, extraEnv || {});
+  if (!extraEnv || !('CLAUDE_PROJECT_DIR' in extraEnv)) delete env.CLAUDE_PROJECT_DIR;
+  const r = spawnSync(process.execPath, [SB], { input: JSON.stringify({ hook_event_name: 'SessionStart', source: 'startup', session_id: 'boot', cwd }), encoding: 'utf8', env, timeout: 15000 });
+  let o = {}; try { o = JSON.parse(r.stdout || '{}'); } catch (_) { o = { parseError: r.stdout }; }
+  return { o, status: r.status, stdout: r.stdout || '' };
+}
+const bootOn = tmpDir({ 'HANDOFF.md': '# HANDOFF · demo\nĐANG CHẠY: không\n', 'GOAL.md': '# GOAL · demo\n', 'lessons.md': '# lessons\n' });
+const b1 = boot(bootOn);
+const ctx1 = ctxOf(b1.o);
+check('SessionStart: folder with HANDOFF.md → hookSpecificOutput.additionalContext', b1.status === 0 && !!b1.o.hookSpecificOutput && b1.o.hookSpecificOutput.hookEventName === 'SessionStart' && ctx1.length > 200, b1.stdout.slice(0, 160));
+check('SessionStart: context gives the read order and the stop rules', /GOAL\.md → lessons\.md → HANDOFF\.md/.test(ctx1) && /Không sửa GOAL\.md/.test(ctx1) && /XONG · ĐANG MỞ/.test(ctx1));
+check('SessionStart: context shows the ĐANG CHẠY status as data', /ĐANG CHẠY: không/.test(ctx1));
+check('SessionStart: context stays under the 10,000-char hook cap', ctx1.length < 9000, String(ctx1.length));
+check('SessionStart: folder without handoff files → {} (silent)', Object.keys(boot(tmpDir({ 'README.md': 'x' })).o).length === 0);
+check('SessionStart: finds the files in _handoff/', ctxOf(boot(tmpDir({ '_handoff/HANDOFF.md': 'ĐANG CHẠY: không\n' })).o).includes('_handoff'));
+check('SessionStart: CLAUDE_PROJECT_DIR wins over cwd', ctxOf(boot(tmpDir({}), { CLAUDE_PROJECT_DIR: bootOn }).o).length > 200);
+check('SessionStart: handoff.enabled=false → {}', Object.keys(boot(bootOn, null, { handoff: { enabled: false } }).o).length === 0);
+const bootBad = spawnSync(process.execPath, [SB], { input: 'garbage', encoding: 'utf8', cwd: makeCfg(null), env: Object.assign({}, process.env, { CLAUDE_CONFIG_DIR: makeCfg(null), CLAUDE_PLUGIN_ROOT: ROOT }), timeout: 15000 });
+check('SessionStart: garbage stdin fails open', bootBad.status === 0 && bootBad.stdout.trim() === '{}', bootBad.stdout);
+const hooksJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'hooks/hooks.json'), 'utf8'));
+check('hooks.json: SessionStart runs scripts/session-boot.js', JSON.stringify(hooksJson.hooks.SessionStart || []).includes('session-boot.js'));
+check('hooks.json: UserPromptSubmit still runs gate.js', JSON.stringify(hooksJson.hooks.UserPromptSubmit || []).includes('gate.js'));
 
 console.log('hook end-to-end');
 function hook(prompt, extra) {

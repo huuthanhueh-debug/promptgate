@@ -10,6 +10,7 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..', '..');
 const E = require(path.join(ROOT, 'scripts', 'lib', 'engine.js'));
 const L = require(path.join(ROOT, 'scripts', 'lib', 'lexicon.js'));
+const { spellCheck } = require(path.join(ROOT, 'scripts', 'lib', 'spell.js'));
 const { t } = require(path.join(ROOT, 'scripts', 'lib', 'i18n.js'));
 
 const MIN_WORDS = 3;
@@ -42,6 +43,8 @@ const UI = {
     nodeMissing: 'Không tìm thấy node.exe. Cài Node.js 18+ hoặc đặt "tray.node" trong ~/.claude/promptgate/config.json.',
     started: 'Đang chạy. Bôi đen prompt ở bất kỳ app nào rồi nhấn {0}.',
     engineFail: 'Engine không trả lời; xem tray.log trong thư mục dữ liệu.',
+    slowWait: 'Máy đang bận, PromptGate chờ Engine trả lời (tối đa 90 giây)…',
+    spellFixed: 'Chính tả đã sửa',
   },
   en: {
     appName: 'PromptGate',
@@ -69,6 +72,8 @@ const UI = {
     nodeMissing: 'node.exe not found. Install Node.js 18+ or set "tray.node" in ~/.claude/promptgate/config.json.',
     started: 'Running. Select a prompt in any app and press {0}.',
     engineFail: 'Engine did not answer; see tray.log in the data folder.',
+    slowWait: 'System is busy; PromptGate is waiting for the engine (up to 90 s)…',
+    spellFixed: 'Spelling fixed',
   },
 };
 
@@ -165,6 +170,7 @@ function versions(text, a, pack, T, opts) {
   const deep = (isQ ? DEEP[lang].question : DEEP[lang].task).slice();
   if (!isQ && !a.flags.cue) deep[0] = 'Ultrathink. ' + deep[0];
   C.push(...deep);
+  C.push(...E.handoffLines(a, T));
 
   const U = UI[lang];
   return [
@@ -185,7 +191,11 @@ function compose(text, opts) {
   const uiLang = opts.language && opts.language !== 'auto' ? opts.language : (raw ? E.detectLang(raw) : 'vi');
   const U = UI[uiLang] || UI.en;
   if (!raw) return { ok: false, reason: 'empty', lang: uiLang, message: U.empty, ui: strings(uiLang) };
-  if (E.words(raw).length < MIN_WORDS) return { ok: false, reason: 'too_short', lang: uiLang, message: U.tooShort, ui: strings(uiLang) };
+  // Spelling: A/B/C are already fixed (engine.cleanFiller); spellText lists the fixes for the popup line.
+  const sc = spellCheck(raw);
+  const spelled = sc.text !== raw ? sc.text : '';
+  const spellText = sc.fixes.map((f) => `${f.from} → ${f.to}`).join(', ');
+  if (E.words(raw).length < MIN_WORDS) return { ok: false, reason: 'too_short', lang: uiLang, message: U.tooShort, ui: strings(uiLang), spelled };
 
   const a = E.analyze(raw, { pack, language: opts.language });
   const T = t(a.lang);
@@ -207,7 +217,9 @@ function compose(text, opts) {
     viaLlm: false,
     source: opts.source || '',
     origin: opts.origin || '',
+    spelled, spellText,
     ui: strings(a.lang),
+    handoff: a.handoff,
     analysis: opts.includeAnalysis ? a : undefined,
   };
 }
@@ -219,7 +231,7 @@ function applyLlm(result, rewritten) {
   const lang = result.lang === 'vi' ? 'vi' : 'en';
   const deep = (result.type === 'question' ? DEEP[lang].question : DEEP[lang].task).slice();
   if (result.type !== 'question' && !/ultrathink/i.test(s)) deep[0] = 'Ultrathink. ' + deep[0];
-  result.versions = result.versions.map((v) => (v.id === 'B' ? Object.assign({}, v, { text: s }) : v.id === 'C' ? Object.assign({}, v, { text: s + '\n' + deep.join('\n') }) : v));
+  result.versions = result.versions.map((v) => (v.id === 'B' ? Object.assign({}, v, { text: s }) : v.id === 'C' ? Object.assign({}, v, { text: [s, ...deep, ...E.handoffLines({ handoff: result.handoff }, t(lang))].join('\n') }) : v));
   result.viaLlm = true;
   return result;
 }

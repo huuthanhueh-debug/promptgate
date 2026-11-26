@@ -122,6 +122,7 @@ function variants(text, opts, ctx) {
   const standard = fillLines(E.rewrite(trimmed, a2, PACK, T).split('\n'), T, lang, ctxText);
   const deep = standard.slice();
   if (!deep.includes(T.deepLine)) deep.push(T.deepLine);
+  deep.push(...E.handoffLines(a, T));
 
   const rec = depth === 'deep' ? 'C' : depth === 'light' ? 'A' : 'B';
   return { A: lean.join('\n'), B: standard.join('\n'), C: deep.join('\n'), rec, depth, ev };

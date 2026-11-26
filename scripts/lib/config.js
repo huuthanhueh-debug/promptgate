@@ -32,6 +32,7 @@ const DEFAULTS = {
   inject: true,            // additionalContext for deep tasks in the mid band
   llmModel: 'haiku',
   llmTimeoutMs: 20000,
+  handoff: { enabled: true },  // SPEC-handoff-structure: multi-session cue, block, SessionStart boot
 };
 
 function ensureHome() { try { fs.mkdirSync(HOME, { recursive: true }); } catch (_) {} }

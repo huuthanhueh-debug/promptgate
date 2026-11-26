@@ -53,6 +53,13 @@ check('rec is one of A/B/C and matches depth', ['A', 'B', 'C'].includes(r.rec) &
 check('ui strings are serializable VI (no functions)', r.ui && r.ui.menu && r.ui.menu.quit === 'Thoát' && Object.values(r.ui).every((v) => typeof v !== 'function'));
 check('ui templates carry {0} for the host', /\{0\}/.test(r.ui.copied) && /\{0\}/.test(r.ui.trayOn) && /\{0\}/.test(r.ui.started));
 check('origin echoed back', r.origin === 'selection');
+check('slowWait text exists in VI and EN (host shows it while the engine is slow)', [r.ui.slowWait, C.strings('en').slowWait].every((s) => typeof s === 'string' && s.length > 10));
+check('compose returns spelled (fixed text) when the selection has typos', C.compose('khi nhất tổ hợp phím thì sữa lổi ko dc', { pack }).spelled === 'khi nhấn tổ hợp phím thì sửa lỗi không được', C.compose('khi nhất tổ hợp phím thì sữa lổi ko dc', { pack }).spelled);
+check('spelled is empty when nothing to fix; short text still gets it', C.compose('sửa lỗi đăng nhập trong app', { pack }).spelled === '' && C.compose('ko dc', { pack }).spelled === 'không được');
+r = C.compose('Vẫn chưa được - Khi bôi đăn nhấn tổ hợp phím thì sửa trong popup nhé', { pack });
+check('popup lists the fixes (spellText) and A/B/C carry the fixed words', r.spellText === 'bôi đăn → bôi đen' && r.versions.every((v) => v.text.includes('bôi đen') && !v.text.includes('bôi đăn')), r.spellText);
+check('spellFixed popup text in VI and EN', [C.strings('vi').spellFixed, C.strings('en').spellFixed].every((s) => typeof s === 'string' && s.length > 10));
+check('PromptGate.ps1 stays pure ASCII (PowerShell 5.1 reads it as ANSI)', !fs.readFileSync(path.join(ROOT, 'tray', 'PromptGate.ps1')).some((b) => b > 127));
 
 console.log('composer: context filled from the text and the source window');
 const withRefs = 'Sửa lỗi đăng nhập trong hrfsvt-app/server/auth.js, nó báo TypeError: cannot read properties of undefined';
@@ -153,6 +160,12 @@ p = core(['fix this please thanks a lot']);
 check('plain text argument prints a text block', p.status === 0 && /\/100/.test(p.stdout) && /── A · Lean ──/.test(p.stdout));
 p = spawnSync(process.execPath, [path.join(ROOT, 'tray/core.js')], { input: weakVi, encoding: 'utf8', env: process.env, timeout: 20000 });
 check('stdin text prints a text block', p.status === 0 && /── A · /.test(p.stdout));
+
+console.log('handoff block in version C (SPEC §4)');
+const hvTrayC = C.compose('làm tiếp phần TQC hôm qua trong D:\\PERSONAL\\The Quiet Concierge', { pack });
+check('tray: C carries the handoff block (multi-session, no HANDOFF.md named)', /HANDOFF\.md/.test(byId(hvTrayC, 'C')) && byId(hvTrayC, 'C').includes('D:\\PERSONAL\\The Quiet Concierge'), byId(hvTrayC, 'C').slice(-200));
+check('tray: A and B do not get the block', !/HANDOFF/.test(byId(hvTrayC, 'A')) && !/HANDOFF/.test(byId(hvTrayC, 'B')));
+check('tray: one-off prompt → C has no block', !/HANDOFF/.test(byId(C.compose('Viết email cảm ơn khách hàng đã đặt phòng', { pack }), 'C')));
 
 console.log('perf');
 const t0 = Date.now(); for (let i = 0; i < 300; i++) C.compose(withRefs, { pack, source: 'auth.js - Code' }); const ms = (Date.now() - t0) / 300;
